@@ -1,2 +1,5 @@
 .idea
 .DS_Store
+*.iml
+russell/target
+MySqlCred.json
