@@ -3,7 +3,7 @@ package com.rrdinsights.russell.driver
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.application.{GameLogDownloader, PlayByPlayDownloader, RosterDownloader}
+import com.rrdinsights.russell.application.{AdvancedBoxScoreDownloader, GameLogDownloader, PlayByPlayDownloader, RosterDownloader}
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
@@ -31,6 +31,10 @@ object SeasonStats {
       RosterDownloader.downloadAndWriteAllRosters(season, dt)
     }
 
+    if (args.downloadAdvancedBoxscore) {
+      AdvancedBoxScoreDownloader.downloadAndWriteAllAdvancedBoxScores(gameLogs, season, dt)
+    }
+
   }
 
 }
@@ -42,12 +46,15 @@ private final class SeasonStatsArguments private(args: Array[String])
     .addOption(SeasonStatsArguments.GameLogOption)
     .addOption(SeasonStatsArguments.PlayByPlayOption)
     .addOption(SeasonStatsArguments.RosterOption)
+    .addOption(SeasonStatsArguments.AdvacnedBoxScoreOption)
 
   def downloadGameLog: Boolean = has(SeasonStatsArguments.GameLogOption)
 
   def downloadPlayByPlay: Boolean = has(SeasonStatsArguments.PlayByPlayOption)
 
   def downloadRosters: Boolean = has(SeasonStatsArguments.RosterOption)
+
+  def downloadAdvancedBoxscore: Boolean = has(SeasonStatsArguments.AdvacnedBoxScoreOption)
 
 }
 
@@ -61,6 +68,9 @@ private object SeasonStatsArguments {
 
   val RosterOption: cli.Option =
     new cli.Option(null, "roster", false, "Download and store all rosters for a given season")
+
+  val AdvacnedBoxScoreOption: cli.Option =
+    new cli.Option(null, "advanced-box-score", false, "Download and store all advanced box scores for a given season")
 
   def apply(args: Array[String]): SeasonStatsArguments = new SeasonStatsArguments(args)
 }

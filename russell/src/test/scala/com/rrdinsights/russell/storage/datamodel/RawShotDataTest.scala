@@ -12,5 +12,8 @@ final class RawShotDataTest extends TestSpec {
     assert(RawShotData.gameIdToSeason("0021500106") === "2015-16")
     assert(RawShotData.gameIdToSeason("0011600052") === "2016-17")
     assert(RawShotData.gameIdToSeason("0021600782") === "2016-17")
+    assert(RawShotData.gameIdToSeason("0020000001") === "2000-01")
+    assert(RawShotData.gameIdToSeason("0029900001") === "1999-00")
+    assert(RawShotData.gameIdToSeason("0029700001") === "1997-98")
   }
 }

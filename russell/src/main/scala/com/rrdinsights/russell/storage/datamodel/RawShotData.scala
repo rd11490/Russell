@@ -22,6 +22,7 @@ final case class RawShotData(
                               shotZoneBasic: String,
                               shotZoneArea: String,
                               shotZoneRange: String,
+                              shotType: String,
                               shotDistance: jl.Integer,
                               xCoordinate: jl.Integer,
                               yCoordinate: jl.Integer,
@@ -35,7 +36,7 @@ final case class RawShotData(
 
 object RawShotData extends ResultSetMapper {
   def apply(shot: Shot, season: String, dt: String): RawShotData = {
-    val seasonOfShot = if (season != "") season else gameIdToSeason(shot.gameId)
+    val seasonOfShot = if (season != "") season else DataModelUtils.gameIdToSeason(shot.gameId)
     RawShotData(
       s"${shot.gameId}_${shot.gameEventId}_${shot.playerId}",
       shot.gridType,
@@ -53,6 +54,7 @@ object RawShotData extends ResultSetMapper {
       shot.shotZoneBasic,
       shot.shotZoneArea,
       shot.shotZoneRange,
+      shot.shotType,
       shot.shotDistance,
       shot.xCoordinate,
       shot.yCoordinate,
@@ -61,14 +63,8 @@ object RawShotData extends ResultSetMapper {
       shot.gameDate,
       shot.homeTeam,
       shot.awayTeam,
-      season,
+      seasonOfShot,
       dt)
-  }
-
-  private[datamodel] def gameIdToSeason(gameId: String): String = {
-    val year = gameId.substring(3,5)
-    val yearEnd = Integer.valueOf(year)+1
-    s"20$year-$yearEnd"
   }
 
   def apply(resultSet: ResultSet): RawShotData =
@@ -89,14 +85,15 @@ object RawShotData extends ResultSetMapper {
       getString(resultSet, 13),
       getString(resultSet, 14),
       getString(resultSet, 15),
-      getInt(resultSet, 16),
+      getString(resultSet, 16),
       getInt(resultSet, 17),
       getInt(resultSet, 18),
       getInt(resultSet, 19),
       getInt(resultSet, 20),
-      getString(resultSet, 21),
+      getInt(resultSet, 21),
       getString(resultSet, 22),
       getString(resultSet, 23),
       getString(resultSet, 24),
-      getString(resultSet, 25))
+      getString(resultSet, 25),
+      getString(resultSet, 26))
 }

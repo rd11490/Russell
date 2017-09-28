@@ -9,4 +9,7 @@ object NBATables {
   val raw_shot_data: MySqlTable = MySqlTable[RawShotData]("raw_shot_data")
   val roster_player: MySqlTable = MySqlTable[RosterPlayer]("roster_player")
   val roster_coach: MySqlTable = MySqlTable[RosterCoach]("roster_coach")
+  val raw_team_box_score_advanced: MySqlTable = MySqlTable[RawTeamBoxScoreAdvanced]("raw_team_box_score_advanced")
+  val raw_player_box_score_advanced: MySqlTable = MySqlTable[RawPlayerBoxScoreAdvanced]("raw_player_box_score_advanced")
+
 }

@@ -51,7 +51,7 @@ object MySqlClient {
     }
 
   def insertInto[T <: Product](table: MySqlTable, data: Seq[T]): Unit = {
-    data.grouped(10).foreach(insertIntoGrouped(table, _))
+    data.grouped(100).foreach(insertIntoGrouped(table, _))
   }
 
   def insertIntoGrouped[T <: Product](table: MySqlTable, data: Seq[T]): Unit = {
@@ -79,8 +79,11 @@ object MySqlClient {
     Private Methods
    */
 
-  private[storage] def selectTableStatement(table: MySqlTable, whereClauses: String*): String =
-    s"$Select ${toColumnNamesForSelect(table)} $From ${table.name}${if (whereClauses.nonEmpty) whereClauses.mkString(" WHERE ", And, "")}"
+  private[storage] def selectTableStatement(table: MySqlTable, whereClauses: String*): String = {
+    val where = s"$Select ${toColumnNamesForSelect(table)} $From ${table.name}${if (whereClauses.nonEmpty) whereClauses.mkString(" WHERE ", And, "") else ""}"
+    println(where)
+    where
+  }
 
   private[storage] def createTableStatement(name: String, fields: Seq[SqlTypeHolder]): String =
     s"$Create $Table $IfNotExists $name ${createFieldsStatement(fields)}".trim

@@ -3,7 +3,7 @@ package com.rrdinsights.russell.driver
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.application.{RosterDownloader, ShotChartDownloader}
+import com.rrdinsights.russell.application.{AdvancedBoxScoreDownloader, ShotChartDownloader}
 import org.apache.commons.cli
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.storage.MySqlClient
@@ -29,12 +29,12 @@ object PlayerStats {
 
   private def downloadAndWritePlayerStats(season: Option[String], dt: String, playerIds: String*): Unit = {
     val seasonStr = season.getOrElse("")
-    ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, seasonStr, dt)
+    ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, seasonStr)
   }
 
   private def readPlayersFromRosters(season: Option[String]): Seq[String] = {
     val where = season.map(v => Seq(s"Season = '$v'")).getOrElse(Seq.empty)
-    RosterDownloader.readPlayerInfo(where)
+    AdvancedBoxScoreDownloader.readPlayerInfo(where)
       .map(_.playerId.toString)
       .distinct
   }
@@ -45,10 +45,11 @@ private final class PlayerStatsArguments private(args: Array[String])
 
   override protected def options: cli.Options = super.options
     .addOption(PlayerStatsArguments.PlayerIdOption)
+    .addOption(PlayerStatsArguments.ShotDataOption)
 
   def playerId: Option[String] = valueOf(PlayerStatsArguments.PlayerIdOption)
 
-  def downloadShotData: Boolean = has(SeasonStatsArguments.GameLogOption)
+  def downloadShotData: Boolean = has(PlayerStatsArguments.ShotDataOption)
 
 }
 

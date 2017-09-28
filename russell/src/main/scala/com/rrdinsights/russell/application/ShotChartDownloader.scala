@@ -42,6 +42,4 @@ object ShotChartDownloader {
       RawShotData.apply,
       where:_*)
   }
-
-
 }
