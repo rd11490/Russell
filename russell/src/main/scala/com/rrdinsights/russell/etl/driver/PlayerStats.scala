@@ -1,9 +1,9 @@
-package com.rrdinsights.russell.driver
+package com.rrdinsights.russell.etl.driver
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.application.{AdvancedBoxScoreDownloader, ShotChartDownloader}
+import com.rrdinsights.russell.etl.application.{AdvancedBoxScoreDownloader, RosterDownloader, ShotChartDownloader}
 import org.apache.commons.cli
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.storage.MySqlClient
@@ -34,7 +34,7 @@ object PlayerStats {
 
   private def readPlayersFromRosters(season: Option[String]): Seq[String] = {
     val where = season.map(v => Seq(s"Season = '$v'")).getOrElse(Seq.empty)
-    AdvancedBoxScoreDownloader.readPlayerInfo(where)
+    RosterDownloader.readPlayerInfo(where)
       .map(_.playerId.toString)
       .distinct
   }

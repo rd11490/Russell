@@ -1,9 +1,9 @@
-package com.rrdinsights.russell.driver
+package com.rrdinsights.russell.etl.driver
 
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.application.{AdvancedBoxScoreDownloader, GameLogDownloader, PlayByPlayDownloader, RosterDownloader}
+import com.rrdinsights.russell.etl.application.{AdvancedBoxScoreDownloader, GameLogDownloader, PlayByPlayDownloader, RosterDownloader}
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import org.apache.commons.cli
 import org.apache.commons.cli.Options

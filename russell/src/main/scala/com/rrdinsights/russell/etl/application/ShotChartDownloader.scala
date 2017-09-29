@@ -1,4 +1,4 @@
-package com.rrdinsights.russell.application
+package com.rrdinsights.russell.etl.application
 
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.RawShotData

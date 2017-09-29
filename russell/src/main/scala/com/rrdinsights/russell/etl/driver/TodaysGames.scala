@@ -1,4 +1,4 @@
-package com.rrdinsights.russell.driver
+package com.rrdinsights.russell.etl.driver
 
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
