@@ -6,7 +6,7 @@ import com.rrdinsights.scalabrine.ScalabrineClient
 import com.rrdinsights.scalabrine.endpoints.PlayByPlayEndpoint
 import com.rrdinsights.scalabrine.parameters.GameIdParameter
 
-class MySqlClientTest extends TestSpec{
+final class MySqlClientTest extends TestSpec{
   test("create table") {
     //val pbp = ScalabrineClient.getPlayByPlay(PlayByPlayEndpoint(GameIdParameter.newParameterValue("0021600730"))).playByPlay.events
 

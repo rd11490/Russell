@@ -4,4 +4,4 @@
 
 echo $JAR
 
-scala  -J-Xmx8g -cp $JAR com.rrdinsights.russell.driver.PlayerStats "$@"
+scala  -J-Xmx8g -cp $JAR com.rrdinsights.russell.etl.driver.PlayerStats "$@"

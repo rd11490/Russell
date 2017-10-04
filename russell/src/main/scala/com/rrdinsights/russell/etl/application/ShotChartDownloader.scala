@@ -35,7 +35,7 @@ object ShotChartDownloader {
     MySqlClient.insertInto(NBATables.raw_shot_data, shotRecords)
   }
 
-  def readShotData(playerId: Option[String]): Seq[RawShotData] = {
+  def readShotData(playerId: Option[String] = None): Seq[RawShotData] = {
     val where = playerId.map(v => Seq(s"playerId = '$v'")).getOrElse(Seq.empty)
     MySqlClient.selectFrom[RawShotData](
       NBATables.raw_shot_data,
