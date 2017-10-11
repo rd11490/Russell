@@ -1,7 +1,7 @@
 package com.rrdinsights.russell.storage.datamodel
 
 object DataModelUtils {
-  private[datamodel] def gameIdToSeason(gameId: String): String = {
+  def gameIdToSeason(gameId: String): String = {
     val year = gameId.substring(3,5)
     val yearInt = Integer.valueOf(year)
     if (yearInt > 50) { // 1900s games

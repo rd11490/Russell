@@ -1,17 +1,19 @@
 package com.rrdinsights.russell.etl.application
 
-import com.rrdinsights.russell.storage.datamodel.RawShotData
+import com.rrdinsights.russell.storage.MySqlClient
+import com.rrdinsights.russell.storage.datamodel.PlayersOnCourt
+import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.scalabrine.ScalabrineClient
 import com.rrdinsights.scalabrine.endpoints.AdvancedBoxScoreEndpoint
-import com.rrdinsights.scalabrine.parameters.{GameIdParameter, RangeTypeParameter, StartRangeParameter}
+import com.rrdinsights.scalabrine.parameters.{EndRangeParameter, GameIdParameter, RangeTypeParameter, StartRangeParameter}
 
 object PlayersOnCourtDownloader {
 
-  def downloadPlayersOnCourt(gameId: String, time: Int): Seq[(String, String)] = {
+  def downloadPlayersOnCourt(gameId: String, time: Int): Seq[(Integer, Integer)] = {
     val gameIdParameter = GameIdParameter.newParameterValue(gameId)
     val rangeType = RangeTypeParameter.newParameterValue("2")
     val startRange = StartRangeParameter.newParameterValue((time - 1).toString)
-    val endRange = StartRangeParameter.newParameterValue(time.toString)
+    val endRange = EndRangeParameter.newParameterValue(time.toString)
 
     val endpoint = AdvancedBoxScoreEndpoint(
       gameId = gameIdParameter,
@@ -23,20 +25,14 @@ object PlayersOnCourtDownloader {
       .getAdvancedBoxScore(endpoint)
       .boxScoreAdvanced
       .playerStats
-      .map(v => (v.playerId.toString, v.teamId.toString))
+      .map(v => (v.playerId, v.teamId))
+      .sortBy(v => (v._2, v._1))
   }
 
-  def downloadPlayersOnCourtDurringShot(rawShotData: RawShotData): Unit = {
-    val gameId = rawShotData.gameId
-    val time = timeFromStartOfGame(rawShotData) * 10
-
-    downloadPlayersOnCourt(gameId, time)
-  }
-
-  private[application] def timeFromStartOfGame(rawShotData: RawShotData): Int = {
-    val previousPeriods = periodToMinutesPlayed(rawShotData.period) * 60
-    val minutesElapsedThisPeriod = (minutesInPeriod(rawShotData.period) - rawShotData.minutesRemaining - 1) * 60
-    val secondsElapsed = 60 - rawShotData.secondsRemaining
+  def timeFromStartOfGame(period: Int, minutesRemaining: Int, secondsRemaining: Int): Int = {
+    val previousPeriods = periodToMinutesPlayed(period) * 60
+    val minutesElapsedThisPeriod = (minutesInPeriod(period) - minutesRemaining - 1) * 60
+    val secondsElapsed = 60 - secondsRemaining
 
     previousPeriods + minutesElapsedThisPeriod + secondsElapsed
   }
@@ -54,4 +50,9 @@ object PlayersOnCourtDownloader {
     } else {
       12
     }
+
+  def writePlayersOnCourt(players: Seq[PlayersOnCourt]): Unit = {
+    MySqlClient.createTable(NBATables.players_on_court)
+    MySqlClient.insertInto(NBATables.players_on_court, players)
+  }
 }

@@ -1,7 +1,6 @@
 package com.rrdinsights.russell.etl.application
 
 import com.rrdinsights.russell.TestSpec
-import com.rrdinsights.russell.storage.datamodel.RawShotData
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -29,14 +28,11 @@ final class PlayerOnCourtDownloaderTest extends TestSpec {
   }
 
   test("timeFromStartOfGame") {
-    assert(PlayersOnCourtDownloader.timeFromStartOfGame(buildRawShotData(1, 12, 0)) === 0)
-    assert(PlayersOnCourtDownloader.timeFromStartOfGame(buildRawShotData(1, 11, 59)) === 1)
-    assert(PlayersOnCourtDownloader.timeFromStartOfGame(buildRawShotData(1, 11, 50)) === 10)
-    assert(PlayersOnCourtDownloader.timeFromStartOfGame(buildRawShotData(1, 5, 30)) === 390)
-    assert(PlayersOnCourtDownloader.timeFromStartOfGame(buildRawShotData(5, 4, 30)) === 2910)
+    assert(PlayersOnCourtDownloader.timeFromStartOfGame(1, 12, 0) === 0)
+    assert(PlayersOnCourtDownloader.timeFromStartOfGame(1, 0, 0) === 720)
+    assert(PlayersOnCourtDownloader.timeFromStartOfGame(1, 11, 59) === 1)
+    assert(PlayersOnCourtDownloader.timeFromStartOfGame(1, 11, 50) === 10)
+    assert(PlayersOnCourtDownloader.timeFromStartOfGame(1, 5, 30) === 390)
+    assert(PlayersOnCourtDownloader.timeFromStartOfGame(5, 4, 30) === 2910)
   }
-
-  private def buildRawShotData(period: Int, minutesRemaining: Int, secondsRemaining: Int): RawShotData =
-    RawShotData(null, null, null, null, null, null, null, null, period, minutesRemaining = minutesRemaining, secondsRemaining = secondsRemaining, null,
-      null, null, null, null, null, null, null, null, null, null, null, null, null, null, null)
 }
