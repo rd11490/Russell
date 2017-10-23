@@ -3,7 +3,7 @@ package com.rrdinsights.russell.etl.driver
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.etl.application.{AdvancedBoxScoreDownloader, GameLogDownloader, PlayByPlayDownloader, RosterDownloader}
+import com.rrdinsights.russell.etl.application._
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
@@ -35,6 +35,10 @@ object SeasonStats {
       AdvancedBoxScoreDownloader.downloadAndWriteAllAdvancedBoxScores(gameLogs, season, dt)
     }
 
+    if (args.downloadGameSummaries) {
+      BoxScoreSummaryDownloader.downloadAndWriteAllBoxScoreSummaries(gameLogs, dt, args.season)
+    }
+
   }
 
 }
@@ -47,6 +51,7 @@ private final class SeasonStatsArguments private(args: Array[String])
     .addOption(SeasonStatsArguments.PlayByPlayOption)
     .addOption(SeasonStatsArguments.RosterOption)
     .addOption(SeasonStatsArguments.AdvacnedBoxScoreOption)
+    .addOption(SeasonStatsArguments.GameSummaries)
 
   def downloadGameLog: Boolean = has(SeasonStatsArguments.GameLogOption)
 
@@ -55,6 +60,8 @@ private final class SeasonStatsArguments private(args: Array[String])
   def downloadRosters: Boolean = has(SeasonStatsArguments.RosterOption)
 
   def downloadAdvancedBoxscore: Boolean = has(SeasonStatsArguments.AdvacnedBoxScoreOption)
+
+  def downloadGameSummaries: Boolean = has(SeasonStatsArguments.GameSummaries)
 
 }
 
@@ -71,6 +78,10 @@ private object SeasonStatsArguments {
 
   val AdvacnedBoxScoreOption: cli.Option =
     new cli.Option(null, "advanced-box-score", false, "Download and store all advanced box scores for a given season")
+
+  val GameSummaries: cli.Option =
+    new cli.Option(null, "game-summary", false, "Download and store all game summaries for a given season")
+
 
   def apply(args: Array[String]): SeasonStatsArguments = new SeasonStatsArguments(args)
 }
