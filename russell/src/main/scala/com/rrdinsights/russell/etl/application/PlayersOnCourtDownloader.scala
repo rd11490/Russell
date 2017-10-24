@@ -37,6 +37,9 @@ object PlayersOnCourtDownloader {
     previousPeriods + minutesElapsedThisPeriod + secondsElapsed
   }
 
+  def timeFromStartOfGameAtPeriod(period: Int): Int =
+    timeFromStartOfGame(period, minutesInPeriod(period), 50)
+
   private[application] def periodToMinutesPlayed(period: Int): Int =
     if (period > 4) {
       (4 * 12) + ((period - 5) * 5)

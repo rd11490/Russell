@@ -57,10 +57,24 @@ object BoxScoreSummaryDownloader {
     MySqlClient.insertInto(NBATables.raw_game_summary, Seq(rawGameSummary))
   }
 
+  def readGameSummary(whereClauses: String*): Seq[RawGameSummary] = {
+    MySqlClient.selectFrom[RawGameSummary](
+      NBATables.raw_game_summary,
+      RawGameSummary.apply,
+      whereClauses:_*)
+  }
+
   private def writeGameInfo(info: GameInfo, gameId: String, dt: String, season: Option[String]): Unit = {
     val rawGameInfo = RawGameInfo(info, gameId, dt, season)
     MySqlClient.createTable(NBATables.raw_game_info)
     MySqlClient.insertInto(NBATables.raw_game_info, Seq(rawGameInfo))
+  }
+
+  def readGameInfo(whereClauses: String*): Seq[RawGameInfo] = {
+    MySqlClient.selectFrom[RawGameInfo](
+      NBATables.raw_game_info,
+      RawGameInfo.apply,
+      whereClauses:_*)
   }
 
   private def writeScoreLines(scoreLines: Seq[ScoreLine], dt: String, season: Option[String]): Unit = {

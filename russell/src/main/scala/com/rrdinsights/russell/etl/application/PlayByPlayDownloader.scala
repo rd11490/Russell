@@ -45,10 +45,10 @@ object PlayByPlayDownloader {
     MySqlClient.insertInto(NBATables.raw_play_by_play, gameRecords)
   }
 
-  def readPlayByPlay(season: String): Seq[RawPlayByPlayEvent] = {
+  def readPlayByPlay(where: String*): Seq[RawPlayByPlayEvent] = {
     MySqlClient.selectFrom[RawPlayByPlayEvent](
       NBATables.raw_play_by_play,
       RawPlayByPlayEvent.apply,
-      s"Season = '$season'")
+      where:_ *)
   }
 }
