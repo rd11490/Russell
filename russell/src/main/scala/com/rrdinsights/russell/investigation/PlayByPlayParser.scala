@@ -7,26 +7,49 @@ import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, Pl
 import scala.collection.mutable
 import scala.collection.mutable.ArrayBuffer
 
-final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt: Seq[PlayersOnCourt]) {
+final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt: Seq[PlayersOnCourt], dt: String) {
 
-  private var currentPlayersOnCourt: PlayersOnCourtSimple = playersOnCourt
-    .find(_.eventNumber == 1)
-    .map(v => PlayersOnCourtSimple(v))
-    .getOrElse(throw new NoSuchElementException(s"No Lineup for the start of game ${playByPlay.head.gameId} exists"))
+  private var currentPlayersOnCourt: PlayersOnCourtSimple = PlayByPlayParser.extractPlayersOnCourt(playersOnCourt, 1)
 
-
-  def run(): Seq[PlayersOnCourt] = {
+  def run(): Seq[PlayersOnCourt] =
     PlayByPlayParser.properlySortPlayByPlay(playByPlay)
-      .map()
-
-    playersOnCourt
-  }
-
+      .map(convertPlayByPlayToCurrentPlayersOnCourt)
 
 
   def convertPlayByPlayToCurrentPlayersOnCourt(playByPlay: RawPlayByPlayEvent): PlayersOnCourt = {
+    val playType = PlayByPlayEventMessageType.valueOf(playByPlay.playType)
+    if (playType == PlayByPlayEventMessageType.Substitution) {
+      
+    } else if (playType == PlayByPlayEventMessageType.StartOfPeriod) {
+      currentPlayersOnCourt = PlayByPlayParser.extractPlayersOnCourt(playersOnCourt, playByPlay.eventNumber)
 
-    
+    }
+
+    convertPlayersOnCourtSimpleToPlayersOnCourt(currentPlayersOnCourt, playByPlay)
+  }
+
+  private def convertPlayersOnCourtSimpleToPlayersOnCourt(playersOnCourtSimple: PlayersOnCourtSimple, playByPlay: RawPlayByPlayEvent): PlayersOnCourt = {
+    val sortedTeam1Players = playersOnCourtSimple.team1Players.sorted
+    val sortedTeam2Players = playersOnCourtSimple.team2Players.sorted
+
+    PlayersOnCourt(
+      s"${playByPlay.gameId}_${playByPlay.eventNumber}",
+      playByPlay.gameId,
+      playByPlay.eventNumber,
+      playersOnCourtSimple.teamId1,
+      sortedTeam1Players.head,
+      sortedTeam1Players(1),
+      sortedTeam1Players(2),
+      sortedTeam1Players(3),
+      sortedTeam1Players(4),
+      playersOnCourtSimple.teamId2,
+      sortedTeam2Players.head,
+      sortedTeam2Players(1),
+      sortedTeam2Players(2),
+      sortedTeam2Players(3),
+      sortedTeam2Players(4),
+      dt,
+      playByPlay.season)
   }
 
 }
@@ -56,6 +79,13 @@ private[investigation] object PlayByPlayParser {
     }
     (pbpFixed zip pbp).map(v => v._1.copy(eventNumber = v._2.eventNumber))
   }
+
+  def extractPlayersOnCourt(playersOnCourt: Seq[PlayersOnCourt], period: Int) =
+    playersOnCourt
+      .find(_.eventNumber == period)
+      .map(v => PlayersOnCourtSimple(v))
+      .getOrElse(throw new NoSuchElementException(s"No Lineup for the start of game ${playersOnCourt.head.gameId} exists"))
+
 }
 
 private case class PlayersOnCourtSimple(
