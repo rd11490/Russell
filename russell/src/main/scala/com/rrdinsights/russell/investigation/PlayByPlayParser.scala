@@ -19,10 +19,19 @@ final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt
   def convertPlayByPlayToCurrentPlayersOnCourt(playByPlay: RawPlayByPlayEvent): PlayersOnCourt = {
     val playType = PlayByPlayEventMessageType.valueOf(playByPlay.playType)
     if (playType == PlayByPlayEventMessageType.Substitution) {
-      
+      // PLAYER1 OUT PLAYER2 IN
+
+      if (playByPlay.player1TeamId == currentPlayersOnCourt.teamId1) {
+        val players = currentPlayersOnCourt.team1Players
+        val newPlayers = players.map(v => if (v == playByPlay.player1Id) playByPlay.player2Id else v)
+        currentPlayersOnCourt = currentPlayersOnCourt.copy(team1Players = newPlayers)
+      } else {
+        val players = currentPlayersOnCourt.team2Players
+        val newPlayers = players.map(v => if (v == playByPlay.player1Id) playByPlay.player2Id else v)
+        currentPlayersOnCourt = currentPlayersOnCourt.copy(team2Players = newPlayers)
+      }
     } else if (playType == PlayByPlayEventMessageType.StartOfPeriod) {
       currentPlayersOnCourt = PlayByPlayParser.extractPlayersOnCourt(playersOnCourt, playByPlay.eventNumber)
-
     }
 
     convertPlayersOnCourtSimpleToPlayersOnCourt(currentPlayersOnCourt, playByPlay)
