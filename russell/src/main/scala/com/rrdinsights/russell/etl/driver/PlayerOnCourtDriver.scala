@@ -13,7 +13,7 @@ object PlayerOnCourtDriver {
 
   def main(strings: Array[String]): Unit = {
     val dt = LocalDateTime.now().format(Formatter)
-    val args = PlayerOnCourtArguments(args)
+    val args = PlayerOnCourtArguments(strings)
     downloadAndWritePlayerOnCourtForShots(dt, args.season)
   }
 
@@ -26,9 +26,18 @@ object PlayerOnCourtDriver {
     val playByPlay = PlayByPlayDownloader.readPlayByPlay(where:_ *)
       .groupBy(_.gameId)
 
+    val joinedPlayByPlayData = joinPlayByPlayWithPlayersOnCourt(playersOnCourtAtQuarter, playByPlay)
 
+    val playersOnCourt = joinedPlayByPlayData
+      .filter(_._2._2.isDefined)
+      .map(v => calculatePlayersOnCourt(v._2._1, v._2._2.get))
 
     //PlayersOnCourtDownloader.writePlayersOnCourt(playersOnCourt)
+  }
+
+  def calculatePlayersOnCourt(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt: Seq[PlayersOnCourt]): Seq[PlayersOnCourt] = {
+    //TODO implement
+    playersOnCourt
   }
 
   def joinPlayByPlayWithPlayersOnCourt(playersOnCourt: Map[String, Seq[PlayersOnCourt]], playByPlay: Map[String, Seq[RawPlayByPlayEvent]]): Map[String, (Seq[RawPlayByPlayEvent], Option[Seq[PlayersOnCourt]])] =
@@ -51,6 +60,7 @@ object PlayerOnCourtDriver {
       Some(PlayersOnCourt(
         primaryKey,
         gameId,
+        period,
         players.head._2,
         players.head._1,
         players(1)._1,
@@ -81,6 +91,6 @@ object PlayerOnCourtDriver {
 private final class PlayerOnCourtArguments private(args: Array[String])
   extends CommandLineBase(args, "Season Stats") with SeasonOption
 
-object PlayerOnCourtArguments {
+private object PlayerOnCourtArguments {
   def apply(args: Array[String]): PlayerOnCourtArguments = new PlayerOnCourtArguments(args)
 }

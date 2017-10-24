@@ -148,6 +148,10 @@ object PlayByPlayEventMessageType {
   def apply(i: jl.Integer): PlayByPlayEventMessageType =
     messages.find(_.value == i).getOrElse(Empty)
 
+  def valueOf(str: String): PlayByPlayEventMessageType =
+    messages.find(_.toString == str)
+    .getOrElse(throw new IllegalArgumentException(s"$str is not a valid event type"))
+
 
   case object Make extends PlayByPlayEventMessageType {
     override def value: Integer = 1

@@ -6,6 +6,7 @@ import java.{lang => jl}
 final case class PlayersOnCourt(
                                  primaryKey: String,
                                  gameId: String,
+                                 eventNumber: jl.Integer,
                                  teamId1: jl.Integer,
                                  team1player1Id: jl.Integer,
                                  team1player2Id: jl.Integer,
@@ -38,6 +39,7 @@ object PlayersOnCourt extends ResultSetMapper {
       getInt(resultSet, 11),
       getInt(resultSet, 12),
       getInt(resultSet, 13),
-      getString(resultSet, 14),
-      getString(resultSet, 15))
+      getInt(resultSet, 14),
+      getString(resultSet, 15),
+      getString(resultSet, 16))
 }
