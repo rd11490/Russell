@@ -59,6 +59,7 @@ final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt
       sortedTeam2Players(4),
       dt,
       playByPlay.season)
+
   }
 
 }
@@ -89,7 +90,7 @@ private[investigation] object PlayByPlayParser {
     (pbpFixed zip pbp).map(v => v._1.copy(eventNumber = v._2.eventNumber))
   }
 
-  def extractPlayersOnCourt(playersOnCourt: Seq[PlayersOnCourt], period: Int) =
+  def extractPlayersOnCourt(playersOnCourt: Seq[PlayersOnCourt], period: Int): PlayersOnCourtSimple =
     playersOnCourt
       .find(_.eventNumber == period)
       .map(v => PlayersOnCourtSimple(v))
