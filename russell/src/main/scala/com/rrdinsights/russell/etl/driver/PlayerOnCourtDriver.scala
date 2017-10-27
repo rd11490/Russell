@@ -5,6 +5,7 @@ import java.time.format.DateTimeFormatter
 
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.etl.application.{BoxScoreSummaryDownloader, PlayByPlayDownloader, PlayersOnCourtDownloader}
+import com.rrdinsights.russell.investigation.PlayByPlayParser
 import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, PlayersOnCourt, RawGameSummary, RawPlayByPlayEvent}
 
 object PlayerOnCourtDriver {
@@ -29,15 +30,16 @@ object PlayerOnCourtDriver {
     val joinedPlayByPlayData = joinPlayByPlayWithPlayersOnCourt(playersOnCourtAtQuarter, playByPlay)
 
     val playersOnCourt = joinedPlayByPlayData
-      .filter(_._2._2.isDefined)
-      .map(v => calculatePlayersOnCourt(v._2._1, v._2._2.get))
+      .flatMap(v => v._2._2.map(p => calculatePlayersOnCourt(v._2._1, p, dt)))
+      .flatten
+      .toSeq
 
-    //PlayersOnCourtDownloader.writePlayersOnCourt(playersOnCourt)
+    PlayersOnCourtDownloader.writePlayersOnCourt(playersOnCourt)
   }
 
-  def calculatePlayersOnCourt(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt: Seq[PlayersOnCourt]): Seq[PlayersOnCourt] = {
-    //TODO implement
-    playersOnCourt
+  def calculatePlayersOnCourt(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt: Seq[PlayersOnCourt], dt: String): Seq[PlayersOnCourt] = {
+    val parser = new PlayByPlayParser(playByPlay, playersOnCourt, dt)
+    parser.run()
   }
 
   def joinPlayByPlayWithPlayersOnCourt(playersOnCourt: Map[String, Seq[PlayersOnCourt]], playByPlay: Map[String, Seq[RawPlayByPlayEvent]]): Map[String, (Seq[RawPlayByPlayEvent], Option[Seq[PlayersOnCourt]])] =
