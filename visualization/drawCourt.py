@@ -191,8 +191,10 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, outer_lines=F
     # 3pt arc - center of arc will be the hoop, arc is 23'9" away from hoop
     # I just played around with the theta values until they lined up with the
     # threes
+
     three_arc = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw,
                     color=color)
+
 
     # Center Court
     center_outer_arc = Arc((0, 422.5), 120, 120, theta1=180, theta2=0,
@@ -200,11 +202,38 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, outer_lines=F
     center_inner_arc = Arc((0, 422.5), 40, 40, theta1=180, theta2=0,
                            linewidth=lw, color=color)
 
+
+    """
+    #Draw Grid
+    backboardLine = Rectangle((-250, -7.5), 500, 0, linewidth=lw, color=color2)
+    breakLine = Rectangle((-250, 92.5), 500, 0, linewidth=lw, color=color2)
+    midRangeSplitLeft = Rectangle((-150, -47.5), 0, 140, linewidth=lw, color=color2)
+    zone1 = Arc((0, 92.5), 160, 100, theta1=0, theta2=180, linewidth=lw, color=color2)
+    zone2 = Arc((0, 92.5), 300, 220, theta1=0, theta2=180, linewidth=lw, color=color2)
+
+    courtSplit = Rectangle((0, -47.5), 0, 470, linewidth=lw, color=color2, fill=False)
+
+
+    grid = [courtSplit, backboardLine, breakLine, midRangeSplitLeft, zone1, zone2]
+
+    """
+
+    grid = []
+    for i in range(0, 10):
+        x = (i * 50) - 250
+        line = Rectangle((x, -47.5), 0, 470, linewidth=lw, color=color2)
+        grid.append(line)
+
+    for j in range(0, 10):
+        y = (j*50)-47.5
+        line = Rectangle((-250, y), 500, 0, linewidth=lw, color=color2)
+        grid.append(line)
+
     # List of the court elements to be plotted onto the axes
     court_elements = [hoop, backboard, outer_box, inner_box, top_free_throw,
                       bottom_free_throw, restricted, corner_three_a,
                       corner_three_b, three_arc, center_outer_arc,
-                      center_inner_arc]
+                      center_inner_arc] + grid
 
     if outer_lines:
         # Draw the half court line, baseline and side out bound lines
