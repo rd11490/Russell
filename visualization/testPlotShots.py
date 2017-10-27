@@ -15,7 +15,7 @@ colors = {"Missed Shot": "r",
 
 shotLocs["color"] = shotLocs['eventType'].apply(lambda x: colors[x])
 
-shotLocs.plot(x="xCoordinate", y="yCoordinate", kind="scatter", c=shotLocs["color"])
+#shotLocs.plot(x="xCoordinate", y="yCoordinate", kind="scatter", c=shotLocs["color"])
 plt.xlim(-250,250)
 plt.ylim(422.5, -47.5)
 drawCourt.draw_shot_chart_court(outer_lines=True)
