@@ -7,6 +7,7 @@ final case class PlayersOnCourt(
                                  primaryKey: String,
                                  gameId: String,
                                  eventNumber: jl.Integer,
+                                 period: jl.Integer,
                                  teamId1: jl.Integer,
                                  team1player1Id: jl.Integer,
                                  team1player2Id: jl.Integer,
@@ -40,6 +41,7 @@ object PlayersOnCourt extends ResultSetMapper {
       getInt(resultSet, 12),
       getInt(resultSet, 13),
       getInt(resultSet, 14),
-      getString(resultSet, 15),
-      getString(resultSet, 16))
+      getInt(resultSet, 15),
+      getString(resultSet, 16),
+      getString(resultSet, 17))
 }

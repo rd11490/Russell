@@ -60,6 +60,7 @@ object PlayerOnCourtDriver {
       Some(PlayersOnCourt(
         primaryKey,
         gameId,
+        null,
         period,
         players.head._2,
         players.head._1,

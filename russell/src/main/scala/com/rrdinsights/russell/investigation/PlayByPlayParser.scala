@@ -31,7 +31,7 @@ final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt
         currentPlayersOnCourt = currentPlayersOnCourt.copy(team2Players = newPlayers)
       }
     } else if (playType == PlayByPlayEventMessageType.StartOfPeriod) {
-      currentPlayersOnCourt = PlayByPlayParser.extractPlayersOnCourt(playersOnCourt, playByPlay.eventNumber)
+      currentPlayersOnCourt = PlayByPlayParser.extractPlayersOnCourt(playersOnCourt, playByPlay.period)
     }
 
     convertPlayersOnCourtSimpleToPlayersOnCourt(currentPlayersOnCourt, playByPlay)
@@ -45,6 +45,7 @@ final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt
       s"${playByPlay.gameId}_${playByPlay.eventNumber}",
       playByPlay.gameId,
       playByPlay.eventNumber,
+      playByPlay.period,
       playersOnCourtSimple.teamId1,
       sortedTeam1Players.head,
       sortedTeam1Players(1),
@@ -92,9 +93,9 @@ private[investigation] object PlayByPlayParser {
 
   def extractPlayersOnCourt(playersOnCourt: Seq[PlayersOnCourt], period: Int): PlayersOnCourtSimple =
     playersOnCourt
-      .find(_.eventNumber == period)
+      .find(_.period.intValue() == period)
       .map(v => PlayersOnCourtSimple(v))
-      .getOrElse(throw new NoSuchElementException(s"No Lineup for the start of game ${playersOnCourt.head.gameId} exists"))
+      .getOrElse(throw new NoSuchElementException(s"No Lineup for the start of game ${playersOnCourt.head.gameId} in period ${period} exists"))
 
 }
 
