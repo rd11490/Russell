@@ -35,4 +35,10 @@ final class PlayerOnCourtDownloaderTest extends TestSpec {
     assert(PlayersOnCourtDownloader.timeFromStartOfGame(1, 5, 30) === 390)
     assert(PlayersOnCourtDownloader.timeFromStartOfGame(5, 4, 30) === 2910)
   }
+
+  test("timeFromStartOfGameAtPeriod") {
+    val period = 1
+    assert(PlayersOnCourtDownloader.timeFromStartOfGameAtPeriod(period) === 25)
+
+  }
 }

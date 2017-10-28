@@ -28,10 +28,7 @@ object PlayerOnCourtDriver {
 
   private def downloadAndWritePlayerOnCourtForShots(dt: String, season: Option[String]): Unit = {
     val where = season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
-    println(where.mkString(", "))
     val gameSummaries = BoxScoreSummaryDownloader.readGameSummary(where: _ *)
-    gameSummaries.foreach(println)
-    println(gameSummaries.size)
     val playersOnCourtAtQuarter = gameSummaries.flatMap(downloadPlayersOnCourtAtQuarter(_, dt))
     PlayersOnCourtDownloader.writePlayersOnCourtAtPeriod(playersOnCourtAtQuarter)
   }
@@ -69,42 +66,7 @@ object PlayerOnCourtDriver {
 
     val periods = (1 to gameSummary.livePeriod.intValue()).toArray
 
-    periods.flatMap(v => downloadPlayersOnCourtAtStartOfPeriod(gameId, v, dt))
-  }
-
-  def downloadPlayersOnCourtAtStartOfPeriod(gameId: String, period: Int, dt: String): Option[PlayersOnCourt] = {
-    val time = PlayersOnCourtDownloader.timeFromStartOfGameAtPeriod(period) * 10
-    val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(gameId, time)
-    if (players.size == 10 && players.slice(0, 4).map(_._2).distinct.size == 1 && players.slice(5, 9).map(_._2).distinct.size == 1) {
-      val primaryKey = s"${gameId}_$period"
-      Some(PlayersOnCourt(
-        primaryKey,
-        gameId,
-        null,
-        period,
-        players.head._2,
-        players.head._1,
-        players(1)._1,
-        players(2)._1,
-        players(3)._1,
-        players(4)._1,
-        players(5)._2,
-        players(5)._1,
-        players(6)._1,
-        players(7)._1,
-        players(8)._1,
-        players(9)._1,
-        dt,
-        DataModelUtils.gameIdToSeason(gameId)))
-
-    }
-    else {
-      println(s"$gameId-$period")
-      println(s"$time")
-      println(s"${players.size}")
-      println(s"${players.groupBy(_._2).map(v => s"${v._1} - ${v._2.size}").mkString(" | ")}")
-      None
-    }
+    periods.flatMap(v => PlayersOnCourtDownloader.downloadPlayersOnCourtAtStartOfPeriod(gameId, v, dt))
   }
 
 }
