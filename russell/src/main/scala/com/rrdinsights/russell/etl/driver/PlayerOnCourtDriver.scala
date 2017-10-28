@@ -7,6 +7,8 @@ import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.etl.application.{BoxScoreSummaryDownloader, PlayByPlayDownloader, PlayersOnCourtDownloader}
 import com.rrdinsights.russell.investigation.PlayByPlayParser
 import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, PlayersOnCourt, RawGameSummary, RawPlayByPlayEvent}
+import org.apache.commons.cli
+import org.apache.commons.cli.Options
 
 object PlayerOnCourtDriver {
 
@@ -15,14 +17,30 @@ object PlayerOnCourtDriver {
   def main(strings: Array[String]): Unit = {
     val dt = LocalDateTime.now().format(Formatter)
     val args = PlayerOnCourtArguments(strings)
-    downloadAndWritePlayerOnCourtForShots(dt, args.season)
+    if (args.downloadPlayersAtStartOfPeriod) {
+      downloadAndWritePlayerOnCourtForShots(dt, args.season)
+    }
+
+    if (args.parsePlayByPlayForPlayers) {
+      parsePlayersOnCourt(dt, args.season)
+    }
   }
 
   private def downloadAndWritePlayerOnCourtForShots(dt: String, season: Option[String]): Unit = {
-    val where = season.map(v => Seq(s"season = $v")).getOrElse(Seq.empty)
+    val where = season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+    println(where.mkString(", "))
     val gameSummaries = BoxScoreSummaryDownloader.readGameSummary(where: _ *)
+    gameSummaries.foreach(println)
+    println(gameSummaries.size)
     val playersOnCourtAtQuarter = gameSummaries.flatMap(downloadPlayersOnCourtAtQuarter(_, dt))
-      .groupBy(_.gameId)
+    PlayersOnCourtDownloader.writePlayersOnCourtAtPeriod(playersOnCourtAtQuarter)
+  }
+
+  def parsePlayersOnCourt(dt: String, season: Option[String]): Unit = {
+    val where = season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+
+    val playersOnCourtAtQuarter = PlayersOnCourtDownloader.readPlayersOnCourtAtPeriod(where:_ *)
+    .groupBy(_.gameId)
 
     val playByPlay = PlayByPlayDownloader.readPlayByPlay(where:_ *)
       .groupBy(_.gameId)
@@ -35,6 +53,7 @@ object PlayerOnCourtDriver {
       .toSeq
 
     PlayersOnCourtDownloader.writePlayersOnCourt(playersOnCourt)
+
   }
 
   def calculatePlayersOnCourt(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt: Seq[PlayersOnCourt], dt: String): Seq[PlayersOnCourt] = {
@@ -55,7 +74,6 @@ object PlayerOnCourtDriver {
 
   def downloadPlayersOnCourtAtStartOfPeriod(gameId: String, period: Int, dt: String): Option[PlayersOnCourt] = {
     val time = PlayersOnCourtDownloader.timeFromStartOfGameAtPeriod(period) * 10
-
     val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(gameId, time)
     if (players.size == 10 && players.slice(0, 4).map(_._2).distinct.size == 1 && players.slice(5, 9).map(_._2).distinct.size == 1) {
       val primaryKey = s"${gameId}_$period"
@@ -92,8 +110,24 @@ object PlayerOnCourtDriver {
 }
 
 private final class PlayerOnCourtArguments private(args: Array[String])
-  extends CommandLineBase(args, "Season Stats") with SeasonOption
+  extends CommandLineBase(args, "Season Stats") with SeasonOption {
+
+  override protected def options: Options = super.options
+    .addOption(PlayerOnCourtArguments.PlayersOnCourtAtPeriod)
+    .addOption(PlayerOnCourtArguments.ParsePlayByPlay)
+
+  def downloadPlayersAtStartOfPeriod: Boolean = has(PlayerOnCourtArguments.PlayersOnCourtAtPeriod)
+
+  def parsePlayByPlayForPlayers: Boolean = has(PlayerOnCourtArguments.ParsePlayByPlay)
+}
 
 private object PlayerOnCourtArguments {
   def apply(args: Array[String]): PlayerOnCourtArguments = new PlayerOnCourtArguments(args)
+
+  val PlayersOnCourtAtPeriod: cli.Option =
+    new cli.Option(null, "download", false, "Download and store all players at the start of each period")
+
+  val ParsePlayByPlay: cli.Option =
+    new cli.Option(null, "parse", false, "Parse the play by play to determine who is on the court at all times")
+
 }

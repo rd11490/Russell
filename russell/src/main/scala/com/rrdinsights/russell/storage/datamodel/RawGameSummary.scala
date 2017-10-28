@@ -45,7 +45,8 @@ object RawGameSummary extends ResultSetMapper {
       dt,
       season.getOrElse(DataModelUtils.gameIdToSeason(gameSummary.gameId)))
 
-  def apply(resultSet: ResultSet): RawGameSummary =
+  def apply(resultSet: ResultSet): RawGameSummary = {
+    println(resultSet)
     RawGameSummary(
       getString(resultSet, 0),
       getString(resultSet, 1),
@@ -64,4 +65,6 @@ object RawGameSummary extends ResultSetMapper {
       getInt(resultSet, 14),
       getString(resultSet, 15),
       getString(resultSet, 16))
+  }
+
 }

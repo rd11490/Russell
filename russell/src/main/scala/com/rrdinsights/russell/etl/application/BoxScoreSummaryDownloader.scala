@@ -33,7 +33,8 @@ object BoxScoreSummaryDownloader {
       .distinct
       .map(GameIdParameter.newParameterValue)
       .flatMap(v => {
-        Thread.sleep(1000)
+        Thread.sleep(500)
+        println(v.value)
         downloadBoxScoreSummary(v).map(s => (v.value, s))
       })
   }

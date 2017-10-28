@@ -21,6 +21,7 @@ object PlayersOnCourtDownloader {
       startRange = startRange,
       endRange = endRange)
 
+    Thread.sleep(500)
     ScalabrineClient
       .getAdvancedBoxScore(endpoint)
       .boxScoreAdvanced
@@ -57,5 +58,17 @@ object PlayersOnCourtDownloader {
   def writePlayersOnCourt(players: Seq[PlayersOnCourt]): Unit = {
     MySqlClient.createTable(NBATables.players_on_court)
     MySqlClient.insertInto(NBATables.players_on_court, players)
+  }
+
+  def writePlayersOnCourtAtPeriod(players: Seq[PlayersOnCourt]): Unit = {
+    MySqlClient.createTable(NBATables.players_on_court_at_period)
+    MySqlClient.insertInto(NBATables.players_on_court_at_period, players)
+  }
+
+  def readPlayersOnCourtAtPeriod(where: String*): Seq[PlayersOnCourt] = {
+    MySqlClient.selectFrom[PlayersOnCourt](
+      NBATables.players_on_court_at_period,
+      PlayersOnCourt.apply,
+      where:_ *)
   }
 }
