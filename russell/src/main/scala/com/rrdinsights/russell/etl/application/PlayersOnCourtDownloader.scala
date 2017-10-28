@@ -1,16 +1,53 @@
 package com.rrdinsights.russell.etl.application
 
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, PlayersOnCourt}
+import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, PlayersOnCourt, RawPlayByPlayEvent}
 import com.rrdinsights.russell.storage.tables.NBATables
+import com.rrdinsights.russell.utils.TimeUtils
 import com.rrdinsights.scalabrine.ScalabrineClient
 import com.rrdinsights.scalabrine.endpoints.AdvancedBoxScoreEndpoint
 import com.rrdinsights.scalabrine.parameters.{EndRangeParameter, GameIdParameter, RangeTypeParameter, StartRangeParameter}
 
 object PlayersOnCourtDownloader {
 
+  def downloadPlayersOnCourtAtEvent(playByPlay: RawPlayByPlayEvent, dt: String): Option[PlayersOnCourt] = {
+    val time = TimeUtils.convertTimeStringToTime(playByPlay.period.intValue, playByPlay.pcTimeString) * 10
+    val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(playByPlay.gameId, time)
+    if (players.size == 10 && players.slice(0, 4).map(_._2).distinct.size == 1 && players.slice(5, 9).map(_._2).distinct.size == 1) {
+      val primaryKey = s"${playByPlay.gameId}_${playByPlay.period}"
+      Some(PlayersOnCourt(
+        primaryKey,
+        playByPlay.gameId,
+        null,
+        playByPlay.period,
+        players.head._2,
+        players.head._1,
+        players(1)._1,
+        players(2)._1,
+        players(3)._1,
+        players(4)._1,
+        players(5)._2,
+        players(5)._1,
+        players(6)._1,
+        players(7)._1,
+        players(8)._1,
+        players(9)._1,
+        dt,
+        DataModelUtils.gameIdToSeason(playByPlay.gameId)))
+
+    }
+    else {
+      println(s"FAILURE")
+      println(s"${playByPlay.gameId}-${playByPlay.period}")
+      println(s"$time")
+      println(s"${players.size}")
+      println(s"${players.groupBy(_._2).map(v => s"${v._1} - ${v._2.size}").mkString(" | ")}")
+      None
+    }
+  }
+
   def downloadPlayersOnCourtAtStartOfPeriod(gameId: String, period: Int, dt: String): Option[PlayersOnCourt] = {
-    val time = PlayersOnCourtDownloader.timeFromStartOfGameAtPeriod(period) * 10
+    val time = TimeUtils.timeFromStartOfGameAtPeriod(period) * 10
     val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(gameId, time)
     if (players.size == 10 && players.slice(0, 4).map(_._2).distinct.size == 1 && players.slice(5, 9).map(_._2).distinct.size == 1) {
       val primaryKey = s"${gameId}_$period"
@@ -59,7 +96,7 @@ object PlayersOnCourtDownloader {
 
     println(endpoint.url)
 
-    Thread.sleep(500)
+    Thread.sleep(2000)
     ScalabrineClient
       .getAdvancedBoxScore(endpoint)
       .boxScoreAdvanced
@@ -67,31 +104,6 @@ object PlayersOnCourtDownloader {
       .map(v => (v.playerId, v.teamId))
       .sortBy(v => (v._2, v._1))
   }
-
-  def timeFromStartOfGame(period: Int, minutesRemaining: Int, secondsRemaining: Int): Int = {
-    val previousPeriods = periodToMinutesPlayed(period) * 60
-    val minutesElapsedThisPeriod = (minutesInPeriod(period) - minutesRemaining - 1) * 60
-    val secondsElapsed = 60 - secondsRemaining
-
-    previousPeriods + minutesElapsedThisPeriod + secondsElapsed
-  }
-
-  def timeFromStartOfGameAtPeriod(period: Int): Int =
-    timeFromStartOfGame(period, minutesInPeriod(period)-1, 35)
-
-  private[application] def periodToMinutesPlayed(period: Int): Int =
-    if (period > 4) {
-      (4 * 12) + ((period - 5) * 5)
-    } else {
-      (period - 1) * 12
-    }
-
-  private[application] def minutesInPeriod(period: Int): Int =
-    if (period > 4) {
-      5
-    } else {
-      12
-    }
 
   def writePlayersOnCourt(players: Seq[PlayersOnCourt]): Unit = {
     MySqlClient.createTable(NBATables.players_on_court)

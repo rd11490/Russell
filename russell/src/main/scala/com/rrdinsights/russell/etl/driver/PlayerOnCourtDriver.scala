@@ -6,7 +6,7 @@ import java.time.format.DateTimeFormatter
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.etl.application.{BoxScoreSummaryDownloader, PlayByPlayDownloader, PlayersOnCourtDownloader}
 import com.rrdinsights.russell.investigation.PlayByPlayParser
-import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, PlayersOnCourt, RawGameSummary, RawPlayByPlayEvent}
+import com.rrdinsights.russell.storage.datamodel._
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
 
@@ -24,6 +24,13 @@ object PlayerOnCourtDriver {
     if (args.parsePlayByPlayForPlayers) {
       parsePlayersOnCourt(dt, args.season)
     }
+  }
+
+  private def downloadAndWritePlayerOnCourtForShots2(dt: String, season: Option[String]): Unit = {
+    val where = season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+    val playByPlay = PlayByPlayDownloader.readPlayByPlay(where: _ *)
+    val playersOnCourtAtQuarter = downloadPlayersOnCourtAtQuarter2(playByPlay, dt)
+    PlayersOnCourtDownloader.writePlayersOnCourtAtPeriod(playersOnCourtAtQuarter)
   }
 
   private def downloadAndWritePlayerOnCourtForShots(dt: String, season: Option[String]): Unit = {
@@ -67,6 +74,30 @@ object PlayerOnCourtDriver {
     val periods = (1 to gameSummary.livePeriod.intValue()).toArray
 
     periods.flatMap(v => PlayersOnCourtDownloader.downloadPlayersOnCourtAtStartOfPeriod(gameId, v, dt))
+  }
+
+  private def downloadPlayersOnCourtAtQuarter2(playByPlay: Seq[RawPlayByPlayEvent], dt: String): Seq[PlayersOnCourt] = {
+    val playByPlayPerGame = playByPlay
+      .groupBy(_.gameId)
+      .flatMap(v => getFirstEventOfQuarters(v._2))
+
+    playByPlayPerGame.flatMap(v => PlayersOnCourtDownloader.downloadPlayersOnCourtAtEvent(v, dt))
+
+    Seq.empty
+  }
+
+  private def getFirstEventOfQuarters(playByPlay: Seq[RawPlayByPlayEvent]): Seq[RawPlayByPlayEvent] = {
+    val playByPlayWithIndex = playByPlay.zipWithIndex
+
+    val indicies = playByPlayWithIndex
+      .filter(v => PlayByPlayEventMessageType.valueOf(v._1.playType) == PlayByPlayEventMessageType.StartOfPeriod)
+      .map(v => {
+        if (v._1.period == 1 || v._1.period > 4) v._2 + 2 else v._2 + 1
+      })
+
+    playByPlayWithIndex
+      .filter(v => indicies.contains(v._2))
+      .map(_._1)
   }
 
 }
