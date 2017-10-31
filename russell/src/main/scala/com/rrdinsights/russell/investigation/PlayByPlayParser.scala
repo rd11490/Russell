@@ -66,7 +66,8 @@ final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt
 }
 
 private[investigation] object PlayByPlayParser {
-  def properlySortPlayByPlay(pbp: Seq[RawPlayByPlayEvent]): Seq[RawPlayByPlayEvent] = {
+  def properlySortPlayByPlay(pbpRaw: Seq[RawPlayByPlayEvent]): Seq[RawPlayByPlayEvent] = {
+    val pbp = pbpRaw.sortBy(_.eventNumber)
     val pbpFixed: mutable.ArrayBuffer[RawPlayByPlayEvent] = new ArrayBuffer[RawPlayByPlayEvent]()
     var i: Int = 0
     while (i < pbp.size) {
@@ -88,7 +89,7 @@ private[investigation] object PlayByPlayParser {
         }
       }
     }
-    (pbpFixed zip pbp).map(v => v._1.copy(eventNumber = v._2.eventNumber))
+    pbpFixed.zip(pbp).map(v => v._1.copy(eventNumber = v._2.eventNumber))
   }
 
   def extractPlayersOnCourt(playersOnCourt: Seq[PlayersOnCourt], period: Int): PlayersOnCourtSimple =

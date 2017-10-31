@@ -21,4 +21,6 @@ object NBATables {
   val players_on_court_at_period: MySqlTable = MySqlTable[PlayersOnCourt]("players_on_court_at_period")
 
 
+  val players_on_court_test: MySqlTable = MySqlTable[PlayersOnCourt]("players_on_court_test")
+
 }
