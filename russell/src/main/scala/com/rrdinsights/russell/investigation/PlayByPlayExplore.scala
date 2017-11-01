@@ -19,7 +19,7 @@ object PlayByPlayExplore {
 
     val parser = new PlayByPlayParser(playByPlay, playersOnCourtAtQuarter, null)
     val results = parser.run().sortBy(_.eventNumber)
-    
+
     MySqlClient.createTable(NBATables.players_on_court_test)
     MySqlClient.insertInto(NBATables.players_on_court_test, results)
 
