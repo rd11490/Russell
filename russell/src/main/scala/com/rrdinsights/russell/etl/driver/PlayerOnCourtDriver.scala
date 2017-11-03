@@ -6,7 +6,7 @@ import java.{lang => jl}
 
 import com.rrdinsights.russell.commandline.{CommandLineBase, ForceOption, SeasonOption}
 import com.rrdinsights.russell.etl.application.{PlayByPlayDownloader, PlayersOnCourtDownloader}
-import com.rrdinsights.russell.investigation.PlayByPlayParser
+import com.rrdinsights.russell.investigation.playbyplay.PlayByPlayParser
 import com.rrdinsights.russell.storage.datamodel._
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
@@ -49,6 +49,7 @@ object PlayerOnCourtDriver {
     val playByPlay = PlayByPlayDownloader.readPlayByPlay(where: _ *)
       .groupBy(_.gameId)
 
+
     val joinedPlayByPlayData = joinPlayByPlayWithPlayersOnCourt(playersOnCourtAtQuarter, playByPlay)
 
     val playersOnCourt = joinedPlayByPlayData
@@ -69,6 +70,7 @@ object PlayerOnCourtDriver {
     playByPlay.map(v => (v._1, (v._2, playersOnCourt.get(v._1))))
 
   private def downloadPlayersOnCourtAtQuarter(playByPlay: Seq[RawPlayByPlayEvent], completed: Seq[(String, jl.Integer)], dt: String): Unit = {
+
     playByPlay
       .groupBy(v => (v.gameId, v.period))
       .filterNot(v => completed.contains(v._1))
@@ -81,6 +83,7 @@ object PlayerOnCourtDriver {
   }
 
   private def getFirstEventOfQuarters(playByPlay: Seq[RawPlayByPlayEvent]): Option[RawPlayByPlayEvent] = {
+
     val playByPlayWithIndex = playByPlay
       .filterNot(v => PlayByPlayEventMessageType.valueOf(v.playType) == PlayByPlayEventMessageType.Turnover)
       .sortBy(_.eventNumber)

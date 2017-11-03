@@ -1,4 +1,4 @@
-package com.rrdinsights.russell.investigation
+package com.rrdinsights.russell.investigation.shots
 
 import com.rrdinsights.russell.storage.datamodel.RawShotData
 

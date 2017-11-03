@@ -3,6 +3,7 @@ package com.rrdinsights.russell.investigation
 import java.{lang => jl}
 
 import com.rrdinsights.russell.TestSpec
+import com.rrdinsights.russell.investigation.playbyplay.PlayByPlayParser
 import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, PlayersOnCourt, RawPlayByPlayEvent}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner

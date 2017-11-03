@@ -1,4 +1,4 @@
-package com.rrdinsights.russell.investigation
+package com.rrdinsights.russell.investigation.playbyplay
 
 import java.{lang => jl}
 
@@ -100,7 +100,7 @@ private[investigation] object PlayByPlayParser {
 
 }
 
-private case class PlayersOnCourtSimple(
+private[investigation] case class PlayersOnCourtSimple(
                                    teamId1: jl.Integer,
                                    team1Players: Seq[jl.Integer],
                                    teamId2: jl.Integer,

@@ -1,8 +1,6 @@
-package com.rrdinsights.russell.investigation
+package com.rrdinsights.russell.investigation.shots
 
-import com.rrdinsights.russell.etl.application.{PlayByPlayDownloader, PlayersOnCourtDownloader, ShotChartDownloader}
-import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.tables.NBATables
+import com.rrdinsights.russell.etl.application.ShotChartDownloader
 
 object ShotChartExplore {
   /**

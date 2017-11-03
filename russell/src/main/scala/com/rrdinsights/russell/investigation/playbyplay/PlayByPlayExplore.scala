@@ -1,9 +1,8 @@
-package com.rrdinsights.russell.investigation
+package com.rrdinsights.russell.investigation.playbyplay
 
 import com.rrdinsights.russell.etl.application.{PlayByPlayDownloader, PlayersOnCourtDownloader}
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, PlayersOnCourt, RawPlayByPlayEvent}
-import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
+import com.rrdinsights.russell.storage.tables.NBATables
 
 object PlayByPlayExplore {
   /**
