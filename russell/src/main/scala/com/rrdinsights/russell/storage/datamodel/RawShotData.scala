@@ -9,7 +9,7 @@ final case class RawShotData(
                               primaryKey: String,
                               gridType: String,
                               gameId: String,
-                              gameEventId: jl.Integer,
+                              eventNumber: jl.Integer,
                               playerId: jl.Integer,
                               playerName: String,
                               teamId: jl.Integer,

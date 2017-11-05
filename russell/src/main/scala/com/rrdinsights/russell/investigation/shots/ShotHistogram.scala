@@ -1,6 +1,7 @@
 package com.rrdinsights.russell.investigation.shots
 
 import com.rrdinsights.russell.storage.datamodel.RawShotData
+import java.{lang => jl}
 
 object ShotHistogram {
 
@@ -73,12 +74,14 @@ object ShotHistogram {
     (bin, data.map(_._2).reduce(_ + _))
 
 
-  private def binAndScore(shot: RawShotData): (ShotBinDetailed, ShotData) =
+  def binAndScore(shot: RawShotData): (ShotBinDetailed, ShotData) =
     (binShot(shot), scoreShot(shot))
 
   private def binShot(shot: RawShotData): ShotBinDetailed = {
     val shotValue = shot.shotZoneBasic.substring(0, 1).toInt
-    ShotBinDetailed(shot.shotZoneRange,
+    ShotBinDetailed(
+      shot.playerId,
+      shot.shotZoneRange,
       shot.shotZoneArea,
       shotDistances((shot.shotDistance.intValue(), shotValue)),
       shotValue)
@@ -93,7 +96,7 @@ object ShotHistogram {
 
 }
 
-case class ShotBinDetailed(range: String, area: String, dist: String, value: Int)
+case class ShotBinDetailed(playerId: jl.Integer, range: String, area: String, dist: String, value: Int)
 
 case class ShotBinOverview(range: String, area: String, value: Int)
 
@@ -101,4 +104,20 @@ case class ShotData(shots: Int, made: Int) {
 
   def +(other: ShotData): ShotData =
     ShotData(shots + other.shots, made + other.made)
+}
+
+case class PlayerShotChartSection(playerId: jl.Integer, range: String, area: String, dist: String, value: Int, shots: Int, made: Int, dt: String)
+
+object PlayerShotChartSection {
+
+  def apply(bin: ShotBinDetailed, data: ShotData, dt: String): PlayerShotChartSection =
+    PlayerShotChartSection(
+      bin.playerId,
+      bin.range,
+      bin.area,
+      bin.dist,
+      bin.value,
+      data.shots,
+      data.made,
+      dt)
 }

@@ -7,7 +7,7 @@ trait SeasonOption extends CommandLineBase {
   override protected def options: cli.Options = super.options
     .addOption(SeasonOption.SeasonOption)
 
-  def season: Option[String] = valueOf(SeasonOption.SeasonOption)
+  lazy val season: Option[String] = valueOf(SeasonOption.SeasonOption)
 }
 
 object SeasonOption {

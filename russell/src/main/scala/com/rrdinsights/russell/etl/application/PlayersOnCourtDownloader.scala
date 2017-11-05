@@ -98,4 +98,11 @@ object PlayersOnCourtDownloader {
       PlayersOnCourt.apply,
       where: _ *)
   }
+
+  def readPlayersOnCourt(where: String*): Seq[PlayersOnCourt] = {
+    MySqlClient.selectFrom[PlayersOnCourt](
+      NBATables.players_on_court,
+      PlayersOnCourt.apply,
+      where: _ *)
+  }
 }

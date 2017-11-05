@@ -1,8 +1,29 @@
 package com.rrdinsights.russell.spark.sql
 
+import com.rrdinsights.russell.storage.tables.MySqlTable
+import com.rrdinsights.russell.storage.{Database, MySqlConnection}
+import com.rrdinsights.russell.utils.Creds.getCreds
 import org.apache.spark.sql._
 
 object SparkOpsImplicits {
+
+  /**
+    * Read table from MySQL
+    * @param table
+    * @param spark
+    * @return
+    */
+  def readTable(table: MySqlTable)(implicit spark: SparkSession): Dataset[Row] =
+    spark.sqlContext.read
+      .format("jdbc")
+      .options(Map(
+        "url" -> MySqlConnection.url(Database.nba),
+        "driver" -> "com.mysql.jdbc.Driver",
+        "dbtable" -> table.name,
+        "user" -> getCreds.MySQL.Username,
+        "password" -> getCreds.MySQL.Password
+      ))
+      .load()
 
   final implicit class DatasetOps[L](leftDs: Dataset[L]) {
 

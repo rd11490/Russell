@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import com.rrdinsights.russell.etl.application._
-import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
+import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
 
@@ -44,7 +44,7 @@ object SeasonStats {
 }
 
 private final class SeasonStatsArguments private(args: Array[String])
-  extends CommandLineBase(args, "Season Stats") with SeasonOption {
+  extends CommandLineBase(args, "Season Stats") with SeasonOption with RunAllOption {
 
   override protected def options: Options = super.options
     .addOption(SeasonStatsArguments.GameLogOption)
@@ -53,15 +53,15 @@ private final class SeasonStatsArguments private(args: Array[String])
     .addOption(SeasonStatsArguments.AdvacnedBoxScoreOption)
     .addOption(SeasonStatsArguments.GameSummaries)
 
-  def downloadGameLog: Boolean = has(SeasonStatsArguments.GameLogOption)
+  lazy val downloadGameLog: Boolean = has(SeasonStatsArguments.GameLogOption) || runAll
 
-  def downloadPlayByPlay: Boolean = has(SeasonStatsArguments.PlayByPlayOption)
+  lazy val downloadPlayByPlay: Boolean = has(SeasonStatsArguments.PlayByPlayOption)|| runAll
 
-  def downloadRosters: Boolean = has(SeasonStatsArguments.RosterOption)
+  lazy val downloadRosters: Boolean = has(SeasonStatsArguments.RosterOption) || runAll
 
-  def downloadAdvancedBoxscore: Boolean = has(SeasonStatsArguments.AdvacnedBoxScoreOption)
+  lazy val downloadAdvancedBoxscore: Boolean = has(SeasonStatsArguments.AdvacnedBoxScoreOption)|| runAll
 
-  def downloadGameSummaries: Boolean = has(SeasonStatsArguments.GameSummaries)
+  lazy val downloadGameSummaries: Boolean = has(SeasonStatsArguments.GameSummaries)|| runAll
 
 }
 
