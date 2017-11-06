@@ -1,6 +1,7 @@
 from matplotlib.patches import Circle, Rectangle, Arc
 import matplotlib.pyplot as plt
 
+
 # Function to draw the basketball court lines
 def draw_full_court(ax=None, color="gray", lw=1, zorder=0):
     if ax is None:
@@ -79,6 +80,7 @@ def draw_full_court(ax=None, color="gray", lw=1, zorder=0):
         ax.add_patch(element)
 
     return ax
+
 
 def draw_shot_chart_court(ax=None, color='black', lw=2, outer_lines=False):
     # If an axes object isn't provided to plot onto, just get current one
@@ -195,39 +197,24 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, outer_lines=F
     three_arc = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw,
                     color=color)
 
-
     # Center Court
     center_outer_arc = Arc((0, 422.5), 120, 120, theta1=180, theta2=0,
                            linewidth=lw, color=color)
     center_inner_arc = Arc((0, 422.5), 40, 40, theta1=180, theta2=0,
                            linewidth=lw, color=color)
 
-
-    """
-    #Draw Grid
+    # Draw Grid
     backboardLine = Rectangle((-250, -7.5), 500, 0, linewidth=lw, color=color2)
     breakLine = Rectangle((-250, 92.5), 500, 0, linewidth=lw, color=color2)
     midRangeSplitLeft = Rectangle((-150, -47.5), 0, 140, linewidth=lw, color=color2)
-    zone1 = Arc((0, 92.5), 160, 100, theta1=0, theta2=180, linewidth=lw, color=color2)
-    zone2 = Arc((0, 92.5), 300, 220, theta1=0, theta2=180, linewidth=lw, color=color2)
-
+    midRangeSplitRight = Rectangle((150, -47.5), 0, 140, linewidth=lw, color=color2)
+    zone1 = Arc((0, 92.5), 160, 102.5, theta1=0, theta2=180, linewidth=lw, color=color2)
+    zone2 = Arc((0, 92.5), 300, 217.5, theta1=0, theta2=180, linewidth=lw, color=color2)
+    zone3 = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw, color=color)
+    zone4 = Arc((0, 92.5), 500, 407.5, theta1=0, theta2=180, linewidth=lw, color=color2)
     courtSplit = Rectangle((0, -47.5), 0, 470, linewidth=lw, color=color2, fill=False)
 
-
-    grid = [courtSplit, backboardLine, breakLine, midRangeSplitLeft, zone1, zone2]
-
-    """
-
-    grid = []
-    for i in range(0, 10):
-        x = (i * 50) - 250
-        line = Rectangle((x, -47.5), 0, 470, linewidth=lw, color=color2)
-        grid.append(line)
-
-    for j in range(0, 10):
-        y = (j*50)-47.5
-        line = Rectangle((-250, y), 500, 0, linewidth=lw, color=color2)
-        grid.append(line)
+    grid = [courtSplit, backboardLine, breakLine, midRangeSplitLeft, midRangeSplitRight, zone1, zone2, zone3, zone4]
 
     # List of the court elements to be plotted onto the axes
     court_elements = [hoop, backboard, outer_box, inner_box, top_free_throw,
