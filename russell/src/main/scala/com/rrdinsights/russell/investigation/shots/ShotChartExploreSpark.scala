@@ -8,6 +8,8 @@ import com.rrdinsights.russell.storage.tables.NBATables
 import org.apache.spark.sql.{Column, SparkSession, functions}
 import java.{lang => jl}
 
+import com.rrdinsights.russell.utils.TimeUtils
+
 object ShotChartExploreSpark extends LocalJobRunner {
 
   import com.rrdinsights.russell.spark.sql.SparkOpsImplicits._
@@ -15,7 +17,7 @@ object ShotChartExploreSpark extends LocalJobRunner {
   override def runSpark2(strings: Array[String])(implicit spark: SparkSession): Unit = {
     import spark.implicits._
 
-    val dt = Instant.now
+    val dt = TimeUtils.dtNow
 
     val where = "season = '2016-17'"
 
@@ -32,7 +34,7 @@ object ShotChartExploreSpark extends LocalJobRunner {
     val shotHistograms = shots
       .groupByKey(_.playerId)
       .flatMapGroups((p, shots) => ShotHistogram.calculate(shots.toSeq))
-      .map(v => PlayerShotChartSection.apply(v._1, v._2, ))
+      .map(v => PlayerShotChartSection.apply(v._1, v._2, dt))
 
     val shotsSeason = readTable(NBATables.raw_shot_data)
         .where(where)
@@ -54,27 +56,8 @@ private case class ShowWithPlayers(
                                     gameId: String,
                                     eventNumber: jl.Integer,
                                     shooterTeam: jl.Integer,
-                                    shooter: jl.Integer,
+                                    shooter: jl.Integer)
 
-                                  )
-
-/*
-shotZoneBasic: String,
-shotZoneArea: String,
-shotZoneRange: String,
-shotType: String,
-shotDistance: jl.Integer,
-xCoordinate: jl.Integer,
-yCoordinate: jl.Integer,
-shotAttemptedFlag: jl.Integer,
-shotMadeFlag: jl.Integer,
-gameDate: String,
-homeTeam: String,
-awayTeam: String,
-season: String,
-dt: String
-
- */
 
 private object LocalColumns {
   val gameId: Column = functions.col("gameId")

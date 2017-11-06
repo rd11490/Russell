@@ -1,6 +1,14 @@
 package com.rrdinsights.russell.utils
 
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+
 object TimeUtils {
+
+  private val Formatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
+  def dtNow: String = LocalDateTime.now().format(Formatter)
+
 
   def timeFromStartOfGame(period: Int, minutesRemaining: Int, secondsRemaining: Int): Int = {
     val previousPeriods = periodToMinutesPlayed(period) * 60

@@ -106,12 +106,13 @@ case class ShotData(shots: Int, made: Int) {
     ShotData(shots + other.shots, made + other.made)
 }
 
-case class PlayerShotChartSection(playerId: jl.Integer, range: String, area: String, dist: String, value: Int, shots: Int, made: Int, dt: String)
+case class PlayerShotChartSection(primaryKey: String, playerId: jl.Integer, range: String, area: String, dist: String, value: Int, shots: Int, made: Int, dt: String)
 
 object PlayerShotChartSection {
 
   def apply(bin: ShotBinDetailed, data: ShotData, dt: String): PlayerShotChartSection =
     PlayerShotChartSection(
+      s"${bin.playerId}_${bin.range}_${bin.area}_${bin.dist}_${bin.value}",
       bin.playerId,
       bin.range,
       bin.area,

@@ -5,17 +5,17 @@ import java.time.format.DateTimeFormatter
 
 import com.rrdinsights.russell.etl.application._
 import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
+import com.rrdinsights.russell.utils.TimeUtils
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
 
 object SeasonStats {
 
-  private val Formatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
   def main(strings: Array[String]): Unit = {
     val args = SeasonStatsArguments(strings)
     val season = args.season.getOrElse(throw new IllegalArgumentException("A Season must be specified"))
-    val dt = LocalDateTime.now().format(Formatter)
+    val dt = TimeUtils.dtNow
 
     if (args.downloadGameLog) {
       GameLogDownloader.downloadAndWriteAllGameLogs(season, dt)
