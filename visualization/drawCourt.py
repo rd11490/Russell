@@ -206,15 +206,24 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, outer_lines=F
     # Draw Grid
     backboardLine = Rectangle((-250, -7.5), 500, 0, linewidth=lw, color=color2)
     breakLine = Rectangle((-250, 92.5), 500, 0, linewidth=lw, color=color2)
-    midRangeSplitLeft = Rectangle((-150, -47.5), 0, 140, linewidth=lw, color=color2)
-    midRangeSplitRight = Rectangle((150, -47.5), 0, 140, linewidth=lw, color=color2)
-    zone1 = Arc((0, 92.5), 160, 102.5, theta1=0, theta2=180, linewidth=lw, color=color2)
-    zone2 = Arc((0, 92.5), 300, 217.5, theta1=0, theta2=180, linewidth=lw, color=color2)
+
+    midRangeSplitLeft1 = Rectangle((-137.5, -47.5), 0, 140, linewidth=lw, color=color2)
+    midRangeSplitLeft2 = Rectangle((-178.5, -47.5), 0, 140, linewidth=lw, color=color2)
+
+    midRangeSplitRight1 = Rectangle((137.5, -47.5), 0, 140, linewidth=lw, color=color2)
+    midRangeSplitRight2 = Rectangle((178.5, -47.5), 0, 140, linewidth=lw, color=color2)
+
+    #zone3_m12 = Arc((0, 0), 187, 187, theta1=0, theta2=180, linewidth=lw, color=color2)
+    #zone3_m9 = Arc((0, 0), 259, 259, theta1=0, theta2=180, linewidth=lw, color=color2)
+    zone3_m6 = Arc((0, 0), 331, 331, theta1=34, theta2=146, linewidth=lw, color=color2)
+    zone3_m3 = Arc((0, 0), 403, 403, theta1=27, theta2=153, linewidth=lw, color=color2)
     zone3 = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw, color=color)
-    zone4 = Arc((0, 92.5), 500, 407.5, theta1=0, theta2=180, linewidth=lw, color=color2)
+    zone3_p3 = Arc((0, 0), 547, 547, theta1=0, theta2=180, linewidth=lw, color=color2)
     courtSplit = Rectangle((0, -47.5), 0, 470, linewidth=lw, color=color2, fill=False)
 
-    grid = [courtSplit, backboardLine, breakLine, midRangeSplitLeft, midRangeSplitRight, zone1, zone2, zone3, zone4]
+    grid = [courtSplit, backboardLine, breakLine, midRangeSplitLeft1,
+            midRangeSplitLeft2, midRangeSplitRight1, midRangeSplitRight2,
+            zone3_m6, zone3_m3, zone3, zone3_p3]
 
     # List of the court elements to be plotted onto the axes
     court_elements = [hoop, backboard, outer_box, inner_box, top_free_throw,

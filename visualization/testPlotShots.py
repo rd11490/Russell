@@ -38,6 +38,6 @@ shotLocs["color"] = shotLocs['loc'].apply(lambda x: area_colors[x])
 
 shotLocs.plot(x="xCoordinate", y="yCoordinate", kind="scatter", c=shotLocs["color"])
 plt.xlim(-250, 250)
-plt.ylim(422.5, -47.5)
+plt.ylim(-47.5, 422.5)
 drawCourt.draw_shot_chart_court_with_zones(outer_lines=True)
 plt.show()
