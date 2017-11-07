@@ -1,45 +1,18 @@
 package com.rrdinsights.russell.investigation.shots
 
-import com.rrdinsights.russell.storage.datamodel.RawShotData
 import java.{lang => jl}
 
+import com.rrdinsights.russell.storage.datamodel.RawShotData
+
+/**
+  * Shot Chart areas:
+  *   Restricted Left: X < 0 and dist < 4ft
+  *   Restricted Right: X > 0 and dist < 4ft
+  *
+  */
 object ShotHistogram {
 
-  private val shotDistances: Map[(Int, Int), String] =
-    Map(
-      (0,2) -> "0-2",
-      (1,2) -> "0-2",
-      (2,2) -> "0-2",
-      (3,2) -> "3-5",
-      (4,2) -> "3-5",
-      (5,2) -> "3-5",
-      (6,2) -> "6-9",
-      (7,2) -> "6-9",
-      (8,2) -> "6-9",
-      (9,2) -> "6-9",
-      (10,2) -> "10-15",
-      (11,2) -> "10-15",
-      (12,2) -> "10-15",
-      (13,2) -> "10-15",
-      (14,2) -> "10-15",
-      (15,2) -> "10-15",
-      (16,2) -> "16-19",
-      (17,2) -> "16-19",
-      (18,2) -> "16-19",
-      (19,2) -> "16-19",
-      (20,2) -> "20-23",
-      (21,2) -> "20-23",
-      (22,2) -> "20-23",
-      (23,2) -> "20-23",
-      (22,3) -> "22-25 - 3",
-      (23,3) -> "22-25 - 3",
-      (24,3) -> "22-25 - 3",
-      (25,3) -> "22-25 - 3",
-      (26,3) -> "26+",
-      (27,3) -> "26+",
-      (28,3) -> "26+",
-      (29,3) -> "26+",
-      (30,3) -> "26+")
+  // TODO Rebuild binning to go to shot zones based on python code
 
   def calculate(shots: Seq[RawShotData], filterBackcourt: Boolean = true): Map[ShotBinDetailed, ShotData] = {
     val detailedShots = shots
@@ -50,15 +23,12 @@ object ShotHistogram {
       .groupBy(_._1)
       .map(v => reduceScoredShots(v._1, v._2))
 
-    val overviewShots = detailedShots
-      .toSeq
-      .map(v => (detailedToOverview(v._1), v._2))
-      .groupBy(_._1)
-      .map(v => reduceScoredShotsOverview(v._1, v._2))
+    detailedShots
 
-    detailedShots.map(v => replaceLowSample(v, overviewShots))
   }
 
+  /*
+  // TODO Look into if this is useful
   private def replaceLowSample(shotInfo: (ShotBinDetailed, ShotData), overviewShots: Map[ShotBinOverview, ShotData]): (ShotBinDetailed, ShotData) = {
     if (shotInfo._2.shots >= 50) {
       shotInfo
@@ -66,6 +36,7 @@ object ShotHistogram {
       (shotInfo._1, overviewShots(detailedToOverview(shotInfo._1)))
     }
   }
+  */
 
   private def reduceScoredShots(bin: ShotBinDetailed, data: Seq[(ShotBinDetailed, ShotData)]): (ShotBinDetailed, ShotData) =
     (bin, data.map(_._2).reduce(_ + _))
@@ -81,22 +52,36 @@ object ShotHistogram {
     val shotValue = shot.shotZoneBasic.substring(0, 1).toInt
     ShotBinDetailed(
       shot.playerId,
-      shot.shotZoneRange,
-      shot.shotZoneArea,
-      shotDistances((shot.shotDistance.intValue(), shotValue)),
+      chooseBin(shot),
       shotValue)
   }
-
 
   private def scoreShot(shot: RawShotData): ShotData =
     ShotData(1, shot.shotMadeFlag.intValue())
 
-  private def detailedToOverview(bin: ShotBinDetailed): ShotBinOverview =
-    ShotBinOverview(bin.range, bin.area, bin.value)
+
+  private def belowCorner(shot: RawShotData): Boolean =
+    shot.yCoordinate.intValue() < 92.5
+
+  private def chooseBin(shot: RawShotData): String =
+    if (belowCorner(shot)) {
+      binBelowCornerShot(shot)
+    } else {
+      binAboveCornerShot(shot)
+    }
+
+  private def binBelowCornerShot(shot: RawShotData): String =
+  ""
+
+  private def binAboveCornerShot(shot: RawShotData): String =
+    ""
+
+  private def theta(shot: RawShotData): Double =
+    math.atan2(shot.yCoordinate.intValue(), shot.xCoordinate.intValue())
 
 }
 
-case class ShotBinDetailed(playerId: jl.Integer, range: String, area: String, dist: String, value: Int)
+case class ShotBinDetailed(playerId: jl.Integer, bin: String, value: Int)
 
 case class ShotBinOverview(range: String, area: String, value: Int)
 
@@ -106,17 +91,15 @@ case class ShotData(shots: Int, made: Int) {
     ShotData(shots + other.shots, made + other.made)
 }
 
-case class PlayerShotChartSection(primaryKey: String, playerId: jl.Integer, range: String, area: String, dist: String, value: Int, shots: Int, made: Int, dt: String)
+case class PlayerShotChartSection(primaryKey: String, playerId: jl.Integer, bin: String, value: Int, shots: Int, made: Int, dt: String)
 
 object PlayerShotChartSection {
 
   def apply(bin: ShotBinDetailed, data: ShotData, dt: String): PlayerShotChartSection =
     PlayerShotChartSection(
-      s"${bin.playerId}_${bin.range}_${bin.area}_${bin.dist}_${bin.value}",
+      s"${bin.playerId}_${bin.bin}_${bin.value}",
       bin.playerId,
-      bin.range,
-      bin.area,
-      bin.dist,
+      bin.bin,
       bin.value,
       data.shots,
       data.made,
