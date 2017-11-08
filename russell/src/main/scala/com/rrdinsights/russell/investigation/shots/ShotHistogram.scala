@@ -6,8 +6,13 @@ import com.rrdinsights.russell.storage.datamodel.RawShotData
 
 /**
   * Shot Chart areas:
-  *   Restricted Left: X < 0 and dist < 4ft
-  *   Restricted Right: X > 0 and dist < 4ft
+  *   RestrictedLeft: X < 0 and dist < 4ft
+  *   RestrictedRight: X > 0 and dist < 4ft
+  *
+  *   LeftCorner3: Y < 92.5, value = 3, X < 0
+  *   RightCorner3: Y < 92.5, value = 3, X > 0
+  *
+  *
   *
   */
 object ShotHistogram {
@@ -65,20 +70,7 @@ object ShotHistogram {
     shot.yCoordinate.intValue() < 92.5
 
   private def chooseBin(shot: RawShotData): String =
-    if (belowCorner(shot)) {
-      binBelowCornerShot(shot)
-    } else {
-      binAboveCornerShot(shot)
-    }
-
-  private def binBelowCornerShot(shot: RawShotData): String =
-  ""
-
-  private def binAboveCornerShot(shot: RawShotData): String =
-    ""
-
-  private def theta(shot: RawShotData): Double =
-    math.atan2(shot.yCoordinate.intValue(), shot.xCoordinate.intValue())
+    ShotZone.findShotZone(shot).toString
 
 }
 

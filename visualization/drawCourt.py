@@ -219,7 +219,7 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, outer_lines=F
     zone3_m6 = Arc((0, 0), 331, 331, theta1=34, theta2=146, linewidth=lw, color=color2)
     zone3_m3 = Arc((0, 0), 403, 403, theta1=27, theta2=153, linewidth=lw, color=color2)
     zone3 = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw, color=color)
-    zone3_p3 = Arc((0, 0), 547, 547, theta1=0, theta2=180, linewidth=lw, color=color2)
+    zone3_p3 = Arc((0, 0), 560, 560, theta1=0, theta2=180, linewidth=lw, color=color2)
 
     zone3_range = Arc((0, 0), 555, 555, theta1=60, theta2=120, linewidth=lw, color="blue")
 
