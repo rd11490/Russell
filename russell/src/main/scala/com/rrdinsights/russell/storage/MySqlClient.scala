@@ -86,7 +86,7 @@ object MySqlClient {
   }
 
   private[storage] def createTableStatement(name: String, fields: Seq[SqlTypeHolder]): String =
-    s"$Create $Table $IfNotExists $name ${createFieldsStatement(fields)}".trim
+    trace(s"$Create $Table $IfNotExists $name ${createFieldsStatement(fields)}".trim)
 
   private def primaryKeyStatement(fields: Seq[SqlTypeHolder]): String =
     if (fields.map(_.fieldName).contains(PrimaryKey)) {
@@ -154,4 +154,9 @@ object MySqlClient {
     } else {
       sqlTypeHolder.sqlColumn
     }
+
+  private def trace[T](stmt: T): T = {
+    println(stmt)
+    stmt
+  }
 }

@@ -14,12 +14,13 @@ object ShotHistogram {
 
   // TODO Rebuild binning to go to shot zones based on python code
 
+
   def calculate(shots: Seq[RawShotData], filterBackcourt: Boolean = true): Map[ShotBinDetailed, ShotData] = {
     val detailedShots = shots
       .filter(s => s.yCoordinate != null && s.xCoordinate != null)
       .filter(s => s.shotZoneRange != "Back Court(BC)")
       .filter(s => s.shotDistance.intValue() < 30)
-      .map(binAndScore)
+      .flatMap(binAndScore)
       .groupBy(_._1)
       .map(v => reduceScoredShots(v._1, v._2))
 
@@ -45,10 +46,10 @@ object ShotHistogram {
     (bin, data.map(_._2).reduce(_ + _))
 
 
-  def binAndScore(shot: RawShotData): (ShotBinDetailed, ShotData) =
-    (binShot(shot), scoreShot(shot))
+  def binAndScore(shot: RawShotData): Option[(ShotBinDetailed, ShotData)] =
+    binShot(shot).map(v => (v, scoreShot(shot)))
 
-  private def binShot(shot: RawShotData): ShotBinDetailed = {
+  private def binShot(shot: RawShotData): Option[ShotBinDetailed] = {
     val shotValue = shot.shotZoneBasic.substring(0, 1).toInt
     ShotBinDetailed(
       shot.playerId,
@@ -91,13 +92,21 @@ case class ShotData(shots: Int, made: Int) {
     ShotData(shots + other.shots, made + other.made)
 }
 
+<<<<<<< Updated upstream
 case class PlayerShotChartSection(primaryKey: String, playerId: jl.Integer, bin: String, value: Int, shots: Int, made: Int, dt: String)
+=======
+case class PlayerShotChartSection(primaryKey: String, playerId: jl.Integer, shotRange: String, area: String, dist: String, shotValue: jl.Integer, shots: jl.Integer, made: jl.Integer, dt: String)
+>>>>>>> Stashed changes
 
 object PlayerShotChartSection {
 
   def apply(bin: ShotBinDetailed, data: ShotData, dt: String): PlayerShotChartSection =
     PlayerShotChartSection(
+<<<<<<< Updated upstream
       s"${bin.playerId}_${bin.bin}_${bin.value}",
+=======
+      s"${bin.playerId}_${bin.hashCode()}",
+>>>>>>> Stashed changes
       bin.playerId,
       bin.bin,
       bin.value,
