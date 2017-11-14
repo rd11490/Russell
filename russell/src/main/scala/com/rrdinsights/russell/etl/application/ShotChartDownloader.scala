@@ -10,28 +10,28 @@ import com.rrdinsights.scalabrine.parameters.{ParameterValue, PlayerIdParameter,
 
 object ShotChartDownloader {
 
-  def downloadAndWritePlayersShotData(playerIds: Seq[String], dt: String, season: String = ""): Unit = {
-    val shotData = downloadPlayersShotData(playerIds, season)
-    writeShotData(shotData, season, dt)
+  def downloadAndWritePlayersShotData(playerIds: Seq[String], dt: String): Unit = {
+    val shotData = downloadPlayersShotData(playerIds)
+    writeShotData(shotData, dt)
   }
 
-  private def downloadPlayersShotData(playerIds: Seq[String], season: String): Seq[Shot] = {
+  private def downloadPlayersShotData(playerIds: Seq[String]): Seq[Shot] = {
     playerIds
       .map(PlayerIdParameter.newParameterValue)
       .flatMap(v => {
         Thread.sleep(1000)
-        downloadPlayerShotData(v, SeasonParameter.newParameterValue(season))
+        downloadPlayerShotData(v)
       })
   }
 
-  private def downloadPlayerShotData(playerIdParameter: ParameterValue, seasonParameter: ParameterValue): Seq[Shot] = {
+  private def downloadPlayerShotData(playerIdParameter: ParameterValue): Seq[Shot] = {
     val shotChartEndpoint = ShotChartDetailEndpoint(playerIdParameter)
     ScalabrineClient.getShotChart(shotChartEndpoint).teamGameLog.shots
   }
 
-  private def writeShotData(shots: Seq[Shot], season: String, dt: String): Unit = {
+  private def writeShotData(shots: Seq[Shot], dt: String): Unit = {
     MySqlClient.createTable(NBATables.raw_shot_data)
-    val shotRecords = shots.map(RawShotData.apply(_, season, dt))
+    val shotRecords = shots.map(RawShotData.apply(_, dt))
     MySqlClient.insertInto(NBATables.raw_shot_data, shotRecords)
   }
 

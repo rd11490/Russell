@@ -32,11 +32,14 @@ final case class RawShotData(
                               homeTeam: String,
                               awayTeam: String,
                               season: String,
-                              dt: String)
+                              dt: String) {
+
+  def shotValue: jl.Integer = shotZoneBasic.substring(0, 1).toInt
+}
 
 object RawShotData extends ResultSetMapper {
-  def apply(shot: Shot, season: String, dt: String): RawShotData = {
-    val seasonOfShot = if (season != "") season else DataModelUtils.gameIdToSeason(shot.gameId)
+  def apply(shot: Shot, dt: String): RawShotData = {
+    val seasonOfShot = DataModelUtils.gameIdToSeason(shot.gameId)
     RawShotData(
       s"${shot.gameId}_${shot.gameEventId}_${shot.playerId}",
       shot.gridType,

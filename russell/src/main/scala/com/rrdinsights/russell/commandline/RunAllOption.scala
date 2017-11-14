@@ -14,5 +14,5 @@ trait RunAllOption extends CommandLineBase {
 
 object RunAllOption {
   val RunAll: cli.Option =
-    new cli.Option(null, "run-all", true, "run all sections")
+    new cli.Option(null, "run-all", false, "run all sections")
 }

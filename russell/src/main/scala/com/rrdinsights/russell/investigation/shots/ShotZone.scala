@@ -3,16 +3,15 @@ package com.rrdinsights.russell.investigation.shots
 import com.rrdinsights.russell.storage.datamodel.RawShotData
 
 sealed trait ShotZone {
-  def isInZone(shot: RawShotData): Boolean
+  def isInZone(x: Integer, y: Integer, shotValue: Integer): Boolean
 
   def value: Int
 }
 
 sealed trait AboveCornerShotZone extends ShotZone {
-  override def isInZone(shot: RawShotData): Boolean = {
-    val theta = ShotZone.theta(shot)
-    val shotValue = ShotZone.shotValue(shot)
-    val dist = ShotZone.distance(shot)
+  override def isInZone(x: Integer, y: Integer, shotValue: Integer): Boolean = {
+    val theta = ShotZone.theta(x, y)
+    val dist = ShotZone.distance(x, y)
 
     shotValue == value &&
       theta >= thetaMin &&
@@ -33,10 +32,10 @@ sealed trait AboveCornerShotZone extends ShotZone {
 }
 
 sealed trait BelowCornerShotZone extends ShotZone {
-  override def isInZone(shot: RawShotData): Boolean =
-    ShotZone.shotValue(shot) == value &&
-      shot.xCoordinate.intValue() < xMax &&
-      shot.xCoordinate.intValue() >= xMin
+  override def isInZone(x: Integer, y: Integer, shotValue: Integer): Boolean =
+    shotValue == value &&
+      x.intValue() < xMax &&
+      x.intValue() >= xMin
 
   def xMax: Int
 
@@ -46,25 +45,52 @@ sealed trait BelowCornerShotZone extends ShotZone {
 object ShotZone {
 
   private val BelowCornerShotZones: Seq[BelowCornerShotZone] =
-    Seq(LeftCorner, RightCorner, LeftLongMidBaseLine, LeftMidBaseLine, LeftShortBaseLine, LeftPaint,)
+    Seq(
+      LeftCorner, LeftLongMidBaseLine, LeftMidBaseLine, LeftShortBaseLine, LeftPaint,
+      RightCorner, RightLongBaseLine, RightMidBaseLine, RightShortBaseLine, RightPaint)
+
   private val AboveCornerShotZones: Seq[AboveCornerShotZone] =
-    Seq(Long3Left, Long3Right, Mid3CenterLeft, Mid3CenterRight, Mid3Left, Mid3Right)
+    Seq(Long3Left, Long3Right, Mid3Left, Mid3CenterLeft, Mid3CenterRight, Mid3Right,
+      Long2Left, Long2CenterLeft, Long2CenterRight, Long2Right,
+      Mid2Left, Mid2CenterLeft, Mid2CenterRight, Mid2Right,
+      Short2Left, Short2CenterLeft, Short2CenterRight, Short2Right)
 
-  def findShotZone(shot: RawShotData): ShotZone =
-    if (RestrictedArea.isInZone(shot)) {
-      RestrictedArea
-    } else if (shot.yCoordinate <= 92.5) {
-      BelowCornerShotZones.find(_.isInZone(shot)).head
-    } else {
-      AboveCornerShotZones.find(_.isInZone(shot)).head
-    }
+  def find(str: String): ShotZone =
+    (BelowCornerShotZones ++ AboveCornerShotZones :+ RestrictedArea)
+      .find(_.toString == str)
+      .getOrElse(throw new IllegalArgumentException(s"$str is not a valid Shot Zone"))
 
-  def theta(shot: RawShotData): Double = {
-    180 - math.toDegrees(math.atan2(shot.yCoordinate.intValue(), shot.xCoordinate.intValue()))
+  def findShotZone(shot: RawShotData): ShotZone = {
+    val shotValue = ShotZone.shotValue(shot)
+    findShotZone(shot.xCoordinate, shot.yCoordinate, shotValue)
   }
 
-  def distance(shot: RawShotData): Double =
-    shotLocToReal(math.hypot(shot.xCoordinate.intValue(), shot.yCoordinate.intValue())) / 12.0
+
+  def findShotZone(x: Integer, y: Integer, value: Integer): ShotZone = {
+    try {
+      if (RestrictedArea.isInZone(x, y, value)) {
+        RestrictedArea
+      } else if (y <= 92.5) {
+        BelowCornerShotZones.find(_.isInZone(x, y, value)).head
+      } else {
+        AboveCornerShotZones.find(_.isInZone(x, y, value)).head
+      }
+    } catch {
+      case t: Throwable =>
+        println(x)
+        println(y)
+        throw t
+    }
+  }
+
+
+
+  def theta(x: Integer, y: Integer): Double = {
+    180 - math.toDegrees(math.atan2(y.intValue(), x.intValue()))
+  }
+
+  def distance(x: Integer, y: Integer): Double =
+    shotLocToReal(math.hypot(x.intValue(), y.intValue())) / 12.0
 
   private def shotLocToReal(inches: Double): Double =
     (inches / 7.5) * 9.0
@@ -78,7 +104,7 @@ object ShotZone {
   case object RestrictedArea extends ShotZone {
     override val value: Int = 2
 
-    override def isInZone(shot: RawShotData): Boolean = distance(shot) <= 4
+    override def isInZone(x: Integer, y: Integer, value: Integer): Boolean = distance(x, y) <= 4
   }
 
   case object LeftCorner extends BelowCornerShotZone {
@@ -145,7 +171,7 @@ object ShotZone {
     override val thetaMin: Double = 0
     override val thetaMax: Double = 60
 
-    override val distMin: Double = 22
+    override val distMin: Double = 20
     override val distMax: Double = 27
 
     override val value: Int = 3
@@ -156,7 +182,7 @@ object ShotZone {
 
     override val thetaMax: Double = 90
 
-    override val distMin: Double = 22
+    override val distMin: Double = 20
 
     override val distMax: Double = 27
 
@@ -168,7 +194,7 @@ object ShotZone {
 
     override val thetaMax: Double = 120
 
-    override val distMin: Double = 22
+    override val distMin: Double = 20
 
     override val distMax: Double = 27
 
@@ -180,7 +206,7 @@ object ShotZone {
 
     override val thetaMax: Double = 180
 
-    override val distMin: Double = 22
+    override val distMin: Double = 20
 
     override val distMax: Double = 27
 

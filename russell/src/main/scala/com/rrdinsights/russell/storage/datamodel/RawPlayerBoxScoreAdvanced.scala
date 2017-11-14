@@ -29,7 +29,7 @@ final case class RawPlayerBoxScoreAdvanced(
                                             teamTurnOverPercentage: jl.Double,
                                             effectiveFieldGoalPercentage: jl.Double,
                                             trueShootingPercentage: jl.Double,
-                                            usage: jl.Double,
+                                            usageRate: jl.Double,
                                             pace: jl.Double,
                                             playerEstimatedImpact: jl.Double,
                                             season: String,

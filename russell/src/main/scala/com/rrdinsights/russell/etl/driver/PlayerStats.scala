@@ -3,11 +3,9 @@ package com.rrdinsights.russell.etl.driver
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.etl.application.{AdvancedBoxScoreDownloader, RosterDownloader, ShotChartDownloader}
+import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
+import com.rrdinsights.russell.etl.application.{RosterDownloader, ShotChartDownloader}
 import org.apache.commons.cli
-import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
-import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.scalabrine.parameters.{ParameterValue, PlayerIdParameter}
 
 object PlayerStats {
   private val Formatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
@@ -21,12 +19,12 @@ object PlayerStats {
     if (playerId.isDefined) {
       downloadAndWritePlayerStats(season, dt, playerId.get)
     } else {
-      val playersFromRosteres = readPlayersFromRosters(season)
+      val playersFromRosters = readPlayersFromRosters(season)
 
       val players = if (args.delta) {
-        playersFromRosteres.diff(readPlayersFromShotCharts())
+        playersFromRosters.diff(readPlayersFromShotCharts())
       } else {
-        playersFromRosteres
+        playersFromRosters
       }
       downloadAndWritePlayerStats(season, dt, players: _*)
 
@@ -35,11 +33,11 @@ object PlayerStats {
 
   private def downloadAndWritePlayerStats(season: Option[String], dt: String, playerIds: String*): Unit = {
     val seasonStr = season.getOrElse("")
-    ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, seasonStr)
+    ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt)
   }
 
   private def readPlayersFromRosters(season: Option[String]): Seq[String] = {
-    val where = season.map(v => Seq(s"Season = '$v'")).getOrElse(Seq.empty)
+    val where = season.map(v => Seq(s"seasonParameter = '$v'")).getOrElse(Seq.empty)
     RosterDownloader.readPlayerInfo(where)
       .map(_.playerId.toString)
       .distinct
@@ -53,7 +51,7 @@ object PlayerStats {
 }
 
 private final class PlayerStatsArguments private(args: Array[String])
-  extends CommandLineBase(args, "Player Stats") with SeasonOption {
+  extends CommandLineBase(args, "Player Stats") with SeasonOption with RunAllOption {
 
   override protected def options: cli.Options = super.options
     .addOption(PlayerStatsArguments.PlayerIdOption)
@@ -62,9 +60,9 @@ private final class PlayerStatsArguments private(args: Array[String])
 
   def playerId: Option[String] = valueOf(PlayerStatsArguments.PlayerIdOption)
 
-  def downloadShotData: Boolean = has(PlayerStatsArguments.ShotDataOption)
+  lazy val downloadShotData: Boolean = has(PlayerStatsArguments.ShotDataOption) || runAll
 
-  def delta: Boolean = has(PlayerStatsArguments.DeltaOption)
+  lazy val delta: Boolean = has(PlayerStatsArguments.DeltaOption)
 
 }
 

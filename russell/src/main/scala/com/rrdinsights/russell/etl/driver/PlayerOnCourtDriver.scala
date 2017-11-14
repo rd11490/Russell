@@ -4,7 +4,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.{lang => jl}
 
-import com.rrdinsights.russell.commandline.{CommandLineBase, ForceOption, SeasonOption}
+import com.rrdinsights.russell.commandline.{CommandLineBase, ForceOption, RunAllOption, SeasonOption}
 import com.rrdinsights.russell.etl.application.{PlayByPlayDownloader, PlayersOnCourtDownloader}
 import com.rrdinsights.russell.investigation.playbyplay.PlayByPlayParser
 import com.rrdinsights.russell.storage.datamodel._
@@ -114,15 +114,15 @@ object PlayerOnCourtDriver {
 }
 
 private final class PlayerOnCourtArguments private(args: Array[String])
-  extends CommandLineBase(args, "Season Stats") with SeasonOption with ForceOption {
+  extends CommandLineBase(args, "Season Stats") with SeasonOption with ForceOption with RunAllOption{
 
   override protected def options: Options = super.options
     .addOption(PlayerOnCourtArguments.PlayersOnCourtAtPeriod)
     .addOption(PlayerOnCourtArguments.ParsePlayByPlay)
 
-  def downloadPlayersAtStartOfPeriod: Boolean = has(PlayerOnCourtArguments.PlayersOnCourtAtPeriod)
+  lazy val downloadPlayersAtStartOfPeriod: Boolean = has(PlayerOnCourtArguments.PlayersOnCourtAtPeriod) || runAll
 
-  def parsePlayByPlayForPlayers: Boolean = has(PlayerOnCourtArguments.ParsePlayByPlay)
+  lazy val parsePlayByPlayForPlayers: Boolean = has(PlayerOnCourtArguments.ParsePlayByPlay) || runAll
 }
 
 private object PlayerOnCourtArguments {

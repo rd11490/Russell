@@ -204,7 +204,6 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, outer_lines=F
                            linewidth=lw, color=color)
 
     # Draw Grid
-    backboardLine = Rectangle((-250, -7.5), 500, 0, linewidth=lw, color=color2)
     breakLine = Rectangle((-250, 92.5), 500, 0, linewidth=lw, color=color2)
 
     midRangeSplitLeft1 = Rectangle((-137.5, -47.5), 0, 140, linewidth=lw, color=color2)
@@ -221,13 +220,11 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, outer_lines=F
     zone3 = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw, color=color)
     zone3_p3 = Arc((0, 0), 560, 560, theta1=0, theta2=180, linewidth=lw, color=color2)
 
-    zone3_range = Arc((0, 0), 555, 555, theta1=60, theta2=120, linewidth=lw, color="blue")
-
     courtSplit = Rectangle((0, -47.5), 0, 470, linewidth=lw, color=color2, fill=False)
 
-    grid = [courtSplit, backboardLine, breakLine, midRangeSplitLeft1,
+    grid = [courtSplit, breakLine, midRangeSplitLeft1,
             midRangeSplitLeft2, midRangeSplitRight1, midRangeSplitRight2,
-            zone3_m6, zone3_m3, zone3, zone3_p3, zone3_range]
+            zone3_m6, zone3_m3, zone3, zone3_p3]
 
     # List of the court elements to be plotted onto the axes
     court_elements = [hoop, backboard, outer_box, inner_box, top_free_throw,

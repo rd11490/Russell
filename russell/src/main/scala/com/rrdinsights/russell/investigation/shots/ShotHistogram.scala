@@ -1,8 +1,9 @@
 package com.rrdinsights.russell.investigation.shots
 
+import java.sql.ResultSet
 import java.{lang => jl}
 
-import com.rrdinsights.russell.storage.datamodel.RawShotData
+import com.rrdinsights.russell.storage.datamodel.{RawShotData, ResultSetMapper}
 
 /**
   * Shot Chart areas:
@@ -55,19 +56,15 @@ object ShotHistogram {
     (binShot(shot), scoreShot(shot))
 
   private def binShot(shot: RawShotData): ShotBinDetailed = {
-    val shotValue = shot.shotZoneBasic.substring(0, 1).toInt
     ShotBinDetailed(
       shot.playerId,
       chooseBin(shot),
-      shotValue)
+      shot.shotValue)
   }
 
   private def scoreShot(shot: RawShotData): ShotData =
     ShotData(1, shot.shotMadeFlag.intValue())
 
-
-  private def belowCorner(shot: RawShotData): Boolean =
-    shot.yCoordinate.intValue() < 92.5
 
   private def chooseBin(shot: RawShotData): String =
     ShotZone.findShotZone(shot).toString
@@ -86,15 +83,26 @@ case class ShotData(shots: Int, made: Int) {
 
 case class PlayerShotChartSection(primaryKey: String, playerId: jl.Integer, bin: String, value: Int, shots: Int, made: Int, dt: String)
 
-object PlayerShotChartSection {
+object PlayerShotChartSection extends ResultSetMapper {
 
   def apply(bin: ShotBinDetailed, data: ShotData, dt: String): PlayerShotChartSection =
     PlayerShotChartSection(
-      s"${bin.playerId}_${bin.bin}_${bin.value}",
+      s"${bin.playerId}_${bin.bin}",
       bin.playerId,
       bin.bin,
       bin.value,
       data.shots,
       data.made,
       dt)
+
+  def apply(resultSet: ResultSet): PlayerShotChartSection =
+    PlayerShotChartSection(
+      getString(resultSet, 0),
+      getInt(resultSet, 1),
+      getString(resultSet, 2),
+      getInt(resultSet, 3),
+      getInt(resultSet, 4),
+      getInt(resultSet, 5),
+      getString(resultSet, 6)
+    )
 }

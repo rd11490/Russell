@@ -1,16 +1,12 @@
 package com.rrdinsights.russell.etl.driver
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
-
-import com.rrdinsights.russell.etl.application._
 import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
+import com.rrdinsights.russell.etl.application._
 import com.rrdinsights.russell.utils.TimeUtils
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
 
 object SeasonStats {
-
 
   def main(strings: Array[String]): Unit = {
     val args = SeasonStatsArguments(strings)
@@ -55,13 +51,13 @@ private final class SeasonStatsArguments private(args: Array[String])
 
   lazy val downloadGameLog: Boolean = has(SeasonStatsArguments.GameLogOption) || runAll
 
-  lazy val downloadPlayByPlay: Boolean = has(SeasonStatsArguments.PlayByPlayOption)|| runAll
+  lazy val downloadPlayByPlay: Boolean = has(SeasonStatsArguments.PlayByPlayOption) || runAll
 
   lazy val downloadRosters: Boolean = has(SeasonStatsArguments.RosterOption) || runAll
 
-  lazy val downloadAdvancedBoxscore: Boolean = has(SeasonStatsArguments.AdvacnedBoxScoreOption)|| runAll
+  lazy val downloadAdvancedBoxscore: Boolean = has(SeasonStatsArguments.AdvacnedBoxScoreOption) || runAll
 
-  lazy val downloadGameSummaries: Boolean = has(SeasonStatsArguments.GameSummaries)|| runAll
+  lazy val downloadGameSummaries: Boolean = has(SeasonStatsArguments.GameSummaries) || runAll
 
 }
 

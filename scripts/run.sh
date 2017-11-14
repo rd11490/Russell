@@ -4,4 +4,4 @@
 
 echo $JAR
 
-scala  -J-Xmx8g -cp $JAR "$@"
+scala  -J-Xmx16g -cp $JAR "$@"
