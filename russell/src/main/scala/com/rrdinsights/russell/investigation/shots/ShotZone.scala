@@ -62,7 +62,13 @@ object ShotZone {
 
   def findShotZone(shot: RawShotData): ShotZone = {
     val shotValue = ShotZone.shotValue(shot)
-    findShotZone(shot.xCoordinate, shot.yCoordinate, shotValue)
+    try {
+      findShotZone(shot.xCoordinate, shot.yCoordinate, shotValue)
+    } catch {
+      case e: Throwable =>
+        println(shot)
+        throw e
+    }
   }
 
 
@@ -79,6 +85,7 @@ object ShotZone {
       case t: Throwable =>
         println(x)
         println(y)
+        print(value)
         throw t
     }
   }
@@ -110,7 +117,7 @@ object ShotZone {
   case object LeftCorner extends BelowCornerShotZone {
     override val value: Int = 3
     override val xMax: Int = -200
-    override val xMin: Int = -400
+    override val xMin: Int = -500
   }
 
   case object LeftLongMidBaseLine extends BelowCornerShotZone {
@@ -139,7 +146,7 @@ object ShotZone {
 
   case object RightCorner extends BelowCornerShotZone {
     override val value: Int = 3
-    override val xMax: Int = 400
+    override val xMax: Int = 500
     override val xMin: Int = 200
   }
 

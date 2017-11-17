@@ -1,7 +1,7 @@
 package com.rrdinsights.russell.storage.tables
 
 import com.rrdinsights.russell.etl.application.TeamInfo
-import com.rrdinsights.russell.investigation.shots.PlayerShotChartSection
+import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ScoredShot}
 import com.rrdinsights.russell.storage.datamodel._
 
 object NBATables {
@@ -25,6 +25,7 @@ object NBATables {
   val lineup_shots: MySqlTable = MySqlTable[ShotWithPlayers]("lineup_shots")
   val team_info: MySqlTable = MySqlTable[TeamInfo]("team_info")
 
+  val team_scored_shots: MySqlTable = MySqlTable[ScoredShot]("team_scored_shots")
   val players_on_court_test: MySqlTable = MySqlTable[PlayersOnCourt]("players_on_court_test")
 
 }
