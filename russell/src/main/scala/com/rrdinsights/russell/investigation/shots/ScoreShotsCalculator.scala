@@ -1,19 +1,17 @@
 package com.rrdinsights.russell.investigation.shots
 
-import java.{lang => jl}
-
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, ShotWithPlayers}
+import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, ScoredShot, ShotWithPlayers}
 import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.russell.utils.TimeUtils
 
-object ExpectedPointsShotCharts {
+object ScoreShotsCalculator {
 
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
-    val args = PlayerWithShotsArguments(strings)
-    val where = args.season.map(v => Seq("season = '$v'")).getOrElse(Seq.empty)
+    val args = ScoredShotsArguments(strings)
+    val where = args.season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
 
     val shotsWithPlayers = readShotsWithPlayers(where: _*)
       .map(v => ((v.shooter, ShotZone.findShotZone(v.xCoordinate, v.yCoordinate, v.shotValue).toString), v))
@@ -24,13 +22,6 @@ object ExpectedPointsShotCharts {
 
     val scored = joinShotsWithShotCharts(shotsWithPlayers, shotCharts)
       .map(v => toScoredShot(v._1, v._2, dt))
-      .groupBy(v => (v.defenseTeamId, v.bin))
-      .map(v => (v._1, v._2.reduce(_ + _)))
-      .map(v => v._2.copy(primaryKey = v._1.toString()))
-      .toSeq
-
-    //println(s"${scored.size} Records to write")
-    scored.foreach(println)
 
     writeScoredShots(scored)
   }
@@ -38,7 +29,8 @@ object ExpectedPointsShotCharts {
   private def joinShotsWithShotCharts(shotsWithPlayers: Seq[((Integer, String), ShotWithPlayers)], shotCharts: Map[(Integer, String), PlayerShotChartSection]): Seq[(ShotWithPlayers, PlayerShotChartSection)] =
     shotsWithPlayers.map(v => (v._2, shotCharts.getOrElse(v._1, emptyShotChartSection(v._1._1, v._1._2))))
 
-  private def emptyShotChartSection(playerId: Integer, bin: String): PlayerShotChartSection =
+  private def emptyShotChartSection(playerId: Integer, bin: String): PlayerShotChartSection = {
+    println(s"$playerId - $bin")
     PlayerShotChartSection(
       s"${playerId}_$bin",
       playerId,
@@ -47,6 +39,7 @@ object ExpectedPointsShotCharts {
       0,
       0,
       null)
+  }
 
   private def readShotsWithPlayers(where: String*): Seq[ShotWithPlayers] =
     MySqlClient.selectFrom(NBATables.lineup_shots, ShotWithPlayers.apply, where: _*)
@@ -87,6 +80,8 @@ object ExpectedPointsShotCharts {
       shotWithPlayers.shotMadeFlag,
 
       (shotChart.made.toDouble / shotChart.shots.toDouble) * shotChart.value,
+      shotChart.shots,
+      shotChart.made,
 
       DataModelUtils.gameIdToSeason(shotWithPlayers.gameId),
       dt)
@@ -94,41 +89,13 @@ object ExpectedPointsShotCharts {
 
 }
 
-final case class ScoredShot(primaryKey: String,
-                            gameId: String,
-                            eventNumber: jl.Integer,
-                            shooter: jl.Integer,
-                            offenseTeamId: jl.Integer,
-                            offensePlayer1Id: jl.Integer,
-                            offensePlayer2Id: jl.Integer,
-                            offensePlayer3Id: jl.Integer,
-                            offensePlayer4Id: jl.Integer,
-                            offensePlayer5Id: jl.Integer,
-                            defenseTeamId: jl.Integer,
-                            defensePlayer1Id: jl.Integer,
-                            defensePlayer2Id: jl.Integer,
-                            defensePlayer3Id: jl.Integer,
-                            defensePlayer4Id: jl.Integer,
-                            defensePlayer5Id: jl.Integer,
-                            bin: String,
-                            shotValue: jl.Integer,
-                            shotAttempted: jl.Integer,
-                            shotMade: jl.Integer,
-                            expectedPoints: jl.Double,
-                            season: String,
-                            dt: String) {
 
-  def +(other: ScoredShot): ScoredShot = this.copy(
-    shotAttempted = shotAttempted + other.shotAttempted,
-    shotMade = shotMade + other.shotMade,
-    expectedPoints = expectedPoints + other.expectedPoints)
-}
 
-private final class ExpectedPointsArguments private(args: Array[String])
+private final class ScoredShotsArguments private(args: Array[String])
   extends CommandLineBase(args, "Player Stats") with SeasonOption
 
-private object ExpectedPointsArguments {
+private object ScoredShotsArguments {
 
-  def apply(args: Array[String]): ExpectedPointsArguments = new ExpectedPointsArguments(args)
+  def apply(args: Array[String]): ScoredShotsArguments = new ScoredShotsArguments(args)
 
 }

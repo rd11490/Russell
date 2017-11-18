@@ -24,8 +24,6 @@ object ShotHistogram {
   def calculate(shots: Seq[RawShotData], filterBackcourt: Boolean = true): Map[ShotBinDetailed, ShotData] = {
     val detailedShots = shots
       .filter(s => s.yCoordinate != null && s.xCoordinate != null)
-      .filter(s => s.shotZoneRange != "Back Court(BC)")
-      .filter(s => s.shotDistance.intValue() < 30)
       .map(binAndScore)
       .groupBy(_._1)
       .map(v => reduceScoredShots(v._1, v._2))
