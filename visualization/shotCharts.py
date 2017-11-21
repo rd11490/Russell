@@ -6,7 +6,6 @@ import matplotlib.pyplot as plt
 def buildShotPlot(shots, teamIds):
     for t in teamIds:
         print(t)
-        teamName = teams.loc[t, "teamName"]
         teamShots = shots[shots["defenseTeamId"] == t]
         makes = teamShots[teamShots["shotMadeFlag"] == 1]
         misses = teamShots[teamShots["shotMadeFlag"] == 0]
@@ -16,13 +15,14 @@ def buildShotPlot(shots, teamIds):
 
         plt.xlim(-250, 250)
         plt.ylim(-47.5, 422.5)
-        drawCourt.draw_shot_chart_court_with_zones(outer_lines=True)
+        drawCourt.draw_shot_chart_court(outer_lines=True)
         plt.title("Defensive Shot Chart for {}".format(teamName))
         ax.xaxis.label.set_visible(False)
         ax.yaxis.label.set_visible(False)
         plt.axis('off')
         plt.legend()
-        plt.show()
+        plt.savefig("plots/{}_chart".format(teamName))
+        plt.close()
 
 colors = {0: "r",
           1: "g"}
@@ -35,26 +35,17 @@ label = {
     0: "miss",
     1: "make"}
 
-teamInfo = pd.read_csv("data/teamInfo.csv")
-teams = teamInfo[["teamId", "teamName"]].set_index("teamId")
-
-shots = pd.read_csv("data/shots_lineup_201718.csv")
-shots["color"] = shots['shotMadeFlag'].apply(lambda x: colors[x])
-shots["marker"] = shots['shotMadeFlag'].apply(lambda x: markers[x])
-shots["label"] = shots['shotMadeFlag'].apply(lambda x: label[x])
+dShots = pd.read_csv("data/ePPSZonedD.csv")
+dShots["color"] = dShots['shotMadeFlag'].apply(lambda x: colors[x])
+dShots["marker"] = dShots['shotMadeFlag'].apply(lambda x: markers[x])
+dShots["label"] = dShots['shotMadeFlag'].apply(lambda x: label[x])
 
 
-teamIds = list(teamInfo["teamId"])[0:1]
+teamIds = list(teamInfo["teamId"])
 
-#buildShotPlot(shots, teamIds)
-plt.xlim(-250, 250)
-plt.ylim(-47.5, 422.5)
-drawCourt.draw_shot_chart_court_with_zones(outer_lines=True)
-#ax.xaxis.label.set_visible(False)
-#ax.yaxis.label.set_visible(False)
-#plt.axis('off')
-#plt.legend()
-plt.show()
+
+buildShotPlot(shots, teamIds)
+
 
 """
 shotLocs = shots[["xCoordinate", "yCoordinate", "shotMadeFlag"]].head(1000)

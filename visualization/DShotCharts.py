@@ -16,13 +16,14 @@ def buildShotPlot(shots, teamIds):
 
         plt.xlim(-250, 250)
         plt.ylim(-47.5, 422.5)
-        drawCourt.draw_shot_chart_court_with_zones(outer_lines=True)
+        drawCourt.draw_shot_chart_court(outer_lines=True)
         plt.title("Defensive Shot Chart for {}".format(teamName))
         ax.xaxis.label.set_visible(False)
         ax.yaxis.label.set_visible(False)
         plt.axis('off')
         plt.legend()
-        plt.show()
+        plt.savefig("plots/{}_chart".format(teamName))
+        plt.close()
 
 colors = {0: "r",
           1: "g"}
@@ -44,17 +45,11 @@ shots["marker"] = shots['shotMadeFlag'].apply(lambda x: markers[x])
 shots["label"] = shots['shotMadeFlag'].apply(lambda x: label[x])
 
 
-teamIds = list(teamInfo["teamId"])[0:1]
+teamIds = list(teamInfo["teamId"])
 
-#buildShotPlot(shots, teamIds)
-plt.xlim(-250, 250)
-plt.ylim(-47.5, 422.5)
-drawCourt.draw_shot_chart_court_with_zones(outer_lines=True)
-#ax.xaxis.label.set_visible(False)
-#ax.yaxis.label.set_visible(False)
-#plt.axis('off')
-#plt.legend()
-plt.show()
+
+buildShotPlot(shots, teamIds)
+
 
 """
 shotLocs = shots[["xCoordinate", "yCoordinate", "shotMadeFlag"]].head(1000)
