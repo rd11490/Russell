@@ -13,7 +13,7 @@ object PlayersOnCourtDownloader {
 
   def downloadPlayersOnCourtAtEvent(playByPlay: RawPlayByPlayEvent, dt: String): Option[PlayersOnCourt] = {
     val time = TimeUtils.convertTimeStringToTime(playByPlay.period.intValue, playByPlay.pcTimeString) * 10
-    val start = time - 9
+    val start = if (time < 700) 0 else time - 9
     val end = time + 9
     val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(playByPlay.gameId, start, end)
 

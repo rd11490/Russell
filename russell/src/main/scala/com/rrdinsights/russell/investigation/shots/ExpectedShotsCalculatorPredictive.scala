@@ -1,24 +1,48 @@
 package com.rrdinsights.russell.investigation.shots
 
+import java.time.{Instant, LocalDate, ZoneId}
+import java.time.format.DateTimeFormatter
+import java.{lang => jl}
+
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
+import com.rrdinsights.russell.etl.application.GameLogDownloader
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.ScoredShot
 import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
 import com.rrdinsights.russell.utils.TimeUtils
-import java.{lang => jl}
-
 import org.apache.commons.cli
+import java.time.format.DateTimeFormatterBuilder
 
-object ExpectedShotsCalculator {
+
+object ExpectedShotsCalculatorPredictive {
 
   import com.rrdinsights.russell.utils.MathUtils._
+
+  private val Formatter: DateTimeFormatter =
+    new DateTimeFormatterBuilder().parseCaseInsensitive.appendPattern("MMM dd, yyyy").toFormatter
 
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
     val args = ExpectedPointsArguments(strings)
     val season = args.season.getOrElse(throw new IllegalArgumentException("Must provide a season"))
     val where = Seq(s"season = '$season'")
-    val scoredShots = readScoredShots(where)
+    val scoredShotsUnfiltered = readScoredShots(where)
+
+    val where18 = Seq(s"season = '2017-18'")
+
+    val games18 = readScoredShots(where18)
+      .map(v => v.gameId)
+      .distinct
+      .size
+
+    val gameIds = GameLogDownloader.readGameLogs(season)
+      .map(v => (v.gameId, parseDate(v.gameDate)))
+      .distinct
+      .sortBy(v => v._2)
+      .take(games18)
+      .map(_._1)
+
+    val scoredShots = scoredShotsUnfiltered.filter(v => gameIds.contains(v.gameId))
 
     if (args.offense) {
       offenseTotal(scoredShots, dt, season)
@@ -36,14 +60,18 @@ object ExpectedShotsCalculator {
 
   }
 
-  private def reduceShotGroup(key:(Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
+  private[shots] def parseDate(date: String): Instant = {
+    LocalDate.parse(date, Formatter).atStartOfDay(ZoneId.systemDefault()).toInstant
+  }
+
+  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
     val attempted = shots.map(v => v.shotAttempts.intValue()).sum
     val made = shots.map(v => v.shotMade.intValue()).sum
     val expectedPoints = shots.map(v => v.expectedPoints.doubleValue())
     val expectedPointsAvg = mean(expectedPoints)
     val expectedPointsStDev = stdDev(expectedPoints)
     val value = shots.head.shotValue
-    val points = shots.map(v => v.shotMade*v.shotValue)
+    val points = shots.map(v => v.shotMade * v.shotValue)
     val pointsAvg = mean(points)
     val pointsStDev = stdDev(points)
 
@@ -80,7 +108,7 @@ object ExpectedShotsCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.offense_expected_points_total, shots)
+    writeShots(NBATables.offense_expected_points_total_predict, shots)
   }
 
   private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
@@ -94,7 +122,7 @@ object ExpectedShotsCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.offense_expected_points_zoned, shots)
+    writeShots(NBATables.offense_expected_points_zoned_predict, shots)
   }
 
   private def defenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
@@ -108,7 +136,7 @@ object ExpectedShotsCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.defense_expected_points_total, shots)
+    writeShots(NBATables.defense_expected_points_total_predict, shots)
   }
 
   private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
@@ -122,7 +150,7 @@ object ExpectedShotsCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.defense_expected_points_zoned, shots)
+    writeShots(NBATables.defense_expected_points_zoned_predict, shots)
   }
 
   def writeShots(table: MySqlTable, shots: Seq[ExpectedPoints]): Unit = {
@@ -134,29 +162,7 @@ object ExpectedShotsCalculator {
     MySqlClient.selectFrom(NBATables.team_scored_shots, ScoredShot.apply, where: _*)
 }
 
-final case class ExpectedPointsForReduction(
-                                 teamId: Integer,
-                                 bin: String,
-                                 shotAttempts: Integer,
-                                 shotMade: Integer,
-                                 shotValue: Integer,
-                                 expectedPoints: jl.Double)
-
-final case class ExpectedPoints(
-                                 primaryKey: String,
-                                 teamId: Integer,
-                                 bin: String,
-                                 attempts: Integer,
-                                 made: Integer,
-                                 value: Integer,
-                                 pointsAvg: jl.Double,
-                                 pointsStDev: jl.Double,
-                                 expectedPointsAvg: jl.Double,
-                                 expectedPointsStDev: jl.Double,
-                                 season: String,
-                                 dt: String)
-
-private final class ExpectedPointsArguments private(args: Array[String])
+private final class ExpectedShotsCalculatorPredictiveArguments private(args: Array[String])
   extends CommandLineBase(args, "Player Stats") with SeasonOption {
 
   override protected def options: cli.Options = super.options
@@ -171,19 +177,18 @@ private final class ExpectedPointsArguments private(args: Array[String])
   lazy val zoned: Boolean = has(ExpectedPointsArguments.ZoneOption)
 }
 
-private object ExpectedPointsArguments {
+private object ExpectedShotsCalculatorPredictiveArguments {
 
-  def apply(args: Array[String]): ExpectedPointsArguments = new ExpectedPointsArguments(args)
+  def apply(args: Array[String]): ExpectedShotsCalculatorPredictiveArguments = new ExpectedShotsCalculatorPredictiveArguments(args)
 
   val OffenseOption: cli.Option =
-  new cli.Option("o", "offense", false, "Calculate Offense ExpectedPoints")
+    new cli.Option("o", "offense", false, "Calculate Offense ExpectedPoints")
 
   val DefenseOption: cli.Option =
     new cli.Option("d", "defense", false, "Calculate Defense ExpectedPoints")
 
   val ZoneOption: cli.Option =
     new cli.Option("z", "zone", false, "Calculate expected points per zone")
-
 
 
 }
