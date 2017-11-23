@@ -26,7 +26,7 @@ def buildShotZones():
 def findZone(x, y):
     if (isRestricted(x, y)):
         return "RestrictedArea"
-    elif (y < 92.5):
+    elif (y < 93):
         return findBaselineZone(x)
     else:
         return findLongZone(x, y)
@@ -39,23 +39,23 @@ def isRestricted(x, y):
 def findBaselineZone(x):
     if (x < -220):
         return "LeftCorner"
-    elif (x >= -220 and x < -178):
+    elif (x > -220 and x < -178):
         return "LeftLongMidBaseLine"
-    elif (x >= -178 and x < -137):
+    elif (x > -178 and x < -137):
         return "LeftMidBaseLine"
-    elif (x >= -137 and x < -80):
+    elif (x > -137 and x < -80):
         return "LeftShortBaseLine"
-    elif (x >= -80 and x < 0):
+    elif (x > -80 and x < 0):
         return "LeftPaint"
     elif (x > 220):
         return "RightCorner"
-    elif (x <= 220 and x > 178):
+    elif (x < 220 and x > 178):
         return "RightLongBaseLine"
-    elif (x <= 178 and x > 137):
+    elif (x < 178 and x > 137):
         return "RightMidBaseLine"
-    elif (x <= 137 and x > 80):
+    elif (x < 137 and x > 80):
         return "RightShortBaseLine"
-    elif (x <= 80 and x > 0):
+    elif (x < 80 and x > 0):
         return "RightPaint"
     else:
         return "NONE"

@@ -152,9 +152,10 @@ def draw_shot_chart_court(ax=None, color='black', lw=2, outer_lines=False):
     return ax
 
 
-def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=2, outer_lines=False):
+def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=1, outer_lines=False):
     # If an axes object isn't provided to plot onto, just get current one
-    alpha = .15
+    alpha = .5
+    alphaZone = .15
     if ax is None:
         ax = plt.gca()
 
@@ -163,10 +164,10 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=2, oute
     # Create the basketball hoop
     # Diameter of a hoop is 18" so it has a radius of 9", which is a value
     # 7.5 in our coordinate system
-    hoop = Circle((0, 0), radius=7.5, linewidth=lw, color=color, fill=False, alpha=alpha)
+    #hoop = Circle((0, 0), radius=7.5, linewidth=lw, color=color, fill=False, alpha=alpha)
 
     # Create backboard
-    backboard = Rectangle((-30, -7.5), 60, -1, linewidth=lw, color=color, alpha=alpha)
+    #backboard = Rectangle((-30, -7.5), 60, -1, linewidth=lw, color=color, alpha=alpha)
 
     # The paint
     # Create the outer box 0f the paint, width=16ft, height=19ft
@@ -188,14 +189,14 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=2, oute
 
     # Three point line
     # Create the side 3pt lines, they are 14ft long before they begin to arc
-    corner_three_a = Rectangle((-220, -47.5), 0, 140, linewidth=lw, color=color, alpha=alpha)
-    corner_three_b = Rectangle((220, -47.5), 0, 140, linewidth=lw, color=color, alpha=alpha)
+    corner_three_a = Rectangle((-220, -47.5), 0, 140, linewidth=lw, color=color, alpha=1)
+    corner_three_b = Rectangle((220, -47.5), 0, 140, linewidth=lw, color=color, alpha=1)
     # 3pt arc - center of arc will be the hoop, arc is 23'9" away from hoop
     # I just played around with the theta values until they lined up with the
     # threes
 
     three_arc = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=lw,
-                    color=color, alpha=alpha)
+                    color=color, alpha=1)
 
     # Center Court
     center_outer_arc = Arc((0, 422.5), 120, 120, theta1=180, theta2=0,
@@ -204,39 +205,39 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=2, oute
                            linewidth=lw, color=color, alpha=alpha)
 
     # Draw Grid
-    breakLine = Rectangle((-250, 92.5), 500, 0, linewidth=zoneW, color=color)
-    midRangeSplitLeft1 = Rectangle((-137.5, -47.5), 0, 140, linewidth=zoneW, color=color)
-    midRangeSplitLeft2 = Rectangle((-178.5, -47.5), 0, 140, linewidth=zoneW, color=color)
-    midRangeSplitRight1 = Rectangle((137.5, -47.5), 0, 140, linewidth=zoneW, color=color)
-    midRangeSplitRight2 = Rectangle((178.5, -47.5), 0, 140, linewidth=zoneW, color=color)
+    breakLine = Rectangle((-250, 92.5), 500, 0, linewidth=zoneW, color=color, alpha=alphaZone)
+    midRangeSplitLeft1 = Rectangle((-137.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
+    midRangeSplitLeft2 = Rectangle((-178.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
+    midRangeSplitRight1 = Rectangle((137.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
+    midRangeSplitRight2 = Rectangle((178.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
 
-    zone3_m6 = Arc((0, 0), 331, 331, theta1=34, theta2=146, linewidth=zoneW, color=color)
-    zone3_m3 = Arc((0, 0), 403, 403, theta1=27, theta2=153, linewidth=zoneW, color=color)
-    zone3 = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=zoneW, color=color)
-    zone3_p3 = Arc((0, 0), 560, 560, theta1=0, theta2=180, linewidth=zoneW, color=color)
-    courtSplitb = Rectangle((0, -47.5), 0, 7.5, linewidth=zoneW, color=color, fill=False)
-    courtSplitt = Rectangle((0, 40), 0, 430, linewidth=zoneW, color=color, fill=False)
+    zone3_m6 = Arc((0, 0), 331, 331, theta1=34, theta2=146, linewidth=zoneW, color=color, alpha=alphaZone)
+    zone3_m3 = Arc((0, 0), 403, 403, theta1=27, theta2=153, linewidth=zoneW, color=color, alpha=alphaZone)
+    zone3 = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=zoneW, color=color, alpha=alphaZone)
+    zone3_p3 = Arc((0, 0), 560, 560, theta1=0, theta2=180, linewidth=zoneW, color=color, alpha=alphaZone)
+    courtSplitb = Rectangle((0, -47.5), 0, 7.5, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
+    courtSplitt = Rectangle((0, 40), 0, 430, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
 
 
-    leftBox = Rectangle((-80, -47.5), 0, 140, linewidth=zoneW, color=color)
+    leftBox = Rectangle((-80, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
 
-    rightBox = Rectangle((80, -47.5), 0, 140, linewidth=zoneW, color=color)
+    rightBox = Rectangle((80, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
 
-    leftCorner = Rectangle((-220, -47.5), 0, 140, linewidth=zoneW, color=color)
-    rightCorner = Rectangle((220, -47.5), 0, 140, linewidth=zoneW, color=color)
+    leftCorner = Rectangle((-220, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
+    rightCorner = Rectangle((220, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
 
     # Restricted Zone, it is an arc with 4ft radius from center of the hoop
-    restrictedZone = Circle((0, 0), 40, linewidth=zoneW, color=color, fill=False)
+    restrictedZone = Circle((0, 0), 40, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
 
     grid = [courtSplitb, courtSplitt, breakLine, midRangeSplitLeft1,
             midRangeSplitLeft2, midRangeSplitRight1, midRangeSplitRight2,
             zone3_m6, zone3_m3, zone3, zone3_p3, leftBox, rightBox, leftCorner, rightCorner,restrictedZone]
 
     # List of the court elements to be plotted onto the axes
-    court_elements = [hoop, backboard, outer_box, inner_box, top_free_throw,
+    court_elements = [outer_box, inner_box, top_free_throw,
                       bottom_free_throw, restricted, corner_three_a,
                       corner_three_b, three_arc, center_outer_arc,
-                      center_inner_arc] + grid
+                      center_inner_arc] + grid #hoop, backboard,
 
     if outer_lines:
         # Draw the half court line, baseline and side out bound lines
@@ -248,8 +249,8 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=2, oute
     for element in court_elements:
         ax.add_patch(element)
 
-    angle1 = mlines.Line2D(xdata=[53.5, 140], ydata=[92.5, 242.5], linewidth=zoneW, color=color)
-    angle2 = mlines.Line2D(xdata=[-53.5, -140], ydata=[92.5, 242.5], linewidth=zoneW, color=color)
+    angle1 = mlines.Line2D(xdata=[53.5, 140], ydata=[92.5, 242.5], linewidth=zoneW, color=color, alpha=alphaZone)
+    angle2 = mlines.Line2D(xdata=[-53.5, -140], ydata=[92.5, 242.5], linewidth=zoneW, color=color, alpha=alphaZone)
     ax.add_line(angle1)
     ax.add_line(angle2)
 
