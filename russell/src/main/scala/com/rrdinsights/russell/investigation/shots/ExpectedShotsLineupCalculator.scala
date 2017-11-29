@@ -9,7 +9,7 @@ import java.{lang => jl}
 
 import org.apache.commons.cli
 
-object ExpectedShotsCalculator {
+object ExpectedShotsLineupCalculator {
 
   import com.rrdinsights.russell.utils.MathUtils._
 
@@ -134,7 +134,7 @@ object ExpectedShotsCalculator {
     MySqlClient.selectFrom(NBATables.team_scored_shots, ScoredShot.apply, where: _*)
 }
 
-final case class ExpectedPointsForReduction(
+final case class ExpectedPointsForReductionLineUp(
                                  teamId: Integer,
                                  bin: String,
                                  shotAttempts: Integer,
@@ -142,7 +142,7 @@ final case class ExpectedPointsForReduction(
                                  shotValue: Integer,
                                  expectedPoints: jl.Double)
 
-final case class ExpectedPoints(
+final case class ExpectedPointsLineUp(
                                  primaryKey: String,
                                  teamId: Integer,
                                  bin: String,
@@ -156,24 +156,24 @@ final case class ExpectedPoints(
                                  season: String,
                                  dt: String)
 
-private final class ExpectedPointsArguments private(args: Array[String])
+private final class ExpectedPointsLineUpArguments private(args: Array[String])
   extends CommandLineBase(args, "Player Stats") with SeasonOption {
 
   override protected def options: cli.Options = super.options
-    .addOption(ExpectedPointsArguments.OffenseOption)
-    .addOption(ExpectedPointsArguments.DefenseOption)
-    .addOption(ExpectedPointsArguments.ZoneOption)
+    .addOption(ExpectedPointsLineUpArguments.OffenseOption)
+    .addOption(ExpectedPointsLineUpArguments.DefenseOption)
+    .addOption(ExpectedPointsLineUpArguments.ZoneOption)
 
-  lazy val offense: Boolean = has(ExpectedPointsArguments.OffenseOption)
+  lazy val offense: Boolean = has(ExpectedPointsLineUpArguments.OffenseOption)
 
-  lazy val defense: Boolean = has(ExpectedPointsArguments.DefenseOption)
+  lazy val defense: Boolean = has(ExpectedPointsLineUpArguments.DefenseOption)
 
-  lazy val zoned: Boolean = has(ExpectedPointsArguments.ZoneOption)
+  lazy val zoned: Boolean = has(ExpectedPointsLineUpArguments.ZoneOption)
 }
 
-private object ExpectedPointsArguments {
+private object ExpectedPointsLineUpArguments {
 
-  def apply(args: Array[String]): ExpectedPointsArguments = new ExpectedPointsArguments(args)
+  def apply(args: Array[String]): ExpectedPointsLineUpArguments = new ExpectedPointsLineUpArguments(args)
 
   val OffenseOption: cli.Option =
   new cli.Option("o", "offense", false, "Calculate Offense ExpectedPoints")

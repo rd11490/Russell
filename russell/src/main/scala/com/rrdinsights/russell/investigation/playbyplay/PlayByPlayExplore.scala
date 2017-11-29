@@ -2,7 +2,9 @@ package com.rrdinsights.russell.investigation.playbyplay
 
 import com.rrdinsights.russell.etl.application.{PlayByPlayDownloader, PlayersOnCourtDownloader}
 import com.rrdinsights.russell.storage.MySqlClient
+import com.rrdinsights.russell.storage.datamodel.{PlayersOnCourt, RawPlayByPlayEvent}
 import com.rrdinsights.russell.storage.tables.NBATables
+import com.rrdinsights.russell.utils.MapJoin
 
 object PlayByPlayExplore {
   /**
@@ -14,14 +16,18 @@ object PlayByPlayExplore {
       .readPlayByPlay("gameId = '0021600001'")
       .sortBy(_.eventNumber)
 
-    val playersOnCourtAtQuarter = PlayersOnCourtDownloader.readPlayersOnCourtAtPeriod("gameId = '0021600001'")
+    val playersOnCourt = PlayersOnCourtDownloader.readPlayersOnCourt("gameId = '0021600001'")
 
-    val parser = new PlayByPlayParser(playByPlay, playersOnCourtAtQuarter, null)
-    val results = parser.run().sortBy(_.eventNumber)
 
-    MySqlClient.createTable(NBATables.players_on_court_test)
-    MySqlClient.insertInto(NBATables.players_on_court_test, results)
+    val playByPlayWithLineups = joinEventWithLineup(playByPlay, playersOnCourt)
 
+  }
+
+  private def joinEventWithLineup(playByPlay: Seq[RawPlayByPlayEvent], lineups: Seq[PlayersOnCourt]): Seq[(RawPlayByPlayEvent,PlayersOnCourt)] = {
+    val playByPlayMap = playByPlay.map(v => ((v.gameId, v.eventNumber), v)).toMap
+    val linesupMap = lineups.map(v => ((v.gameId, v.eventNumber), v)).toMap
+
+    MapJoin.join(playByPlayMap, linesupMap)
   }
 
 

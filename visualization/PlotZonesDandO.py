@@ -13,8 +13,8 @@ shotZonesO = pd.read_csv("data/ePPSZonedO.csv")
 shotZonesD[valueForPlotting] = shotZonesD["expectedPointsAvg"] - shotZonesD["pointsAvg"]
 shotZonesO[valueForPlotting] = shotZonesO["pointsAvg"] - shotZonesO["expectedPointsAvg"]
 
-maxVal = max(max(shotZonesO[valueForPlotting]), max(shotZonesD[valueForPlotting]))
-minVal = min(min(shotZonesO[valueForPlotting]), min(shotZonesD[valueForPlotting]))
+maxVal = 1.5#max(max(shotZonesO[valueForPlotting]), max(shotZonesD[valueForPlotting]))
+minVal = -1.5#min(min(shotZonesO[valueForPlotting]), min(shotZonesD[valueForPlotting]))
 
 norm = colors.Normalize(vmin=minVal, vmax=maxVal)
 
@@ -51,7 +51,7 @@ for name in teamNames:
     for r in shotZonesDataTeamO.index:
         row = shotZonesDataTeamO.loc[r,]
         bin = row["bin"]
-        ePPS = row[valueForPlotting]
+        plotVal = row[valueForPlotting]
         zoneLocs = shotZones[bin]
         xAvg = sum(zoneLocs["X"]) / len(zoneLocs["X"])
         yAvg = sum(zoneLocs["Y"]) / len(zoneLocs["Y"])
@@ -59,7 +59,7 @@ for name in teamNames:
                  "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
                                                                  row["expectedPointsAvg"]),
                  fontdict=font)
-        plt.scatter(x=zoneLocs["X"], y=zoneLocs["Y"], color=cls(norm(ePPS)), marker=".")
+        plt.scatter(x=zoneLocs["X"], y=zoneLocs["Y"], color=cls(norm(plotVal)), marker=".")
 
     clb = plt.colorbar(mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])
     clb.ax.set_title("PPS - ePPS")
@@ -79,7 +79,7 @@ for name in teamNames:
     for r in shotZonesDataTeamD.index:
         row = shotZonesDataTeamD.loc[r,]
         bin = row["bin"]
-        ePPS = row[valueForPlotting]
+        plotVal = row[valueForPlotting]
         zoneLocs = shotZones[bin]
         xAvg = sum(zoneLocs["X"]) / len(zoneLocs["X"])
         yAvg = sum(zoneLocs["Y"]) / len(zoneLocs["Y"])
@@ -87,7 +87,7 @@ for name in teamNames:
                  "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
                                                                  row["expectedPointsAvg"]),
                  fontdict=font)
-        plt.scatter(x=zoneLocs["X"], y=zoneLocs["Y"], color=cls(norm(ePPS)), marker=".")
+        plt.scatter(x=zoneLocs["X"], y=zoneLocs["Y"], color=cls(norm(plotVal)), marker=".")
 
     plt.subplots_adjust(right=1)
     clb = plt.colorbar(mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])

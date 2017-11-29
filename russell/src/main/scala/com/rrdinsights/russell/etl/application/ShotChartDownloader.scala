@@ -10,22 +10,23 @@ import com.rrdinsights.scalabrine.parameters.{ParameterValue, PlayerIdParameter,
 
 object ShotChartDownloader {
 
-  def downloadAndWritePlayersShotData(playerIds: Seq[String], dt: String): Unit = {
-    val shotData = downloadPlayersShotData(playerIds)
+  def downloadAndWritePlayersShotData(playerIds: Seq[String], dt: String, season: Option[String] = None): Unit = {
+    val shotData = downloadPlayersShotData(playerIds, season)
     writeShotData(shotData, dt)
   }
 
-  private def downloadPlayersShotData(playerIds: Seq[String]): Seq[Shot] = {
+  private def downloadPlayersShotData(playerIds: Seq[String], season: Option[String]): Seq[Shot] = {
     playerIds
       .map(PlayerIdParameter.newParameterValue)
       .flatMap(v => {
         Thread.sleep(1000)
-        downloadPlayerShotData(v)
+        val seasonParam = season.map(v => SeasonParameter.newParameterValue(v)).getOrElse(SeasonParameter.defaultParameterValue)
+        downloadPlayerShotData(v, seasonParam)
       })
   }
 
-  private def downloadPlayerShotData(playerIdParameter: ParameterValue): Seq[Shot] = {
-    val shotChartEndpoint = ShotChartDetailEndpoint(playerIdParameter)
+  private def downloadPlayerShotData(playerIdParameter: ParameterValue, season: ParameterValue): Seq[Shot] = {
+    val shotChartEndpoint = ShotChartDetailEndpoint(playerIdParameter, season = season)
     ScalabrineClient.getShotChart(shotChartEndpoint).teamGameLog.shots
   }
 

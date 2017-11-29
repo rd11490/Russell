@@ -154,7 +154,7 @@ def draw_shot_chart_court(ax=None, color='black', lw=2, outer_lines=False):
 
 def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=1, outer_lines=False):
     # If an axes object isn't provided to plot onto, just get current one
-    alpha = .5
+    alpha = .15
     alphaZone = .15
     if ax is None:
         ax = plt.gca()

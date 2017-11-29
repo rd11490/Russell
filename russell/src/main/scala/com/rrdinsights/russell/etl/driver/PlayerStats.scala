@@ -32,8 +32,7 @@ object PlayerStats {
   }
 
   private def downloadAndWritePlayerStats(season: Option[String], dt: String, playerIds: String*): Unit = {
-    val seasonStr = season.getOrElse("")
-    ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt)
+    ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, season)
   }
 
   private def readPlayersFromRosters(season: Option[String]): Seq[String] = {
