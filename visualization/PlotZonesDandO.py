@@ -13,8 +13,8 @@ shotZonesO = pd.read_csv("data/ePPSZonedO.csv")
 shotZonesD[valueForPlotting] = shotZonesD["expectedPointsAvg"] - shotZonesD["pointsAvg"]
 shotZonesO[valueForPlotting] = shotZonesO["pointsAvg"] - shotZonesO["expectedPointsAvg"]
 
-maxVal = 1.5#max(max(shotZonesO[valueForPlotting]), max(shotZonesD[valueForPlotting]))
-minVal = -1.5#min(min(shotZonesO[valueForPlotting]), min(shotZonesD[valueForPlotting]))
+maxVal = 1.5  # max(max(shotZonesO[valueForPlotting]), max(shotZonesD[valueForPlotting]))
+minVal = -1.5  # min(min(shotZonesO[valueForPlotting]), min(shotZonesD[valueForPlotting]))
 
 norm = colors.Normalize(vmin=minVal, vmax=maxVal)
 
@@ -29,13 +29,13 @@ for name in teamNames:
     font = {'family': 'serif',
             'color': 'black',
             'weight': 'bold',
-            'size': 4,
+            'size': 6,
             'ha': 'center',
             'va': 'center'}
 
     # OFFENSE
     plt.rcParams["figure.figsize"] = [16, 6]
-    #plt.colorbar( mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])
+    # plt.colorbar( mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])
 
     plt.subplot(1, 2, 1)
     plt.xlim(-250, 250)
@@ -55,10 +55,22 @@ for name in teamNames:
         zoneLocs = shotZones[bin]
         xAvg = sum(zoneLocs["X"]) / len(zoneLocs["X"])
         yAvg = sum(zoneLocs["Y"]) / len(zoneLocs["Y"])
-        plt.text(xAvg, yAvg,
-                 "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
-                                                                 row["expectedPointsAvg"]),
-                 fontdict=font)
+
+        if (bin == "Right27FT" or bin == "Left27FT"):
+            yAvg = yAvg + 20
+        elif (bin == "Right23FT" or bin == "Left23FT"):
+            yAvg = yAvg + 10
+        elif (bin == "RightLong3" or bin == "LeftLong3"):
+            yAvg = yAvg - 50
+
+        if (bin == "RightCorner" or bin == "LeftCorner"):
+            txt = "{0}/{1} \n {2:.2f} \n PPS \n {3:.2f} \n ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
+                                                                  row["expectedPointsAvg"])
+        else:
+            txt = "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
+                                                                  row["expectedPointsAvg"])
+
+        plt.text(xAvg, yAvg, txt, fontdict=font)
         plt.scatter(x=zoneLocs["X"], y=zoneLocs["Y"], color=cls(norm(plotVal)), marker=".")
 
     clb = plt.colorbar(mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])
@@ -83,16 +95,29 @@ for name in teamNames:
         zoneLocs = shotZones[bin]
         xAvg = sum(zoneLocs["X"]) / len(zoneLocs["X"])
         yAvg = sum(zoneLocs["Y"]) / len(zoneLocs["Y"])
-        plt.text(xAvg, yAvg,
-                 "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
-                                                                 row["expectedPointsAvg"]),
-                 fontdict=font)
+
+        if (bin == "Right27FT" or bin == "Left27FT"):
+            yAvg = yAvg + 20
+        elif (bin == "Right23FT" or bin == "Left23FT"):
+            yAvg = yAvg + 10
+        elif (bin == "RightLong3" or bin == "LeftLong3"):
+            yAvg = yAvg - 50
+
+        if (bin == "RightCorner" or bin == "LeftCorner"):
+            txt = "{0}/{1} \n {2:.2f} \n PPS \n {3:.2f} \n ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
+                                                                  row["expectedPointsAvg"])
+        else:
+            txt = "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
+                                                                  row["expectedPointsAvg"])
+
+        plt.text(xAvg, yAvg, txt, fontdict=font)
         plt.scatter(x=zoneLocs["X"], y=zoneLocs["Y"], color=cls(norm(plotVal)), marker=".")
 
     plt.subplots_adjust(right=1)
     clb = plt.colorbar(mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])
     clb.ax.set_title("ePPS - PPS")
     plt.tight_layout()
+
     plt.savefig("plots/ShotChart/{}".format(name), dpi=900, figsize=(14, 6))
     plt.close()
 

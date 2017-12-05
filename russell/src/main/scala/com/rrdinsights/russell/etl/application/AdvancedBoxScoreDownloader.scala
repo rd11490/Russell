@@ -53,5 +53,4 @@ object AdvancedBoxScoreDownloader {
     MySqlClient.insertInto(NBATables.raw_player_box_score_advanced, playersAdvanced)
   }
 
-
 }

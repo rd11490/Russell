@@ -91,5 +91,3 @@ object RawTeamBoxScoreAdvanced extends ResultSetMapper {
       getString(resultSet, 22),
       getString(resultSet, 23))
 }
-
-

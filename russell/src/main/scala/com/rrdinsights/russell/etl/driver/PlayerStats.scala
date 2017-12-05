@@ -4,7 +4,8 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
-import com.rrdinsights.russell.etl.application.{RosterDownloader, ShotChartDownloader}
+import com.rrdinsights.russell.etl.application.{PlayerProfileDownloader, RosterDownloader, ShotChartDownloader}
+import com.rrdinsights.scalabrine.parameters.SeasonParameter
 import org.apache.commons.cli
 
 object PlayerStats {
@@ -13,11 +14,11 @@ object PlayerStats {
   def main(strings: Array[String]): Unit = {
     val args = PlayerStatsArguments(strings)
     val playerId = args.playerId
-    val season = args.season
     val dt = LocalDateTime.now().format(Formatter)
+    val season = args.season
 
     if (playerId.isDefined) {
-      downloadAndWritePlayerStats(season, dt, playerId.get)
+      downloadAndWritePlayerStats(args, dt, playerId.get)
     } else {
       val playersFromRosters = readPlayersFromRosters(season)
 
@@ -26,13 +27,19 @@ object PlayerStats {
       } else {
         playersFromRosters
       }
-      downloadAndWritePlayerStats(season, dt, players: _*)
+      downloadAndWritePlayerStats(args, dt, players: _*)
 
     }
   }
 
-  private def downloadAndWritePlayerStats(season: Option[String], dt: String, playerIds: String*): Unit = {
-    ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, season)
+  private def downloadAndWritePlayerStats(args: PlayerStatsArguments, dt: String, playerIds: String*): Unit = {
+    val season = args.season
+    if (args.downloadShotData) {
+      ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, season)
+    }
+    if (args.playerProfiles) {
+      PlayerProfileDownloader.downloadAndWriteAllPlayerProfiles(playerIds, dt)
+    }
   }
 
   private def readPlayersFromRosters(season: Option[String]): Seq[String] = {
@@ -56,6 +63,8 @@ private final class PlayerStatsArguments private(args: Array[String])
     .addOption(PlayerStatsArguments.PlayerIdOption)
     .addOption(PlayerStatsArguments.ShotDataOption)
     .addOption(PlayerStatsArguments.DeltaOption)
+    .addOption(PlayerStatsArguments.PlayerProfileTotals)
+
 
   def playerId: Option[String] = valueOf(PlayerStatsArguments.PlayerIdOption)
 
@@ -63,12 +72,17 @@ private final class PlayerStatsArguments private(args: Array[String])
 
   lazy val delta: Boolean = has(PlayerStatsArguments.DeltaOption)
 
+  lazy val playerProfiles: Boolean = has(PlayerStatsArguments.PlayerProfileTotals)
+
 }
 
 private object PlayerStatsArguments {
 
   val PlayerIdOption: cli.Option =
-    new cli.Option(null, "player", true, "The season you want to extract games from in the form of yyyy-yy (2016-17)")
+    new cli.Option(null, "player", true, "The player id you want to collect data for")
+
+  val PlayerProfileTotals: cli.Option =
+    new cli.Option(null, "profiles", false, "Download and store all basic player profile totals")
 
   val ShotDataOption: cli.Option =
     new cli.Option(null, "shot-data", false, "Download and store all teams game logs for a particular season")

@@ -32,17 +32,6 @@ object ShotHistogram {
 
   }
 
-  /*
-  // TODO Look into if this is useful
-  private def replaceLowSample(shotInfo: (ShotBinDetailed, ShotData), overviewShots: Map[ShotBinOverview, ShotData]): (ShotBinDetailed, ShotData) = {
-    if (shotInfo._2.shots >= 50) {
-      shotInfo
-    } else {
-      (shotInfo._1, overviewShots(detailedToOverview(shotInfo._1)))
-    }
-  }
-  */
-
   private def reduceScoredShots(bin: ShotBinDetailed, data: Seq[(ShotBinDetailed, ShotData)]): (ShotBinDetailed, ShotData) =
     (bin, data.map(_._2).reduce(_ + _))
 

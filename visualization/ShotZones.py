@@ -26,7 +26,7 @@ def buildShotZones():
 def findZone(x, y):
     if (isRestricted(x, y)):
         return "RestrictedArea"
-    elif (y < 93):
+    elif (y < 93 and (x < -220 or x > 220)):
         return findBaselineZone(x)
     else:
         return findLongZone(x, y)
@@ -39,24 +39,8 @@ def isRestricted(x, y):
 def findBaselineZone(x):
     if (x < -220):
         return "LeftCorner"
-    elif (x > -220 and x < -178):
-        return "LeftLongMidBaseLine"
-    elif (x > -178 and x < -137):
-        return "LeftMidBaseLine"
-    elif (x > -137 and x < -80):
-        return "LeftShortBaseLine"
-    elif (x > -80 and x < 0):
-        return "LeftPaint"
     elif (x > 220):
         return "RightCorner"
-    elif (x < 220 and x > 178):
-        return "RightLongBaseLine"
-    elif (x < 178 and x > 137):
-        return "RightMidBaseLine"
-    elif (x < 137 and x > 80):
-        return "RightShortBaseLine"
-    elif (x < 80 and x > 0):
-        return "RightPaint"
     else:
         return "NONE"
 
@@ -65,52 +49,60 @@ def findLongZone(x, y):
     dist = distance(x, y)
     angle = theta(x, y)
 
-    if dist < 165.5 and 180 > angle > 120:
-        return "Short2Right"
-    elif dist < 165.5 and 120 > angle > 90:
-        return "Short2CenterRight"
-    elif dist < 165.5 and 90 > angle > 60:
-        return "Short2CenterLeft"
-    elif dist < 165.5 and 60 > angle > 0:
-        return "Short2Left"
+    """
+    LeftBaseline11FT, Left11FT, Right11FT, RightBaseline11FT,
+      LeftBaseline18FT, Left18FT, Right18FT, RightBaseline18FT,
+      LeftBaseline23FT, Left23FT, Right23FT, RightBaseline23FT,
+      Left27FT, Right27FT,
+      LeftLong3, RightLong3
+    """
 
-    elif 201.5 > dist > 165.5 and 180 > angle > 120:
-        return "Mid2Right"
-    elif 201.5 > dist > 165.5 and 120 > angle > 90:
-        return "Mid2CenterRight"
-    elif 201.5 > dist > 165.5 and 90 > angle > 60:
-        return "Mid2CenterLeft"
-    elif 201.5 > dist > 165.5 and 60 > angle > 0:
-        return "Mid2Left"
+    if  40 < dist < 110 and 270 > angle > 157:
+        return "LeftBaseline11FT"
+    elif 40 < dist < 110 and 157 > angle > 90:
+        return "Left11FT"
+    elif 40 < dist < 110 and 90 > angle > 23:
+        return "Right11FT"
+    elif 40 < dist < 110 and 23 > angle > -90:
+        return "RightBaseline11FT"
 
-    elif 237.5 > dist > 201.5 and 180 > angle > 120:
-        return "Long2Right"
-    elif 237.5 > dist > 201.5 and 120 > angle > 90:
-        return "Long2CenterRight"
-    elif 237.5 > dist > 201.5 and 90 > angle > 60:
-        return "Long2CenterLeft"
-    elif 237.5 > dist > 201.5 and 60 > angle > 0:
-        return "Long2Left"
+    elif 180 > dist > 110 and 270 > angle > 157:
+        return "LeftBaseline18FT"
+    elif 180 > dist > 110 and 157 > angle > 90:
+        return "Left18FT"
+    elif 180 > dist > 110 and 90 > angle > 23:
+        return "Right18FT"
+    elif 180 > dist > 110 and 23 > angle > -90:
+        return "RightBaseline18FT"
 
-    elif 280 > dist > 237.5 and 180 > angle > 120:
-        return "Mid3Right"
-    elif 280 > dist > 237.5 and 120 > angle > 90:
-        return "Mid3CenterRight"
-    elif 280 > dist > 237.5 and 90 > angle > 60:
-        return "Mid3CenterLeft"
-    elif 280 > dist > 237.5 and 60 > angle > 0:
-        return "Mid3Left"
+    elif 237.5 > dist > 180 and 270 > angle > 157:
+        return "LeftBaseline23FT"
+    elif 237.5 > dist > 180 and 157 > angle > 90:
+        return "Left23FT"
+    elif 237.5 > dist > 180 and 90 > angle > 23:
+        return "Right23FT"
+    elif 237.5 > dist > 180 and 23 > angle > -90:
+        return "RightBaseline23FT"
 
-    elif dist > 280 and angle > 90:
-        return "Long3Right"
-    elif dist > 280 and angle < 90:
-        return "Long3Left"
+    elif 280 > dist > 237.5 and angle > 90:
+        return "Left27FT"
+    elif 280 > dist > 237.5 and angle < 90:
+        return "Right27FT"
+    elif dist > 280 and  angle > 90:
+        return "LeftLong3"
+    elif dist > 280  and angle < 90:
+        return "RightLong3"
+
     else:
         return "NONE"
 
 
 def theta(x, y):
-    return math.degrees(math.atan2(y, x))
+    angle = math.degrees(math.atan2(y, x))
+    if x < 0 and angle < 0:
+        return 360 + angle
+    else:
+        return angle
 
 
 def distance(x, y):

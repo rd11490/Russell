@@ -184,6 +184,4 @@ private object ExpectedPointsArguments {
   val ZoneOption: cli.Option =
     new cli.Option("z", "zone", false, "Calculate expected points per zone")
 
-
-
 }

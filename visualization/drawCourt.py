@@ -155,7 +155,7 @@ def draw_shot_chart_court(ax=None, color='black', lw=2, outer_lines=False):
 def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=1, outer_lines=False):
     # If an axes object isn't provided to plot onto, just get current one
     alpha = .15
-    alphaZone = .15
+    alphaZone = .45
     if ax is None:
         ax = plt.gca()
 
@@ -205,33 +205,26 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=1, oute
                            linewidth=lw, color=color, alpha=alpha)
 
     # Draw Grid
-    breakLine = Rectangle((-250, 92.5), 500, 0, linewidth=zoneW, color=color, alpha=alphaZone)
-    midRangeSplitLeft1 = Rectangle((-137.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
-    midRangeSplitLeft2 = Rectangle((-178.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
-    midRangeSplitRight1 = Rectangle((137.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
-    midRangeSplitRight2 = Rectangle((178.5, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
 
-    zone3_m6 = Arc((0, 0), 331, 331, theta1=34, theta2=146, linewidth=zoneW, color=color, alpha=alphaZone)
-    zone3_m3 = Arc((0, 0), 403, 403, theta1=27, theta2=153, linewidth=zoneW, color=color, alpha=alphaZone)
+
+    restrictedZone = Circle((0, 0), 40, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
+    restrictedZone3 = Circle((0, 0), 110, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
+    restrictedZone4 = Circle((0, 0), 180, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
+
+
     zone3 = Arc((0, 0), 475, 475, theta1=22, theta2=158, linewidth=zoneW, color=color, alpha=alphaZone)
     zone3_p3 = Arc((0, 0), 560, 560, theta1=0, theta2=180, linewidth=zoneW, color=color, alpha=alphaZone)
     courtSplitb = Rectangle((0, -47.5), 0, 7.5, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
     courtSplitt = Rectangle((0, 40), 0, 430, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
 
 
-    leftBox = Rectangle((-80, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
-
-    rightBox = Rectangle((80, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
-
     leftCorner = Rectangle((-220, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
     rightCorner = Rectangle((220, -47.5), 0, 140, linewidth=zoneW, color=color, alpha=alphaZone)
 
     # Restricted Zone, it is an arc with 4ft radius from center of the hoop
-    restrictedZone = Circle((0, 0), 40, linewidth=zoneW, color=color, fill=False, alpha=alphaZone)
 
-    grid = [courtSplitb, courtSplitt, breakLine, midRangeSplitLeft1,
-            midRangeSplitLeft2, midRangeSplitRight1, midRangeSplitRight2,
-            zone3_m6, zone3_m3, zone3, zone3_p3, leftBox, rightBox, leftCorner, rightCorner,restrictedZone]
+    grid = [courtSplitb, courtSplitt,
+            zone3, zone3_p3, leftCorner, rightCorner,restrictedZone, restrictedZone3, restrictedZone4]
 
     # List of the court elements to be plotted onto the axes
     court_elements = [outer_box, inner_box, top_free_throw,
@@ -249,9 +242,14 @@ def draw_shot_chart_court_with_zones(ax=None, color='black', lw=2, zoneW=1, oute
     for element in court_elements:
         ax.add_patch(element)
 
-    angle1 = mlines.Line2D(xdata=[53.5, 140], ydata=[92.5, 242.5], linewidth=zoneW, color=color, alpha=alphaZone)
-    angle2 = mlines.Line2D(xdata=[-53.5, -140], ydata=[92.5, 242.5], linewidth=zoneW, color=color, alpha=alphaZone)
+    angle1corner = mlines.Line2D(xdata=[220, 250], ydata=[92.5, 92.5], linewidth=zoneW, color=color, alpha=alphaZone)
+    angle1 = mlines.Line2D(xdata=[37, 220], ydata=[15, 92.5], linewidth=zoneW, color=color, alpha=alphaZone)
+    angle2corner = mlines.Line2D(xdata=[-220, -250], ydata=[92.5, 92.5], linewidth=zoneW, color=color, alpha=alphaZone)
+    angle2 = mlines.Line2D(xdata=[-37, -220], ydata=[15, 92.5], linewidth=zoneW, color=color, alpha=alphaZone)
+
     ax.add_line(angle1)
+    ax.add_line(angle1corner)
     ax.add_line(angle2)
+    ax.add_line(angle2corner)
 
     return ax
