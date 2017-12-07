@@ -1,25 +1,15 @@
-package com.rrdinsights.russell.investigation.shots
+package com.rrdinsights.russell.investigation.shots.expectedshots
 
-import java.time.{Instant, LocalDate, ZoneId}
-import java.time.format.DateTimeFormatter
-import java.{lang => jl}
-
-import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.etl.application.GameLogDownloader
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.ScoredShot
 import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
 import com.rrdinsights.russell.utils.TimeUtils
-import org.apache.commons.cli
-import java.time.format.DateTimeFormatterBuilder
-
 
 object ExpectedShotsCalculatorPredictive {
+  /*
 
   import com.rrdinsights.russell.utils.MathUtils._
-
-  private val Formatter: DateTimeFormatter =
-    new DateTimeFormatterBuilder().parseCaseInsensitive.appendPattern("MMM dd, yyyy").toFormatter
 
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
@@ -36,7 +26,7 @@ object ExpectedShotsCalculatorPredictive {
       .size
 
     val gameIds = GameLogDownloader.readGameLogs(season)
-      .map(v => (v.gameId, parseDate(v.gameDate)))
+      .map(v => (v.gameId, TimeUtils.parseGameLogDate(v.gameDate)))
       .distinct
       .sortBy(v => v._2)
       .take(games18)
@@ -58,10 +48,6 @@ object ExpectedShotsCalculatorPredictive {
       }
     }
 
-  }
-
-  private[shots] def parseDate(date: String): Instant = {
-    LocalDate.parse(date, Formatter).atStartOfDay(ZoneId.systemDefault()).toInstant
   }
 
   private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
@@ -160,35 +146,5 @@ object ExpectedShotsCalculatorPredictive {
 
   private def readScoredShots(where: Seq[String]): Seq[ScoredShot] =
     MySqlClient.selectFrom(NBATables.team_scored_shots, ScoredShot.apply, where: _*)
-}
-
-private final class ExpectedShotsCalculatorPredictiveArguments private(args: Array[String])
-  extends CommandLineBase(args, "Player Stats") with SeasonOption {
-
-  override protected def options: cli.Options = super.options
-    .addOption(ExpectedPointsArguments.OffenseOption)
-    .addOption(ExpectedPointsArguments.DefenseOption)
-    .addOption(ExpectedPointsArguments.ZoneOption)
-
-  lazy val offense: Boolean = has(ExpectedPointsArguments.OffenseOption)
-
-  lazy val defense: Boolean = has(ExpectedPointsArguments.DefenseOption)
-
-  lazy val zoned: Boolean = has(ExpectedPointsArguments.ZoneOption)
-}
-
-private object ExpectedShotsCalculatorPredictiveArguments {
-
-  def apply(args: Array[String]): ExpectedShotsCalculatorPredictiveArguments = new ExpectedShotsCalculatorPredictiveArguments(args)
-
-  val OffenseOption: cli.Option =
-    new cli.Option("o", "offense", false, "Calculate Offense ExpectedPoints")
-
-  val DefenseOption: cli.Option =
-    new cli.Option("d", "defense", false, "Calculate Defense ExpectedPoints")
-
-  val ZoneOption: cli.Option =
-    new cli.Option("z", "zone", false, "Calculate expected points per zone")
-
-
+    */
 }

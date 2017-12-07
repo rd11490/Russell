@@ -1,7 +1,8 @@
 package com.rrdinsights.russell.storage.tables
 
 import com.rrdinsights.russell.etl.application.TeamInfo
-import com.rrdinsights.russell.investigation.shots.{ExpectedPoints, PlayerShotChartSection}
+import com.rrdinsights.russell.investigation.shots.PlayerShotChartSection
+import com.rrdinsights.russell.investigation.shots.expectedshots.{ExpectedPoints, ExpectedPointsByGame}
 import com.rrdinsights.russell.storage.datamodel._
 
 object NBATables {
@@ -37,9 +38,10 @@ object NBATables {
   val defense_expected_points_total: MySqlTable = MySqlTable[ExpectedPoints]("defense_expected_points_total")
   val defense_expected_points_zoned: MySqlTable = MySqlTable[ExpectedPoints]("defense_expected_points_zoned")
 
+  val offense_expected_points_by_game_total: MySqlTable = MySqlTable[ExpectedPointsByGame]("offense_expected_points_by_game_total")
+  val offense_expected_points_by_game_zoned: MySqlTable = MySqlTable[ExpectedPointsByGame]("offense_expected_points_by_game_zoned")
+  val defense_expected_points_by_game_total: MySqlTable = MySqlTable[ExpectedPointsByGame]("defense_expected_points_by_game_total")
+  val defense_expected_points_by_game_zoned: MySqlTable = MySqlTable[ExpectedPointsByGame]("defense_expected_points_by_game_zoned")
 
-  val offense_expected_points_total_predict: MySqlTable = MySqlTable[ExpectedPoints]("offense_expected_points_total_predict")
-  val offense_expected_points_zoned_predict: MySqlTable = MySqlTable[ExpectedPoints]("offense_expected_points_zoned_predict")
-  val defense_expected_points_total_predict: MySqlTable = MySqlTable[ExpectedPoints]("defense_expected_points_total_predict")
-  val defense_expected_points_zoned_predict: MySqlTable = MySqlTable[ExpectedPoints]("defense_expected_points_zoned_predict")
-}
+
+ }

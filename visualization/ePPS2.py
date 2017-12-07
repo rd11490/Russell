@@ -1,8 +1,10 @@
 import pandas as pd
 
 
-d = pd.read_csv("data/ePointsPerShotDefense.csv")
-o = pd.read_csv("data/ePointsPerShotOffense.csv")
+season = "2016-17"
+seasonFname = season[2:4]+season[5:7]
+d = pd.read_csv("data/ePPS/D{}.csv".format(seasonFname))
+o = pd.read_csv("data/ePPS/O{}.csv".format(seasonFname))
 
 
 def diffAndSort(df, ascending = True):
@@ -14,6 +16,7 @@ def diffAndSort(df, ascending = True):
 
 
 print("Defense: Points Per Shot Allowed")
+print(season)
 diffAndSort(d)
 
 print()
@@ -21,4 +24,5 @@ print()
 print()
 
 print("Offense: Points Per Shot Scored")
+print(season)
 diffAndSort(o, False)

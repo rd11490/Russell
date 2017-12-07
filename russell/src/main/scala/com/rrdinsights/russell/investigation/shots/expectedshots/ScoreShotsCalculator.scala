@@ -1,6 +1,7 @@
-package com.rrdinsights.russell.investigation.shots
+package com.rrdinsights.russell.investigation.shots.expectedshots
 
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
+import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotZone}
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.{DataModelUtils, ScoredShot, ShotWithPlayers}
 import com.rrdinsights.russell.storage.tables.NBATables

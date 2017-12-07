@@ -1,14 +1,20 @@
 package com.rrdinsights.russell.utils
 
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
+import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
+import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
 
 object TimeUtils {
 
   private val Formatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
 
+  private val DateFormatter: DateTimeFormatter =
+    new DateTimeFormatterBuilder().parseCaseInsensitive.appendPattern("MMM dd, yyyy").toFormatter
+
   def dtNow: String = LocalDateTime.now().format(Formatter)
 
+  def parseGameLogDate(date: String): Instant = {
+    LocalDate.parse(date, DateFormatter).atStartOfDay(ZoneId.systemDefault()).toInstant
+  }
 
   def timeFromStartOfGame(period: Int, minutesRemaining: Int, secondsRemaining: Int): Int = {
     val previousPeriods = periodToMinutesPlayed(period) * 60

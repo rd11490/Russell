@@ -1,15 +1,15 @@
-package com.rrdinsights.russell.investigation.shots
+package com.rrdinsights.russell.investigation.shots.expectedshots
+
+import java.{lang => jl}
 
 import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.ScoredShot
 import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
 import com.rrdinsights.russell.utils.TimeUtils
-import java.{lang => jl}
-
 import org.apache.commons.cli
 
-object ExpectedShotsLineupCalculator {
+object ExpectedShotsCalculator {
 
   import com.rrdinsights.russell.utils.MathUtils._
 
@@ -134,7 +134,7 @@ object ExpectedShotsLineupCalculator {
     MySqlClient.selectFrom(NBATables.team_scored_shots, ScoredShot.apply, where: _*)
 }
 
-final case class ExpectedPointsForReductionLineUp(
+final case class ExpectedPointsForReduction(
                                  teamId: Integer,
                                  bin: String,
                                  shotAttempts: Integer,
@@ -142,7 +142,7 @@ final case class ExpectedPointsForReductionLineUp(
                                  shotValue: Integer,
                                  expectedPoints: jl.Double)
 
-final case class ExpectedPointsLineUp(
+final case class ExpectedPoints(
                                  primaryKey: String,
                                  teamId: Integer,
                                  bin: String,
@@ -155,35 +155,3 @@ final case class ExpectedPointsLineUp(
                                  expectedPointsStDev: jl.Double,
                                  season: String,
                                  dt: String)
-
-private final class ExpectedPointsLineUpArguments private(args: Array[String])
-  extends CommandLineBase(args, "Player Stats") with SeasonOption {
-
-  override protected def options: cli.Options = super.options
-    .addOption(ExpectedPointsLineUpArguments.OffenseOption)
-    .addOption(ExpectedPointsLineUpArguments.DefenseOption)
-    .addOption(ExpectedPointsLineUpArguments.ZoneOption)
-
-  lazy val offense: Boolean = has(ExpectedPointsLineUpArguments.OffenseOption)
-
-  lazy val defense: Boolean = has(ExpectedPointsLineUpArguments.DefenseOption)
-
-  lazy val zoned: Boolean = has(ExpectedPointsLineUpArguments.ZoneOption)
-}
-
-private object ExpectedPointsLineUpArguments {
-
-  def apply(args: Array[String]): ExpectedPointsLineUpArguments = new ExpectedPointsLineUpArguments(args)
-
-  val OffenseOption: cli.Option =
-  new cli.Option("o", "offense", false, "Calculate Offense ExpectedPoints")
-
-  val DefenseOption: cli.Option =
-    new cli.Option("d", "defense", false, "Calculate Defense ExpectedPoints")
-
-  val ZoneOption: cli.Option =
-    new cli.Option("z", "zone", false, "Calculate expected points per zone")
-
-
-
-}

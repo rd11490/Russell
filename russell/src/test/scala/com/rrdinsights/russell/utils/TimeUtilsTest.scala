@@ -40,4 +40,20 @@ final class TimeUtilsTest extends TestSpec {
     val period = 1
     assert(TimeUtils.timeFromStartOfGameAtPeriod(period) === 25)
   }
+
+  test("sort dates") {
+    val d1 = (1, "Nov 18, 2017")
+    val d2 = (2, "OCT 20, 2017")
+    val d3 = (3, "Dec 21, 2017")
+
+    val dates = Seq(d3, d1, d2)
+
+    val out = dates
+      .map(v => (v._1, TimeUtils.parseGameLogDate(v._2)))
+      .sortBy(_._2)
+
+    assert(out.head._1 == 2)
+    assert(out.last._1 == 3)
+
+  }
 }
