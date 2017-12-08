@@ -2,12 +2,10 @@ package com.rrdinsights.russell.investigation.shots.expectedshots
 
 import java.{lang => jl}
 
-import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.ScoredShot
 import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
 import com.rrdinsights.russell.utils.TimeUtils
-import org.apache.commons.cli
 
 object ExpectedShotsCalculator {
 
@@ -36,14 +34,14 @@ object ExpectedShotsCalculator {
 
   }
 
-  private def reduceShotGroup(key:(Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
+  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
     val attempted = shots.map(v => v.shotAttempts.intValue()).sum
     val made = shots.map(v => v.shotMade.intValue()).sum
     val expectedPoints = shots.map(v => v.expectedPoints.doubleValue())
     val expectedPointsAvg = mean(expectedPoints)
     val expectedPointsStDev = stdDev(expectedPoints)
     val value = shots.head.shotValue
-    val points = shots.map(v => v.shotMade*v.shotValue)
+    val points = shots.map(v => v.shotMade * v.shotValue)
     val pointsAvg = mean(points)
     val pointsStDev = stdDev(points)
 
@@ -135,12 +133,12 @@ object ExpectedShotsCalculator {
 }
 
 final case class ExpectedPointsForReduction(
-                                 teamId: Integer,
-                                 bin: String,
-                                 shotAttempts: Integer,
-                                 shotMade: Integer,
-                                 shotValue: Integer,
-                                 expectedPoints: jl.Double)
+                                             teamId: Integer,
+                                             bin: String,
+                                             shotAttempts: Integer,
+                                             shotMade: Integer,
+                                             shotValue: Integer,
+                                             expectedPoints: jl.Double)
 
 final case class ExpectedPoints(
                                  primaryKey: String,

@@ -1,10 +1,15 @@
 package com.rrdinsights.russell.storage
 
 
+import java.io.File
 import java.sql.ResultSet
 
+import com.opencsv.CSVWriter
+import com.rrdinsights.russell.storage.datamodel.ResultSetMapper
 import com.rrdinsights.russell.storage.tables.MySqlTable
 import com.rrdinsights.russell.utils.Control._
+
+import java.io.FileWriter
 
 import scala.collection.mutable
 
@@ -75,6 +80,43 @@ object MySqlClient {
       }
     }
   }
+
+  def selectResultSetFromAndWrite(table: MySqlTable, fullPath: String, whereClauses: String*): Unit = {
+    using(MySqlConnection.getConnection(Database.nba)) { connection =>
+      using(connection.createStatement) { stmt =>
+        val results = stmt.executeQuery(selectTableStatement(table, whereClauses: _*))
+        val file = new File(fullPath)
+
+        if (!file.isFile) {
+          val dir = file.getParentFile
+          if (!dir.isDirectory) {
+            dir.mkdirs()
+          }
+          file.createNewFile()
+        }
+
+        val writer = new CSVWriter(new FileWriter(fullPath), '\t')//.convertToCsv(results, fullPath)
+        writer.writeAll(results, true)
+      }
+    }
+  }
+
+  def selectSeasonsFrom(table: MySqlTable): Seq[String] = {
+    val resultsList = mutable.ListBuffer.empty[String]
+    using(MySqlConnection.getConnection(Database.nba)) { connection =>
+      using(connection.createStatement) { stmt =>
+        val results: ResultSet = stmt.executeQuery(selectSeasonStatement(table))
+        while (results.next()) {
+          resultsList += results.getString(1)
+        }
+        resultsList
+      }
+    }
+  }
+
+  private def selectSeasonStatement(table: MySqlTable): String =
+    s"$Select DISTINCT season $From ${table.name}"
+
   /*
     Private Methods
    */

@@ -1,5 +1,6 @@
 package com.rrdinsights.russell.storage.datamodel
 
+import java.io.File
 import java.sql.ResultSet
 import java.{lang => jl}
 

@@ -20,7 +20,7 @@ final case class RosterPlayer(
                                experience: String,
                                school: String,
                                playerId: jl.Integer,
-                               seasonParameter: String,
+                               season: String,
                                dt: String)
 
 object RosterPlayer extends ResultSetMapper {

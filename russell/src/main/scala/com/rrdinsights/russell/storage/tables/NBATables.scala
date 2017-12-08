@@ -17,7 +17,7 @@ object NBATables {
   val raw_play_by_play: MySqlTable = MySqlTable[RawPlayByPlayEvent]("raw_play_by_play")
   val raw_shot_data: MySqlTable = MySqlTable[RawShotData]("raw_shot_data")
   val raw_player_profile_career_totals: MySqlTable = MySqlTable[RawPlayerProfileCareer]("raw_player_profile_career_totals")
-  val raw_player_profile_season_totals: MySqlTable = MySqlTable[RawPlayerProfileCareer]("raw_player_profile_season_totals")
+  val raw_player_profile_season_totals: MySqlTable = MySqlTable[RawPlayerProfileSeason]("raw_player_profile_season_totals")
   val roster_player: MySqlTable = MySqlTable[RosterPlayer]("roster_player")
   val roster_coach: MySqlTable = MySqlTable[RosterCoach]("roster_coach")
   val raw_team_box_score_advanced: MySqlTable = MySqlTable[RawTeamBoxScoreAdvanced]("raw_team_box_score_advanced")
