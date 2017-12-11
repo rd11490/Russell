@@ -43,7 +43,7 @@ object PlayerStats {
   }
 
   private def readPlayersFromRosters(season: Option[String]): Seq[String] = {
-    val where = season.map(v => Seq(s"seasonParameter = '$v'")).getOrElse(Seq.empty)
+    val where = season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
     RosterDownloader.readPlayerInfo(where)
       .map(_.playerId.toString)
       .distinct

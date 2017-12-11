@@ -2,12 +2,14 @@ package com.rrdinsights.russell.investigation.shots.expectedshots
 
 import java.{lang => jl}
 
+import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.{ExpectedPoints, ScoredShot}
 import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
 import com.rrdinsights.russell.utils.TimeUtils
+import org.apache.commons.cli
 
-object ExpectedShotsLineupCalculator {
+object ExpectedShotsPlayerCalculator {
 
   import com.rrdinsights.russell.utils.MathUtils._
 
@@ -34,7 +36,7 @@ object ExpectedShotsLineupCalculator {
 
   }
 
-  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
+  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReductionPlayer], dt: String, season: String): ExpectedPointsPlayer = {
     val attempted = shots.map(v => v.shotAttempts.intValue()).sum
     val made = shots.map(v => v.shotMade.intValue()).sum
     val expectedPoints = shots.map(v => v.expectedPoints.doubleValue())
@@ -45,7 +47,7 @@ object ExpectedShotsLineupCalculator {
     val pointsAvg = mean(points)
     val pointsStDev = stdDev(points)
 
-    ExpectedPoints(
+    ExpectedPointsPlayer(
       s"${key._1}_${key._2}_$season",
       key._1,
       key._2,
@@ -60,70 +62,79 @@ object ExpectedShotsLineupCalculator {
       dt)
   }
 
-  private def reduceShots(shots: Seq[ExpectedPointsForReduction], dt: String, season: String): Seq[ExpectedPoints] =
+  private def reduceShots(shots: Seq[ExpectedPointsForReductionPlayer], dt: String, season: String): Seq[ExpectedPointsPlayer] =
     shots
-      .groupBy(v => (v.teamId, v.bin))
+      .groupBy(v => (v.id, v.bin))
       .map(v => reduceShotGroup(v._1, v._2, dt, season))
       .toSeq
 
 
   private def offenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
-      v.offenseTeamId,
-      "Total",
-      v.shotAttempted,
-      v.shotMade,
-      v.shotValue,
-      v.expectedPoints))
-
+    val shotsForReduction = scoredShot.flatMap(explodeScoredShotOffense)
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.offense_expected_points_total, shots)
+    writeShots(NBATables.offense_expected_points_by_player_total, shots)
+  }
+
+  private def explodeScoredShotOffense(scoredShot: ScoredShot): Seq[ExpectedPointsForReductionPlayer] = {
+    Seq(
+      scoredShot.offensePlayer1Id,
+      scoredShot.offensePlayer2Id,
+      scoredShot.offensePlayer3Id,
+      scoredShot.offensePlayer4Id,
+      scoredShot.offensePlayer5Id)
+      .map(v =>
+        ExpectedPointsForReductionPlayer(
+          v,
+          "Total",
+          scoredShot.shotAttempted,
+          scoredShot.shotMade,
+          scoredShot.shotValue,
+          scoredShot.expectedPoints))
   }
 
   private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
-      v.offenseTeamId,
-      v.bin,
-      v.shotAttempted,
-      v.shotMade,
-      v.shotValue,
-      v.expectedPoints))
+    val shotsForReduction = scoredShot.flatMap(explodeScoredShotOffense)
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.offense_expected_points_zoned, shots)
+    writeShots(NBATables.offense_expected_points_by_player_zoned, shots)
   }
 
   private def defenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
-      v.defenseTeamId,
-      "Total",
-      v.shotAttempted,
-      v.shotMade,
-      v.shotValue,
-      v.expectedPoints))
+    val shotsForReduction = scoredShot.flatMap(explodeScoredShotDefense)
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.defense_expected_points_total, shots)
+    writeShots(NBATables.defense_expected_points_by_player_total, shots)
   }
 
   private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
-      v.defenseTeamId,
-      v.bin,
-      v.shotAttempted,
-      v.shotMade,
-      v.shotValue,
-      v.expectedPoints))
+    val shotsForReduction = scoredShot.flatMap(explodeScoredShotDefense)
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.defense_expected_points_zoned, shots)
+    writeShots(NBATables.defense_expected_points_by_player_zoned, shots)
   }
 
-  def writeShots(table: MySqlTable, shots: Seq[ExpectedPoints]): Unit = {
+  private def explodeScoredShotDefense(scoredShot: ScoredShot): Seq[ExpectedPointsForReductionPlayer] = {
+    Seq(
+      scoredShot.defensePlayer1Id,
+      scoredShot.defensePlayer2Id,
+      scoredShot.defensePlayer3Id,
+      scoredShot.defensePlayer4Id,
+      scoredShot.defensePlayer5Id)
+      .map(v =>
+        ExpectedPointsForReductionPlayer(
+          v,
+          "Total",
+          scoredShot.shotAttempted,
+          scoredShot.shotMade,
+          scoredShot.shotValue,
+          scoredShot.expectedPoints))
+  }
+
+  def writeShots(table: MySqlTable, shots: Seq[ExpectedPointsPlayer]): Unit = {
     MySqlClient.createTable(table)
     MySqlClient.insertInto(table, shots)
   }
@@ -132,17 +143,17 @@ object ExpectedShotsLineupCalculator {
     MySqlClient.selectFrom(NBATables.team_scored_shots, ScoredShot.apply, where: _*)
 }
 
-final case class ExpectedPointsForReductionLineUp(
-                                                   teamId: Integer,
+final case class ExpectedPointsForReductionPlayer(
+                                                   id: Integer,
                                                    bin: String,
                                                    shotAttempts: Integer,
                                                    shotMade: Integer,
                                                    shotValue: Integer,
                                                    expectedPoints: jl.Double)
 
-final case class ExpectedPointsLineUp(
+final case class ExpectedPointsPlayer(
                                        primaryKey: String,
-                                       teamId: Integer,
+                                       id: Integer,
                                        bin: String,
                                        attempts: Integer,
                                        made: Integer,

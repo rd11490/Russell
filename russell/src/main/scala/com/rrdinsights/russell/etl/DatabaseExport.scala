@@ -1,9 +1,6 @@
 package com.rrdinsights.russell.etl
 
-import java.io.File
-
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel._
 import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
 
 object DatabaseExport {
@@ -53,6 +50,6 @@ object DatabaseExport {
     val folderName = table.name
     val fileName = season.map(v => s"${table.name}_$v").getOrElse(s"${table.name}")
     val fullPath = s"$BasePath/$folderName/$fileName.csv"
-    MySqlClient.selectResultSetFromAndWrite(table, fullPath, where:_*)
+    MySqlClient.selectResultSetFromAndWrite(table, fullPath, where: _*)
   }
 }

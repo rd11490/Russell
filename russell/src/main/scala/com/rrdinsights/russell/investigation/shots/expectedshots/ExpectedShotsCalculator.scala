@@ -3,7 +3,7 @@ package com.rrdinsights.russell.investigation.shots.expectedshots
 import java.{lang => jl}
 
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel.ScoredShot
+import com.rrdinsights.russell.storage.datamodel.{ExpectedPoints, ScoredShot}
 import com.rrdinsights.russell.storage.tables.{MySqlTable, NBATables}
 import com.rrdinsights.russell.utils.TimeUtils
 
@@ -139,17 +139,3 @@ final case class ExpectedPointsForReduction(
                                              shotMade: Integer,
                                              shotValue: Integer,
                                              expectedPoints: jl.Double)
-
-final case class ExpectedPoints(
-                                 primaryKey: String,
-                                 teamId: Integer,
-                                 bin: String,
-                                 attempts: Integer,
-                                 made: Integer,
-                                 value: Integer,
-                                 pointsAvg: jl.Double,
-                                 pointsStDev: jl.Double,
-                                 expectedPointsAvg: jl.Double,
-                                 expectedPointsStDev: jl.Double,
-                                 season: String,
-                                 dt: String)

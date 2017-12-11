@@ -38,6 +38,17 @@ final case class RawShotData(
 }
 
 object RawShotData extends ResultSetMapper {
+
+  private def fixShotValue(dist: Integer, zone: String): String = {
+    if (dist >= 27 && zone.contains("2")) {
+      zone.replaceAll("2", "3")
+    } else if (dist <= 19 && zone.contains("3")) {
+      zone.replaceAll("3", "2")
+    } else {
+      zone
+    }
+  }
+
   def apply(shot: Shot, dt: String): RawShotData = {
     val seasonOfShot = DataModelUtils.gameIdToSeason(shot.gameId)
     RawShotData(
@@ -54,7 +65,7 @@ object RawShotData extends ResultSetMapper {
       shot.secondsRemaining,
       shot.eventType,
       shot.actionType,
-      shot.shotZoneBasic,
+      fixShotValue(shot.shotDistance, shot.shotZoneBasic),
       shot.shotZoneArea,
       shot.shotZoneRange,
       shot.shotType,
