@@ -3,6 +3,7 @@ package com.rrdinsights.russell.storage.tables
 import com.rrdinsights.russell.etl.application.TeamInfo
 import com.rrdinsights.russell.investigation.shots.PlayerShotChartSection
 import com.rrdinsights.russell.investigation.shots.expectedshots.{ExpectedPointsByGame, ExpectedPointsPlayer}
+import com.rrdinsights.russell.investigation.shots.shotmover.{ShotStintData, ShotsSeen}
 import com.rrdinsights.russell.storage.datamodel._
 
 object NBATables {
@@ -27,6 +28,7 @@ object NBATables {
   val player_shot_charts: MySqlTable = MySqlTable[PlayerShotChartSection]("player_shot_charts")
   val lineup_shots: MySqlTable = MySqlTable[ShotWithPlayers]("lineup_shots")
   val team_info: MySqlTable = MySqlTable[TeamInfo]("team_info")
+  val shots_seen: MySqlTable = MySqlTable[ShotsSeen]("shots_seen")
 
   val play_by_play_with_lineup: MySqlTable = MySqlTable[PlayByPlayWithLineup]("play_by_play_with_lineup")
 
@@ -49,5 +51,6 @@ object NBATables {
   val defense_expected_points_by_game_total: MySqlTable = MySqlTable[ExpectedPointsByGame]("defense_expected_points_by_game_total")
   val defense_expected_points_by_game_zoned: MySqlTable = MySqlTable[ExpectedPointsByGame]("defense_expected_points_by_game_zoned")
 
+  val shot_stint_data: MySqlTable = MySqlTable[ShotStintData]("shot_stint_data")
 
  }

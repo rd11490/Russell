@@ -16,7 +16,7 @@ object ExpectedShotsPlayerCalculator {
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
     val args = ExpectedPointsArguments(strings)
-    val season = args.season.getOrElse(throw new IllegalArgumentException("Must provide a season"))
+    val season = args.seasonOpt.getOrElse(throw new IllegalArgumentException("Must provide a season"))
     val where = Seq(s"season = '$season'")
     val scoredShots = readScoredShots(where)
 
@@ -70,13 +70,13 @@ object ExpectedShotsPlayerCalculator {
 
 
   private def offenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.flatMap(explodeScoredShotOffense)
+    val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotOffense(v, total=true))
     val shots = reduceShots(shotsForReduction, dt, season)
 
     writeShots(NBATables.offense_expected_points_by_player_total, shots)
   }
 
-  private def explodeScoredShotOffense(scoredShot: ScoredShot): Seq[ExpectedPointsForReductionPlayer] = {
+  private def explodeScoredShotOffense(scoredShot: ScoredShot, total: Boolean = false): Seq[ExpectedPointsForReductionPlayer] = {
     Seq(
       scoredShot.offensePlayer1Id,
       scoredShot.offensePlayer2Id,
@@ -86,7 +86,7 @@ object ExpectedShotsPlayerCalculator {
       .map(v =>
         ExpectedPointsForReductionPlayer(
           v,
-          "Total",
+          if (total) "Total" else scoredShot.bin,
           scoredShot.shotAttempted,
           scoredShot.shotMade,
           scoredShot.shotValue,
@@ -94,7 +94,7 @@ object ExpectedShotsPlayerCalculator {
   }
 
   private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.flatMap(explodeScoredShotOffense)
+    val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotOffense(v))
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
@@ -102,7 +102,7 @@ object ExpectedShotsPlayerCalculator {
   }
 
   private def defenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.flatMap(explodeScoredShotDefense)
+    val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotDefense(v, total = true))
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
@@ -110,14 +110,14 @@ object ExpectedShotsPlayerCalculator {
   }
 
   private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.flatMap(explodeScoredShotDefense)
+    val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotDefense(v))
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
     writeShots(NBATables.defense_expected_points_by_player_zoned, shots)
   }
 
-  private def explodeScoredShotDefense(scoredShot: ScoredShot): Seq[ExpectedPointsForReductionPlayer] = {
+  private def explodeScoredShotDefense(scoredShot: ScoredShot, total: Boolean = false): Seq[ExpectedPointsForReductionPlayer] = {
     Seq(
       scoredShot.defensePlayer1Id,
       scoredShot.defensePlayer2Id,
@@ -127,7 +127,7 @@ object ExpectedShotsPlayerCalculator {
       .map(v =>
         ExpectedPointsForReductionPlayer(
           v,
-          "Total",
+          if (total) "Total" else scoredShot.bin,
           scoredShot.shotAttempted,
           scoredShot.shotMade,
           scoredShot.shotValue,

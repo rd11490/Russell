@@ -10,7 +10,7 @@ object SeasonStats {
 
   def main(strings: Array[String]): Unit = {
     val args = SeasonStatsArguments(strings)
-    val season = args.season.getOrElse(throw new IllegalArgumentException("A Season must be specified"))
+    val season = args.seasonOpt.getOrElse(throw new IllegalArgumentException("A Season must be specified"))
     val dt = TimeUtils.dtNow
 
     if (args.downloadGameLog) {
@@ -32,7 +32,7 @@ object SeasonStats {
     }
 
     if (args.downloadGameSummaries) {
-      BoxScoreSummaryDownloader.downloadAndWriteAllBoxScoreSummaries(gameLogs, dt, args.season)
+      BoxScoreSummaryDownloader.downloadAndWriteAllBoxScoreSummaries(gameLogs, dt, args.seasonOpt)
     }
 
   }

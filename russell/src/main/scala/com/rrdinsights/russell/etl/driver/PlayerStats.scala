@@ -15,7 +15,7 @@ object PlayerStats {
     val args = PlayerStatsArguments(strings)
     val playerId = args.playerId
     val dt = LocalDateTime.now().format(Formatter)
-    val season = args.season
+    val season = args.seasonOpt
 
     if (playerId.isDefined) {
       downloadAndWritePlayerStats(args, dt, playerId.get)
@@ -33,7 +33,7 @@ object PlayerStats {
   }
 
   private def downloadAndWritePlayerStats(args: PlayerStatsArguments, dt: String, playerIds: String*): Unit = {
-    val season = args.season
+    val season = args.seasonOpt
     if (args.downloadShotData) {
       ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, season)
     }

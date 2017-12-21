@@ -4,7 +4,7 @@ import com.rrdinsights.russell.commandline.{CommandLineBase, SeasonOption}
 import org.apache.commons.cli
 
 final class ExpectedPointsArguments private(args: Array[String])
-  extends CommandLineBase(args, "Player Stats") with SeasonOption {
+  extends CommandLineBase(args, "ExpectedPointsArguments") with SeasonOption {
 
   override protected def options: cli.Options = super.options
     .addOption(ExpectedPointsArguments.OffenseOption)
@@ -18,7 +18,7 @@ final class ExpectedPointsArguments private(args: Array[String])
   lazy val zoned: Boolean = has(ExpectedPointsArguments.ZoneOption)
 }
 
-private object ExpectedPointsArguments {
+object ExpectedPointsArguments {
 
   def apply(args: Array[String]): ExpectedPointsArguments = new ExpectedPointsArguments(args)
 

@@ -19,11 +19,11 @@ object PlayerOnCourtDriver {
     val dt = LocalDateTime.now().format(Formatter)
     val args = PlayerOnCourtArguments(strings)
     if (args.downloadPlayersAtStartOfPeriod) {
-      downloadAndWritePlayerOnCourtForShots2(dt, args.season, args.force)
+      downloadAndWritePlayerOnCourtForShots2(dt, args.seasonOpt, args.force)
     }
 
     if (args.parsePlayByPlayForPlayers) {
-      parsePlayersOnCourt(dt, args.season)
+      parsePlayersOnCourt(dt, args.seasonOpt)
     }
   }
 

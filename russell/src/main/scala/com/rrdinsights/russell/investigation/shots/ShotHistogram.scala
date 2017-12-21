@@ -18,8 +18,6 @@ import com.rrdinsights.russell.storage.datamodel.{RawShotData, ResultSetMapper}
   */
 object ShotHistogram {
 
-  // TODO Rebuild binning to go to shot zones based on python code
-
 
   def calculate(shots: Seq[RawShotData], filterBackcourt: Boolean = true): Map[ShotBinDetailed, ShotData] = {
     val detailedShots = shots

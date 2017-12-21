@@ -15,7 +15,7 @@ object ExpectedShotsByGameCalculator {
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
     val args = ExpectedPointsArguments(strings)
-    val season = args.season.getOrElse(throw new IllegalArgumentException("Must provide a season"))
+    val season = args.seasonOpt.getOrElse(throw new IllegalArgumentException("Must provide a season"))
     val where = Seq(s"season = '$season'")
     val scoredShots = readScoredShots(where)
     val games = GameLogDownloader.readGameLogs(season)

@@ -15,7 +15,7 @@ object PlayByPlayLineupJoiner {
   def main(strings: Array[String]): Unit = {
 
     val args = PlayByPlayLineupArguments(strings)
-    val seasonWhere = args.season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+    val seasonWhere = args.seasonOpt.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
     val dt = TimeUtils.dtNow
 
     val playByPlay = PlayByPlayDownloader

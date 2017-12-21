@@ -13,7 +13,7 @@ object ShotsWithPlayers {
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
     val args = PlayerWithShotsArguments(strings)
-    val where = args.season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+    val where = args.seasonOpt.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
 
     val shots = ShotChartDownloader.readShotData(where: _*)
     val players = PlayersOnCourtDownloader.readPlayersOnCourt(where: _*)

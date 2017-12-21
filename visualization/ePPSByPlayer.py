@@ -14,7 +14,7 @@ def diffAndSort(df, ascending = True):
 
 
 d = diffAndSort(d)
-d.to_csv("data/DPPSByPlayer201718")
+d.to_csv("data/DPPSByPlayer201718Filtered.csv")
 print("Defense: Points Per Shot Allowed While on Court")
 print(d.head(15))
 print()
@@ -25,7 +25,7 @@ print()
 print()
 
 o = diffAndSort(o, False)
-o.to_csv("data/OPPSByPlayer201718")
+o.to_csv("data/OPPSByPlayer201718Filtered.csv")
 print("Offense: Points Per Shot Scored While on Court")
 print(o.head(15))
 print()
