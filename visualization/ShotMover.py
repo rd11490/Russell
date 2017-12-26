@@ -1,13 +1,21 @@
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import RidgeCV
 import pandas as pd
 import numpy as np
 
-stints = pd.read_csv("data/ShotMoverStints/201617Stints.csv")
-playerNames = pd.read_csv("data/ShotMoverStints/playerNames.csv")
-shotsSeen = pd.read_csv("data/ShotMoverStints/201617ShotsSeen.csv")
-shotSeenMap = shotsSeen.set_index("playerId").to_dict()["shots"]
+import MySQLConnector
 
-shotCutOff = 1000
+sql = MySQLConnector.MySQLConnector()
+season = "2017-18"
+shotCutOff = 250
+
+shotsSeenQuery = "SELECT playerId, shots FROM nba.shots_seen where season = '{}';".format(season)
+stintsQuery = "SELECT * FROM nba.shot_stint_data where season = '{}';".format(season)
+playerNamesQuery = "select playerId, playerName from nba.roster_player where season = '{}';".format(season)
+
+stints = sql.runQuery(stintsQuery)
+playerNames = sql.runQuery(playerNamesQuery)
+shotsSeen = sql.runQuery(shotsSeenQuery)
+shotSeenMap = shotsSeen.set_index("playerId").to_dict()["shots"]
 
 
 stints["shotExpectedPointsPer100"] = stints["shotExpectedPoints"] * 100
@@ -21,6 +29,11 @@ players = list(
         list(stints["defensePlayer5Id"])))
 players.sort()
 
+filteredPlayers = [p for p in players if shotSeenMap[p] > shotCutOff]
+
+def checkPlayerQalifies(p):
+    return shotSeenMap[p] > shotCutOff
+
 def mapPlayers(rowIn):
     p1 = rowIn[0]
     p2 = rowIn[1]
@@ -33,27 +46,30 @@ def mapPlayers(rowIn):
     p9 = rowIn[8]
     p10 = rowIn[9]
 
-    rowOut = np.zeros([len(players)])
-    if (shotSeenMap[p1]>shotCutOff):
-        rowOut[players.index(p1)] = 1
-    if (shotSeenMap[p2]>shotCutOff):
-        rowOut[players.index(p2)] = 1
-    if (shotSeenMap[p3]>shotCutOff):
-        rowOut[players.index(p3)] = 1
-    if (shotSeenMap[p4]>shotCutOff):
-        rowOut[players.index(p4)] = 1
-    if (shotSeenMap[p5]>shotCutOff):
-        rowOut[players.index(p5)] = 1
-    if (shotSeenMap[p6]>shotCutOff):
-        rowOut[players.index(p6)] = -1
-    if (shotSeenMap[p7]>shotCutOff):
-        rowOut[players.index(p7)] = -1
-    if (shotSeenMap[p8]>shotCutOff):
-        rowOut[players.index(p8)] = -1
-    if (shotSeenMap[p9]>shotCutOff):
-        rowOut[players.index(p9)] = -1
-    if (shotSeenMap[p10]>shotCutOff):
-        rowOut[players.index(p10)] = -1
+    rowOut = np.zeros([len(filteredPlayers) * 2])
+
+    if checkPlayerQalifies(p1):
+        rowOut[filteredPlayers.index(p1)] = 1
+    if checkPlayerQalifies(p2):
+        rowOut[filteredPlayers.index(p2)] = 1
+    if checkPlayerQalifies(p3):
+        rowOut[filteredPlayers.index(p3)] = 1
+    if checkPlayerQalifies(p4):
+        rowOut[filteredPlayers.index(p4)] = 1
+    if checkPlayerQalifies(p5):
+        rowOut[filteredPlayers.index(p5)] = 1
+
+    if checkPlayerQalifies(p6):
+        rowOut[filteredPlayers.index(p6) + len(filteredPlayers)] = -1
+    if checkPlayerQalifies(p7):
+        rowOut[filteredPlayers.index(p7) + len(filteredPlayers)] = -1
+    if checkPlayerQalifies(p8):
+        rowOut[filteredPlayers.index(p8) + len(filteredPlayers)] = -1
+    if checkPlayerQalifies(p9):
+        rowOut[filteredPlayers.index(p9) + len(filteredPlayers)] = -1
+    if checkPlayerQalifies(p10):
+        rowOut[filteredPlayers.index(p10) + len(filteredPlayers)] = -1
+
     return rowOut
 
 
@@ -62,37 +78,43 @@ stintsForReg = stints[['offensePlayer1Id', 'offensePlayer2Id',
                        'defensePlayer1Id', 'defensePlayer2Id', 'defensePlayer3Id',
                        'defensePlayer4Id', 'defensePlayer5Id', 'difference100']]
 
-
-print(stintsForReg.columns)
-
 stintX = stintsForReg.as_matrix(columns=['offensePlayer1Id', 'offensePlayer2Id',
-                       'offensePlayer3Id', 'offensePlayer4Id', 'offensePlayer5Id',
-                       'defensePlayer1Id', 'defensePlayer2Id', 'defensePlayer3Id',
-                       'defensePlayer4Id', 'defensePlayer5Id'])
-
+                                         'offensePlayer3Id', 'offensePlayer4Id', 'offensePlayer5Id',
+                                         'defensePlayer1Id', 'defensePlayer2Id', 'defensePlayer3Id',
+                                         'defensePlayer4Id', 'defensePlayer5Id'])
 
 stintX = np.apply_along_axis(mapPlayers, 1, stintX)
 
 stintY = stintsForReg.as_matrix(["difference100"])
 
-clf = Ridge(alpha=.1)
+alphas = np.array([0.01, 0.05, 0.1, 0.5, 1.0, 5, 10, 50, 100, 500, 1000, 2000, 5000])
+clf = RidgeCV(alphas=alphas, cv=5)
 clf.fit(stintX, stintY)
 
-playerArr = np.transpose(np.array(players).reshape(1,len(players)))
-coefArr = np.transpose(clf.coef_)
-playerIdWithCoef = np.concatenate([playerArr, coefArr], axis=1)
+playerArr = np.transpose(np.array(filteredPlayers).reshape(1,len(filteredPlayers)))
+coefOArr = np.transpose(clf.coef_[:, 0:len(filteredPlayers)])
+coefDArr = np.transpose(clf.coef_[:, len(filteredPlayers):])
+playerIdWithCoef = np.concatenate([playerArr, coefOArr, coefDArr], axis=1)
 
 playersCoef = pd.DataFrame(playerIdWithCoef)
-playersCoef.columns = ["playerId", "ShotMoverScore"]
+playersCoef.columns = ["playerId", "ShotQualityO", "ShotQualityD"]
 
-merged = playersCoef.merge(playerNames, how='inner', on="playerId")[["playerName", "ShotMoverScore"]]
+merged = playersCoef.merge(playerNames, how='inner', on="playerId")[["playerName", "ShotQualityO", "ShotQualityD"]]
 
-merged = merged.sort_values(by='ShotMoverScore', ascending=False)
+merged.to_csv("results/shotQualityImpact{}.csv".format(season))
 
-print(merged)
+mergedO = merged.sort_values(by="ShotQualityO", ascending=False)
 
-print("Top 20 Shot Quality")
-print(merged.head(20))
+print("Top 20 Offensive Shot Quality")
+print(mergedO.head(20))
 
-print("Bottom 20 Shot Quality")
-print(merged.tail(20))
+print("Bottom 20 Offensive Shot Quality")
+print(mergedO.tail(20))
+
+mergedD = merged.sort_values(by="ShotQualityD", ascending=False)
+
+print("Top 20 Defensive Shot Quality")
+print(mergedD.head(20))
+
+print("Bottom 20 Defensive Shot Quality")
+print(mergedD.tail(20))

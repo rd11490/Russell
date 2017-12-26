@@ -45,13 +45,31 @@ object ShotMover {
     val scoredShotSection = MapJoin.joinSeq(mappedshotsWithPlayers, shotChartSections)
       .map(v => (v._1.shooter, v))
 
-    val fullScoredShots = MapJoin.joinSeq(scoredShotSection, shotChartTotalSection)
+    val fullScoredShots = scoredShotSection.map(v => (v._2, buildPointsPerShotLineup(v._2._1, shotChartTotalSection)))
       .map(v => toFullScoredShot(v._1._1, v._1._2, v._2, season, dt))
 
     val stints = reduceStints(fullScoredShots, season)
 
     writeShotStints(stints)
   }
+
+  private def buildPointsPerShotLineup(shot: ShotWithPlayers, shotMap: Map[Integer, ShotChartTotalSection]): ShotChartTotalSection = {
+    val attemptsAndPoitns = Seq(
+      extractShotValue(shot.offensePlayer1Id, shotMap),
+      extractShotValue(shot.offensePlayer2Id, shotMap),
+      extractShotValue(shot.offensePlayer3Id, shotMap),
+      extractShotValue(shot.offensePlayer4Id, shotMap),
+      extractShotValue(shot.offensePlayer5Id, shotMap))
+      .flatten
+      .reduce((a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3))
+
+    val pointsPerShotLineup = attemptsAndPoitns._3/attemptsAndPoitns._1.doubleValue()
+
+    ShotChartTotalSection(shot.shooter, attemptsAndPoitns._2, attemptsAndPoitns._1, pointsPerShotLineup)
+  }
+
+  private def extractShotValue(id: Integer, shotMap: Map[Integer, ShotChartTotalSection]): Option[(Int, Int, Double)] =
+    shotMap.get(id).map(v => (v.attempts, v.made, v.attempts*v.pointsPerShot))
 
   private def writeShotStints(stints: Seq[ShotStintData]): Unit = {
     MySqlClient.createTable(NBATables.shot_stint_data)

@@ -1,14 +1,26 @@
 import matplotlib.colors as colors
-import pandas as pd
 import drawCourt
 import matplotlib.pyplot as plt
 import ShotZones
 
+
+import MySQLConnector
+
+sql = MySQLConnector.MySQLConnector()
+season = "2017-18"
+
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_zoned where season = '{}' ) a " \
+          "left join  (select * from nba.team_info) b " \
+          "on (a.teamId = b.teamId)".format(season)
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_zoned where season = '{}' ) a " \
+          "left join  (select * from nba.team_info) b " \
+          "on (a.teamId = b.teamId)".format(season)
+
+shotZonesO = sql.runQuery(o_query)
+shotZonesD = sql.runQuery(d_query)
+
 shotZones = ShotZones.buildShotZones()
 valueForPlotting = "Diff"
-
-shotZonesD = pd.read_csv("data/ePPSZonedD.csv")
-shotZonesO = pd.read_csv("data/ePPSZonedO.csv")
 
 shotZonesD[valueForPlotting] = shotZonesD["expectedPointsAvg"] - shotZonesD["pointsAvg"]
 shotZonesO[valueForPlotting] = shotZonesO["pointsAvg"] - shotZonesO["expectedPointsAvg"]
@@ -35,7 +47,6 @@ for name in teamNames:
 
     # OFFENSE
     plt.rcParams["figure.figsize"] = [16, 6]
-    # plt.colorbar( mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])
 
     plt.subplot(1, 2, 1)
     plt.xlim(-250, 250)
@@ -56,16 +67,16 @@ for name in teamNames:
         xAvg = sum(zoneLocs["X"]) / len(zoneLocs["X"])
         yAvg = sum(zoneLocs["Y"]) / len(zoneLocs["Y"])
 
-        if (bin == "Right27FT" or bin == "Left27FT"):
-            yAvg = yAvg + 20
-        elif (bin == "Right23FT" or bin == "Left23FT"):
-            yAvg = yAvg + 10
-        elif (bin == "RightLong3" or bin == "LeftLong3"):
-            yAvg = yAvg - 50
+        if bin == "Right27FT" or bin == "Left27FT":
+            yAvg += 20
+        elif bin == "Right23FT" or bin == "Left23FT":
+            yAvg += 10
+        elif bin == "RightLong3" or bin == "LeftLong3":
+            yAvg -= 50
 
-        if (bin == "RightCorner" or bin == "LeftCorner"):
+        if bin == "RightCorner" or bin == "LeftCorner":
             txt = "{0}/{1} \n {2:.2f} \n PPS \n {3:.2f} \n ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
-                                                                  row["expectedPointsAvg"])
+                                                                        row["expectedPointsAvg"])
         else:
             txt = "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
                                                                   row["expectedPointsAvg"])
@@ -96,16 +107,16 @@ for name in teamNames:
         xAvg = sum(zoneLocs["X"]) / len(zoneLocs["X"])
         yAvg = sum(zoneLocs["Y"]) / len(zoneLocs["Y"])
 
-        if (bin == "Right27FT" or bin == "Left27FT"):
-            yAvg = yAvg + 20
-        elif (bin == "Right23FT" or bin == "Left23FT"):
-            yAvg = yAvg + 10
-        elif (bin == "RightLong3" or bin == "LeftLong3"):
-            yAvg = yAvg - 50
+        if bin == "Right27FT" or bin == "Left27FT":
+            yAvg += 20
+        elif bin == "Right23FT" or bin == "Left23FT":
+            yAvg += 10
+        elif bin == "RightLong3" or bin == "LeftLong3":
+            yAvg -= 50
 
-        if (bin == "RightCorner" or bin == "LeftCorner"):
+        if bin == "RightCorner" or bin == "LeftCorner":
             txt = "{0}/{1} \n {2:.2f} \n PPS \n {3:.2f} \n ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
-                                                                  row["expectedPointsAvg"])
+                                                                        row["expectedPointsAvg"])
         else:
             txt = "{0}/{1} \n {2:.2f} PPS \n {3:.2f} ePPS".format(row["made"], row["attempts"], row["pointsAvg"],
                                                                   row["expectedPointsAvg"])
@@ -121,4 +132,4 @@ for name in teamNames:
     plt.savefig("plots/ShotChart/{}".format(name), dpi=900, figsize=(14, 6))
     plt.close()
 
-    #plt.show()
+    # plt.show()

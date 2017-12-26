@@ -26,7 +26,7 @@ final case class RosterPlayer(
 object RosterPlayer extends ResultSetMapper {
   def apply(player: Player, season: String, dt: String): RosterPlayer =
     RosterPlayer(
-      player.playerId.toString,
+      s"${player.playerId}_${player.teamId}_$season",
       player.teamId,
       player.season,
       player.leagueId,

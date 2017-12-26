@@ -1,15 +1,29 @@
-import pandas as pd
+import MySQLConnector
+
+sql = MySQLConnector.MySQLConnector()
+season = "2017-18"
+shotCutoff = 250
+
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player_total " \
+          "WHERE season = '{0}' and attempts > {1} ) a " \
+          "left join  (SELECT primaryKey, playerName FROM nba.roster_player WHERE season = '{0}') b " \
+          "on (a.id = b.primaryKey)".format(season, shotCutoff)
+
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player_total " \
+          "WHERE season = '{0}' and attempts > {1} ) a " \
+          "left join  (SELECT primaryKey, playerName FROM nba.roster_player " \
+          "WHERE season = '{0}') b " \
+          "on (a.id = b.primaryKey)".format(season, shotCutoff)
+
+o = sql.runQuery(o_query)
+d = sql.runQuery(d_query)
 
 
-d = pd.read_csv("data/ePPS/D1718ByPlayer.csv")
-o = pd.read_csv("data/ePPS/O1718ByPlayer.csv")
-
-
-def diffAndSort(df, ascending = True):
-    df["diff"] = df["expectedPointsAvg"] - df["pointsAvg"]
-    df = df[["playerName", "diff", "pointsAvg", "expectedPointsAvg"]]
-    df = df.sort_values(by='diff', ascending=ascending)
-    df.columns = ["playerName", "diff", "PPS", "expectedPPS"]
+def diffAndSort(df, ascending=True):
+    df["ePPS-PPS"] = df["expectedPointsAvg"] - df["pointsAvg"]
+    df = df[["playerName", "ePPS-PPS", "pointsAvg", "expectedPointsAvg"]]
+    df = df.sort_values(by='ePPS-PPS', ascending=ascending)
+    df.columns = ["playerName", "ePPS-PPS", "PPS", "expectedPPS"]
     return df
 
 
@@ -31,4 +45,3 @@ print(o.head(15))
 print()
 print("Offense: Points Per Shot Scored While on Court")
 print(o.tail(15))
-

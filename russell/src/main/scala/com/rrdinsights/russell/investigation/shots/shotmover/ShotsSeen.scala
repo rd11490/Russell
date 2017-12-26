@@ -45,7 +45,7 @@ object ShotsSeen {
         (v.defensePlayer5Id, 1))
     })
       .groupBy(_._1)
-      .map(v => ShotsSeen(v._1.toString, v._1, v._2.map(c => c._2).sum, season))
+      .map(v => ShotsSeen(s"${v._1}_$season", v._1, v._2.map(c => c._2).sum, season))
   }
 }
 

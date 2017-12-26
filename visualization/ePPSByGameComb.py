@@ -1,9 +1,18 @@
-import pandas as pd
 import matplotlib.pyplot as plt
+import MySQLConnector
 
+sql = MySQLConnector.MySQLConnector()
+season = "2017-18"
 
-d = pd.read_csv("data/ePPS/D1718ByGame.csv")
-o = pd.read_csv("data/ePPS/O1718ByGame.csv")
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_game_total where season = '{}' ) a " \
+          "left join  (select * from nba.team_info) b " \
+          "on (a.teamId = b.teamId)".format(season)
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_game_total where season = '{}' ) a " \
+          "left join  (select * from nba.team_info) b " \
+          "on (a.teamId = b.teamId)".format(season)
+
+o = sql.runQuery(o_query)
+d = sql.runQuery(d_query)
 
 
 def diff(df):
@@ -20,50 +29,51 @@ def filterAndSort(df, teamName):
     return dfnew
 
 
-def plotePPS(d, o, teamName):
+def plotePPS(ax, d, o, teamName):
     dTeam = filterAndSort(d, teamName)
     oTeam = filterAndSort(o, teamName)
 
-    plt.plot(dTeam["games"], dTeam["ePPS100"], c="r", label="Defense")
-    plt.plot(oTeam["games"], oTeam["ePPS100"], c="g", label="Offense")
+    ax.plot(dTeam["games"], dTeam["ePPS100"], c="r", label="Defense")
+    ax.plot(oTeam["games"], oTeam["ePPS100"], c="g", label="Offense")
 
 
-def plotBGePPS(d, o, teamName):
+def plotBGePPS(ax, d, o, teamName):
     dTeam = filterAndSort(d, teamName)
     oTeam = filterAndSort(o, teamName)
 
-    plt.plot(dTeam["games"], dTeam["ePPS100"], c="gray", label='_nolegend_', alpha=0.25)
-    plt.plot(oTeam["games"], oTeam["ePPS100"], c="gray", label='_nolegend_', alpha=0.25)
+    ax.plot(dTeam["games"], dTeam["ePPS100"], c="gray", label='_nolegend_', alpha=0.25)
+    ax.plot(oTeam["games"], oTeam["ePPS100"], c="gray", label='_nolegend_', alpha=0.25)
 
 
-def plotPPS(d, o, teamName):
+def plotPPS(ax, d, o, teamName):
     dTeam = filterAndSort(d, teamName)
     oTeam = filterAndSort(o, teamName)
 
-    plt.plot(dTeam["games"], dTeam["PPS100"], c="r", label="Defense")
-    plt.plot(oTeam["games"], oTeam["PPS100"], c="g", label="Offense")
+    ax.plot(dTeam["games"], dTeam["PPS100"], c="r", label="Defense")
+    ax.plot(oTeam["games"], oTeam["PPS100"], c="g", label="Offense")
 
 
-def plotBGPPS(d, o, teamName):
+def plotBGPPS(ax, d, o, teamName):
     dTeam = filterAndSort(d, teamName)
     oTeam = filterAndSort(o, teamName)
 
-    plt.plot(dTeam["games"], dTeam["PPS100"], c="gray", label='_nolegend_', alpha=0.25)
-    plt.plot(oTeam["games"], oTeam["PPS100"], c="gray", label='_nolegend_', alpha=0.25)
+    ax.plot(dTeam["games"], dTeam["PPS100"], c="gray", label='_nolegend_', alpha=0.25)
+    ax.plot(oTeam["games"], oTeam["PPS100"], c="gray", label='_nolegend_', alpha=0.25)
 
-def plotDiff(d, o, teamName):
+def plotDiff(ax, d, o, teamName):
     dTeam = filterAndSort(d, teamName)
     oTeam = filterAndSort(o, teamName)
 
-    plt.plot(dTeam["games"], dTeam["ePPS100-PPS100"], c="r", label="Defense")
-    plt.plot(oTeam["games"], oTeam["ePPS100-PPS100"], c="g", label="Offense")
+    ldinner = ax.plot(dTeam["games"], dTeam["ePPS100-PPS100"], c="r", label="Defense")
+    loinner = ax.plot(oTeam["games"], oTeam["ePPS100-PPS100"], c="g", label="Offense")
+    return ldinner, loinner
 
-def plotBGDiff(d, o, teamName):
+def plotBGDiff(ax, d, o, teamName):
     dTeam = filterAndSort(d, teamName)
     oTeam = filterAndSort(o, teamName)
 
-    plt.plot(dTeam["games"], dTeam["ePPS100-PPS100"], c="gray", label='_nolegend_', alpha=0.25)
-    plt.plot(oTeam["games"], oTeam["ePPS100-PPS100"], c="gray", label='_nolegend_', alpha=0.25)
+    ax.plot(dTeam["games"], dTeam["ePPS100-PPS100"], c="gray", label='_nolegend_', alpha=0.25)
+    ax.plot(oTeam["games"], oTeam["ePPS100-PPS100"], c="gray", label='_nolegend_', alpha=0.25)
 
 dnew = diff(d)
 onew = diff(o)
@@ -73,36 +83,31 @@ teams = list(set(dnew["teamName"]))
 
 for t in teams:
     print(t)
+    fig = plt.figure()
+    ax1 = fig.add_subplot(3, 1, 1)
+    ax2 = fig.add_subplot(3, 1, 2)
+    ax3 = fig.add_subplot(3, 1, 3)
+
     for t2 in teams:
-        plt.subplot(3, 1, 1)
-        plotBGPPS(dnew, onew, t2)
-        plt.subplot(3, 1, 2)
-        plotBGePPS(dnew, onew, t2)
-        plt.subplot(3, 1, 3)
-        plotBGDiff(dnew, onew, t2)
-    plt.subplot(3, 1, 1)
-    plotPPS(dnew, onew, t)
-    plt.ylim(80, 125)
-    plt.xlabel("Games Played")
-    plt.ylabel("PPS100")
-    plt.legend()
-    plt.title("{}".format(t))
+        plotBGPPS(ax1, dnew, onew, t2)
+        plotBGePPS(ax2, dnew, onew, t2)
+        plotBGDiff(ax3, dnew, onew, t2)
+    plotPPS(ax1, dnew, onew, t)
+    ax1.set_ylim(80, 125)
+    ax1.set_ylabel("PPS100")
+    ax1.set_title("{}".format(t))
 
-    plt.subplot(3, 1, 2)
-    plotePPS(dnew, onew, t)
-    plt.ylim(80, 125)
-    plt.xlabel("Games Played")
-    plt.ylabel("ePPS100")
-    plt.legend()
+    plotePPS(ax2, dnew, onew, t)
+    ax2.set_ylim(80, 125)
+    ax2.set_ylabel("ePPS100")
 
-    plt.subplot(3, 1, 3)
-    plotDiff(dnew, onew, t)
-    plt.ylim(-25, 25)
-    plt.xlabel("Games Played")
-    plt.ylabel("ePPS100 - PPS100")
-    plt.legend()
-
-    plt.savefig("plots/PPS100Comb/{}".format(t), dpi=900, figsize=(14, 6))
+    ld, lo = plotDiff(ax3, dnew, onew, t)
+    ax3.set_ylim (-25, 25)
+    ax3.set_xlabel("Games Played")
+    ax3.set_ylabel("ePPS100 - PPS100")
+    fig.legend([ld[0], lo[0]], ["Defense", "Offense"], loc="upper right", ncol=2)
+    fig.tight_layout()
+    plt.savefig("plots/PPS100Comb/{}".format(t), dpi=900, figsize=(14, 9))
     plt.close()
     #plt.show()
 
