@@ -129,7 +129,7 @@ for name in teamNames:
     clb.ax.set_title("ePPS - PPS")
     plt.tight_layout()
 
-    plt.savefig("plots/ShotChart/{}".format(name), dpi=900, figsize=(14, 6))
-    plt.close()
+    #plt.savefig("plots/ShotChart/{}".format(name), dpi=900, figsize=(14, 6))
+    #plt.close()
 
-    # plt.show()
+    plt.show()

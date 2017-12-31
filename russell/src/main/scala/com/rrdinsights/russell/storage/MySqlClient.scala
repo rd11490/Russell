@@ -144,7 +144,7 @@ object MySqlClient {
     s"$Insert $Into ${table.name} ${toColumnNamesForInsert(table)} $Values ${toValueRows(data)} $DuplicateKey ${toDuplicateReplaceValues(table.columns)}"
 
   private def toColumnNames(table: MySqlTable): Seq[String] =
-    table.columns.map(_.fieldName)
+    table.columns.map(v => s"`${v.fieldName}`")
 
   private def toColumnNamesForSelect(table: MySqlTable): String =
     toColumnNames(table).mkString(", ")

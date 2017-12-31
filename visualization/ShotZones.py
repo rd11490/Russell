@@ -1,6 +1,7 @@
 import math
 import matplotlib.colors as colors
 
+
 def buildShotZones():
     """
     { Zone: { X: [], Y: [] } }
@@ -26,7 +27,7 @@ def buildShotZones():
 def findZone(x, y):
     if (isRestricted(x, y)):
         return "RestrictedArea"
-    elif (y < 93 and (x < -220 or x > 220)):
+    elif (y < 92 and (x < -220 or x > 220)):
         return findBaselineZone(x)
     else:
         return findLongZone(x, y)
@@ -57,40 +58,40 @@ def findLongZone(x, y):
       LeftLong3, RightLong3
     """
 
-    if  40 < dist < 110 and 270 > angle > 157:
+    if 40 < dist <= 110 and 270 > angle > 157:
         return "LeftBaseline11FT"
-    elif 40 < dist < 110 and 157 > angle > 90:
+    elif 40 < dist <= 110 and 157 > angle > 90:
         return "Left11FT"
-    elif 40 < dist < 110 and 90 > angle > 23:
+    elif 41 < dist <= 110 and 90 > angle > 23:  # 41 is a hack to get the image to look correct
         return "Right11FT"
-    elif 40 < dist < 110 and 23 > angle > -90:
+    elif 41 < dist <= 110 and 23 > angle > -90:  # 41 is a hack to get the image to look correct
         return "RightBaseline11FT"
 
-    elif 180 > dist > 110 and 270 > angle > 157:
+    elif 180 >= dist > 110 and 270 > angle > 157:
         return "LeftBaseline18FT"
-    elif 180 > dist > 110 and 157 > angle > 90:
+    elif 180 >= dist > 110 and 157 > angle > 90:
         return "Left18FT"
-    elif 180 > dist > 110 and 90 > angle > 23:
+    elif 180 >= dist > 110 and 90 > angle > 23:
         return "Right18FT"
-    elif 180 > dist > 110 and 23 > angle > -90:
+    elif 180 >= dist > 110 and 23 > angle > -90:
         return "RightBaseline18FT"
 
-    elif 237.5 > dist > 180 and 270 > angle > 157:
+    elif 237.5 >= dist > 180 and 270 > angle > 157:
         return "LeftBaseline23FT"
-    elif 237.5 > dist > 180 and 157 > angle > 90:
+    elif 237.5 >= dist > 180 and 157 > angle > 90:
         return "Left23FT"
-    elif 237.5 > dist > 180 and 90 > angle > 23:
+    elif 237.5 >= dist > 180 and 90 > angle > 23:
         return "Right23FT"
-    elif 237.5 > dist > 180 and 23 > angle > -90:
+    elif 237.5 >= dist > 180 and 23 > angle > -90:
         return "RightBaseline23FT"
 
-    elif 280 > dist > 237.5 and angle > 90:
+    elif 280 >= dist > 237.5 and angle > 90:
         return "Left27FT"
-    elif 280 > dist > 237.5 and angle < 90:
+    elif 280 >= dist > 237.5 and angle < 90:
         return "Right27FT"
-    elif dist > 280 and  angle > 90:
+    elif dist > 281 and angle > 90:
         return "LeftLong3"
-    elif dist > 280  and angle < 90:
+    elif dist > 281 and angle < 90:
         return "RightLong3"
 
     else:
@@ -106,4 +107,4 @@ def theta(x, y):
 
 
 def distance(x, y):
-    return math.sqrt((x**2 ) + (y**2))
+    return math.sqrt((x ** 2) + (y ** 2))
