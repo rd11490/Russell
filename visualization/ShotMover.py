@@ -97,24 +97,24 @@ coefDArr = np.transpose(clf.coef_[:, len(filteredPlayers):])
 playerIdWithCoef = np.concatenate([playerArr, coefOArr, coefDArr], axis=1)
 
 playersCoef = pd.DataFrame(playerIdWithCoef)
-playersCoef.columns = ["playerId", "ShotQualityO", "ShotQualityD"]
+playersCoef.columns = ["playerId", "ShotQualityImpactO", "ShotQualityImpactD"]
 
-merged = playersCoef.merge(playerNames, how='inner', on="playerId")[["playerName", "ShotQualityO", "ShotQualityD"]]
+merged = playersCoef.merge(playerNames, how='inner', on="playerId")[["playerName", "ShotQualityImpactO", "ShotQualityImpactD"]]
 
 merged.to_csv("results/shotQualityImpact{}.csv".format(season))
 
-mergedO = merged.sort_values(by="ShotQualityO", ascending=False)
+mergedO = merged.sort_values(by="ShotQualityImpactO", ascending=False)
 
-print("Top 20 Offensive Shot Quality")
+print("Top 20 Offensive Shot Quality Impact")
 print(mergedO.head(20))
 
-print("Bottom 20 Offensive Shot Quality")
+print("Bottom 20 Offensive Shot Quality Impact")
 print(mergedO.tail(20))
 
-mergedD = merged.sort_values(by="ShotQualityD", ascending=False)
+mergedD = merged.sort_values(by="ShotQualityImpactD", ascending=False)
 
-print("Top 20 Defensive Shot Quality")
+print("Top 20 Defensive Shot Quality Impact")
 print(mergedD.head(20))
 
-print("Bottom 20 Defensive Shot Quality")
+print("Bottom 20 Defensive Shot Quality Impact")
 print(mergedD.tail(20))

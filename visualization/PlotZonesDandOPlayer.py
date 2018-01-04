@@ -1,14 +1,30 @@
 import matplotlib.colors as colors
-import pandas as pd
+
+import MySQLConnector
 import drawCourt
 import matplotlib.pyplot as plt
 import ShotZones
 
 shotZones = ShotZones.buildShotZones()
 valueForPlotting = "Diff"
-player = "Andrew Wiggins"
-shotZonesD = pd.read_csv("data/ePPS/D1718ByPlayerZoned.csv")
-shotZonesO = pd.read_csv("data/ePPS/O1718ByPlayerZoned.csv")
+player = "OG Anunoby"
+season = "2017-18"
+
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player_zoned " \
+          "WHERE season = '{0}' ) a " \
+          "left join  (SELECT primaryKey, playerName FROM nba.roster_player WHERE season = '{0}') b " \
+          "on (a.id = b.primaryKey)".format(season)
+
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player_zoned " \
+          "WHERE season = '{0}' ) a " \
+          "left join  (SELECT primaryKey, playerName FROM nba.roster_player " \
+          "WHERE season = '{0}') b " \
+          "on (a.id = b.primaryKey)".format(season)
+
+sql = MySQLConnector.MySQLConnector()
+
+shotZonesO = sql.runQuery(o_query)
+shotZonesD = sql.runQuery(d_query)
 
 shotZonesD[valueForPlotting] = shotZonesD["expectedPointsAvg"] - shotZonesD["pointsAvg"]
 shotZonesO[valueForPlotting] = shotZonesO["pointsAvg"] - shotZonesO["expectedPointsAvg"]

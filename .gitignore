@@ -5,3 +5,4 @@ russell/target
 MySqlCred.json
 *.pyc
 *.png
+rng.py

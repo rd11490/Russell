@@ -81,9 +81,9 @@ onew = diff(o)
 teams = list(set(dnew["teamName"]))
 
 
-for t in teams:
+for t in teams[:1]:
     print(t)
-    fig = plt.figure()
+    fig = plt.figure(figsize=(10, 8))
     ax1 = fig.add_subplot(3, 1, 1)
     ax2 = fig.add_subplot(3, 1, 2)
     ax3 = fig.add_subplot(3, 1, 3)
@@ -107,8 +107,8 @@ for t in teams:
     ax3.set_ylabel("ePPS100 - PPS100")
     fig.legend([ld[0], lo[0]], ["Defense", "Offense"], loc="upper right", ncol=2)
     fig.tight_layout()
-    plt.savefig("plots/PPS100Comb/{}".format(t), dpi=900, figsize=(14, 9))
-    plt.close()
-    #plt.show()
+    #plt.savefig("plots/PPS100Comb/{}".format(t))
+    #plt.close()
+    plt.show()
 
 

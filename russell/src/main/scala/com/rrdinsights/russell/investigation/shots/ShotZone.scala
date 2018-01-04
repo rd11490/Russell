@@ -127,14 +127,14 @@ object ShotZone {
 
   case object LeftCorner extends CornerShotZone {
     override val value: Int = 3
-    override val xMax: Int = -200
+    override val xMax: Int = -190
     override val xMin: Int = -500
   }
 
   case object RightCorner extends CornerShotZone {
     override val value: Int = 3
     override val xMax: Int = 500
-    override val xMin: Int = 200
+    override val xMin: Int = 190
   }
 
   case object RightBaseline11FT extends NonCornerShotZone {
