@@ -17,7 +17,6 @@ object ShotMover {
     val args = ExpectedPointsArguments(strings)
     val season = args.season
 
-
     val whereSeason = s"season = '$season'"
     val whereBeforeSeason = s"season <= '$season'" // Use shots from the current season - not best practice, but don't have college shot charts for rookies
 
@@ -27,15 +26,9 @@ object ShotMover {
       .map(v => ((v.playerId, v.bin), v))
       .toMap
 
-    println("shotChartSections")
-    println(shotChartSections.size)
-
     val shotChartTotalSection = buildShotChartTotal(shots, dt)
       .map(v => (v.playerId, v))
       .toMap
-
-    println("shotChartTotalSection")
-    println(shotChartTotalSection.size)
 
     val shotsWithPlayers = readShotsWithPlayers(whereSeason)
 

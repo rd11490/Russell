@@ -107,8 +107,8 @@ for t in teams[:1]:
     ax3.set_ylabel("ePPS100 - PPS100")
     fig.legend([ld[0], lo[0]], ["Defense", "Offense"], loc="upper right", ncol=2)
     fig.tight_layout()
-    #plt.savefig("plots/PPS100Comb/{}".format(t))
-    #plt.close()
-    plt.show()
+    plt.savefig("plots/PPS100Comb/{}".format(t))
+    plt.close()
+    #plt.show()
 
 

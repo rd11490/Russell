@@ -78,7 +78,7 @@ object ExpectedShotsLineupCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.offense_expected_points_total, shots)
+    //writeShots(NBATables.offense_expected_points_total, shots)
   }
 
   private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
@@ -92,7 +92,7 @@ object ExpectedShotsLineupCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.offense_expected_points_zoned, shots)
+    //writeShots(NBATables.offense_expected_points_zoned, shots)
   }
 
   private def defenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
@@ -106,7 +106,7 @@ object ExpectedShotsLineupCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.defense_expected_points_total, shots)
+    //writeShots(NBATables.defense_expected_points_total, shots)
   }
 
   private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
@@ -120,7 +120,7 @@ object ExpectedShotsLineupCalculator {
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.defense_expected_points_zoned, shots)
+    //writeShots(NBATables.defense_expected_points_zoned, shots)
   }
 
   def writeShots(table: MySqlTable, shots: Seq[ExpectedPoints]): Unit = {

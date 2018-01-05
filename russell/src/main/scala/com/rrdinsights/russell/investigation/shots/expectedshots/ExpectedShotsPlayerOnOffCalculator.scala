@@ -23,17 +23,11 @@ object ExpectedShotsPlayerOnOffCalculator {
     println(playerMap.size)
 
     if (args.offense) {
-      offenseTotal(scoredShots, playerMap, dt, season)
-      if (args.zoned) {
-        offenseZoned(scoredShots, playerMap, dt, season)
-      }
+      calculateOnOffForOffense(scoredShots, playerMap, dt, season)
     }
 
     if (args.defense) {
-      defenseTotal(scoredShots, playerMap, dt, season)
-      if (args.zoned) {
-        defenseZoned(scoredShots, playerMap, dt, season)
-      }
+      calculateOnOffForDefense(scoredShots, playerMap, dt, season)
     }
 
   }
@@ -74,15 +68,7 @@ object ExpectedShotsPlayerOnOffCalculator {
       .map(v => reduceShotGroup(v._1, v._2, dt, season))
       .toSeq
 
-
-  private def offenseTotal(scoredShot: Seq[ScoredShot], rosters: Map[Integer, Seq[Integer]], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotOffense(v, rosters, total = true))
-    val shots = reduceShots(shotsForReduction, dt, season)
-
-    writeShots(NBATables.offense_expected_points_by_player_on_off_total, shots)
-  }
-
-  private def explodeScoredShotOffense(scoredShot: ScoredShot, rosters: Map[Integer, Seq[Integer]], total: Boolean = false): Seq[ExpectedPointsForReductionPlayerOnOff] = {
+  private def explodeScoredShotOffense(scoredShot: ScoredShot, rosters: Map[Integer, Seq[Integer]]): Seq[ExpectedPointsForReductionPlayerOnOff] = {
     val onCourt = Seq(
       scoredShot.offensePlayer1Id,
       scoredShot.offensePlayer2Id,
@@ -91,48 +77,43 @@ object ExpectedShotsPlayerOnOffCalculator {
       scoredShot.offensePlayer5Id)
 
     val offCourt = rosters(scoredShot.offenseTeamId).diff(onCourt)
-    onCourt.map(v =>
+    onCourt.flatMap(v => buildExpectedPointsForReductionPlayerOnOff(scoredShot, v, "On")) ++
+      offCourt.flatMap(v => buildExpectedPointsForReductionPlayerOnOff(scoredShot, v, "Off"))
+  }
+
+  private def buildExpectedPointsForReductionPlayerOnOff(scoredShot: ScoredShot, id: Integer, onOff: String): Seq[ExpectedPointsForReductionPlayerOnOff] =
+    Seq(
       ExpectedPointsForReductionPlayerOnOff(
-        v,
-        if (total) "Total" else scoredShot.bin,
-        onOff = "On",
+        id,
+        scoredShot.bin,
+        onOff = onOff,
         scoredShot.shotAttempted,
         scoredShot.shotMade,
         scoredShot.shotValue,
-        scoredShot.expectedPoints)) ++
-      offCourt.map(v =>
-        ExpectedPointsForReductionPlayerOnOff(
-          v,
-          if (total) "Total" else scoredShot.bin,
-          onOff = "Off",
-          scoredShot.shotAttempted,
-          scoredShot.shotMade,
-          scoredShot.shotValue,
-          scoredShot.expectedPoints))
-  }
+        scoredShot.expectedPoints),
+      ExpectedPointsForReductionPlayerOnOff(
+        id,
+        "Total",
+        onOff = onOff,
+        scoredShot.shotAttempted,
+        scoredShot.shotMade,
+        scoredShot.shotValue,
+        scoredShot.expectedPoints))
 
-  private def offenseZoned(scoredShot: Seq[ScoredShot], rosters: Map[Integer, Seq[Integer]], dt: String, season: String): Unit = {
+  private def calculateOnOffForOffense(scoredShot: Seq[ScoredShot], rosters: Map[Integer, Seq[Integer]], dt: String, season: String): Unit = {
     val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotOffense(v, rosters))
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.offense_expected_points_by_player_on_off_zoned, shots)
+    writeShots(NBATables.offense_expected_points_by_player_on_off, shots)
   }
 
-  private def defenseTotal(scoredShot: Seq[ScoredShot], rosters: Map[Integer, Seq[Integer]], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotDefense(v, rosters, total = true))
-
-    val shots = reduceShots(shotsForReduction, dt, season)
-
-    writeShots(NBATables.defense_expected_points_by_player_on_off_total, shots)
-  }
-
-  private def defenseZoned(scoredShot: Seq[ScoredShot], rosters: Map[Integer, Seq[Integer]], dt: String, season: String): Unit = {
+  private def calculateOnOffForDefense(scoredShot: Seq[ScoredShot], rosters: Map[Integer, Seq[Integer]], dt: String, season: String): Unit = {
     val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotDefense(v, rosters))
 
     val shots = reduceShots(shotsForReduction, dt, season)
 
-    writeShots(NBATables.defense_expected_points_by_player_on_off_zoned, shots)
+    writeShots(NBATables.defense_expected_points_by_player_on_off, shots)
   }
 
   private def explodeScoredShotDefense(scoredShot: ScoredShot, rosters: Map[Integer, Seq[Integer]], total: Boolean = false): Seq[ExpectedPointsForReductionPlayerOnOff] = {

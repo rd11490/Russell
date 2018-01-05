@@ -35,20 +35,14 @@ object NBATables {
   val team_scored_shots: MySqlTable = MySqlTable[ScoredShot]("team_scored_shots")
   val players_on_court_test: MySqlTable = MySqlTable[PlayersOnCourt]("players_on_court_test")
 
-  val offense_expected_points_total: MySqlTable = MySqlTable[ExpectedPoints]("offense_expected_points_total")
-  val offense_expected_points_zoned: MySqlTable = MySqlTable[ExpectedPoints]("offense_expected_points_zoned")
-  val defense_expected_points_total: MySqlTable = MySqlTable[ExpectedPoints]("defense_expected_points_total")
-  val defense_expected_points_zoned: MySqlTable = MySqlTable[ExpectedPoints]("defense_expected_points_zoned")
+  val offense_expected_points: MySqlTable = MySqlTable[ExpectedPoints]("offense_expected_points")
+  val defense_expected_points: MySqlTable = MySqlTable[ExpectedPoints]("defense_expected_points")
 
-  val offense_expected_points_by_player_total: MySqlTable = MySqlTable[ExpectedPointsPlayer]("offense_expected_points_by_player_total")
-  val offense_expected_points_by_player_zoned: MySqlTable = MySqlTable[ExpectedPointsPlayer]("offense_expected_points_by_player_zoned")
-  val defense_expected_points_by_player_total: MySqlTable = MySqlTable[ExpectedPointsPlayer]("defense_expected_points_by_player_total")
-  val defense_expected_points_by_player_zoned: MySqlTable = MySqlTable[ExpectedPointsPlayer]("defense_expected_points_by_player_zoned")
+  val offense_expected_points_by_player: MySqlTable = MySqlTable[ExpectedPointsPlayer]("offense_expected_points_by_player")
+  val defense_expected_points_by_player: MySqlTable = MySqlTable[ExpectedPointsPlayer]("defense_expected_points_by_player")
 
-  val offense_expected_points_by_player_on_off_total: MySqlTable = MySqlTable[ExpectedPointsPlayerOnOff]("offense_expected_points_by_player_on_off_total")
-  val offense_expected_points_by_player_on_off_zoned: MySqlTable = MySqlTable[ExpectedPointsPlayerOnOff]("offense_expected_points_by_player_on_off_zoned")
-  val defense_expected_points_by_player_on_off_total: MySqlTable = MySqlTable[ExpectedPointsPlayerOnOff]("defense_expected_points_by_player_on_off_total")
-  val defense_expected_points_by_player_on_off_zoned: MySqlTable = MySqlTable[ExpectedPointsPlayerOnOff]("defense_expected_points_by_player_on_off_zoned")
+  val offense_expected_points_by_player_on_off: MySqlTable = MySqlTable[ExpectedPointsPlayerOnOff]("offense_expected_points_by_player_on_off_zoned")
+  val defense_expected_points_by_player_on_off: MySqlTable = MySqlTable[ExpectedPointsPlayerOnOff]("defense_expected_points_by_player_on_off_zoned")
 
 
   val offense_expected_points_by_game_total: MySqlTable = MySqlTable[ExpectedPointsByGame]("offense_expected_points_by_game_total")
