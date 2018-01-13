@@ -13,7 +13,9 @@ object ShotChartExplore {
     *
     */
   def main(strings: Array[String]): Unit = {
-    val shotData = MySqlClient.selectFrom(NBATables.defense_expected_points_zoned, ExpectedPoints.apply, "season = '2017-18'")
+    val shotData = MySqlClient.selectFrom(NBATables.defense_expected_points, ExpectedPoints.apply, "season = '2017-18'", "bin != 'Total'")
+
+    shotData.filter(_.value == 3).foreach(println)
 
     CSVWriter.CSVWriter(
     shotData
@@ -33,12 +35,17 @@ object ShotChartExplore {
     val corner = threeData((teamId, "Corner"))
     val break = threeData((teamId, "AboveTheBreak"))
     val long3 = threeData((teamId, "27+"))
+
+    val total = corner + break + long3
     Team3Data(
       teamId,
       corner,
+      corner.doubleValue()/total.doubleValue(),
       break,
+      break.doubleValue()/total.doubleValue(),
       long3,
-      corner + break + long3)
+      long3.doubleValue()/total.doubleValue(),
+      total)
   }
 
   private def mapBin(str: String): String = {
@@ -54,7 +61,15 @@ object ShotChartExplore {
 
 }
 
-private final case class Team3Data(teamId: String, corner3s: Int, aboveTheBreak3s: Int, long3s: Int, total3s: Int) {
+private final case class Team3Data(
+                                    teamId: String,
+                                    corner3s: Int,
+                                    cornerPercent: Double,
+                                    aboveTheBreak3s: Int,
+                                    aboveTheBreakPercent: Double,
+                                    long3s: Int,
+                                    longPercent: Double,
+                                    total3s: Int) {
   override def toString: String =
     s"$teamId - Total3s: $total3s - Corner3s: $corner3s - AboveTheBreak3s: $aboveTheBreak3s - Long3s: $long3s"
 }

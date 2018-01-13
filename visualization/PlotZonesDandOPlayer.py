@@ -7,16 +7,16 @@ import ShotZones
 
 shotZones = ShotZones.buildShotZones()
 valueForPlotting = "Diff"
-player = "OG Anunoby"
+player = "Shabazz Muhammad"
 season = "2017-18"
 
-o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player_zoned " \
-          "WHERE season = '{0}' ) a " \
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player " \
+          "WHERE season = '{0}' and bin != 'Total' ) a " \
           "left join  (SELECT primaryKey, playerName FROM nba.roster_player WHERE season = '{0}') b " \
           "on (a.id = b.primaryKey)".format(season)
 
-d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player_zoned " \
-          "WHERE season = '{0}' ) a " \
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player " \
+          "WHERE season = '{0}' and bin != 'Total') a " \
           "left join  (SELECT primaryKey, playerName FROM nba.roster_player " \
           "WHERE season = '{0}') b " \
           "on (a.id = b.primaryKey)".format(season)
@@ -134,7 +134,7 @@ for name in teamNames:
     clb.ax.set_title("ePPS - PPS")
     plt.tight_layout()
 
-    plt.savefig("plots/PlayerShotChart/{}".format(name), dpi=900, figsize=(14, 6))
+    plt.savefig("plots/PlayerShotChart/{}_{}".format(name, season), dpi=900, figsize=(14, 6))
     plt.close()
 
     #plt.show()

@@ -1,4 +1,4 @@
-package com.rrdinsights.russell.investigation.shots.shotmover
+package com.rrdinsights.russell.investigation.shots.deterrence
 
 import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotHistogram, ShotZone}
 import com.rrdinsights.russell.storage.MySqlClient
@@ -9,7 +9,7 @@ import java.{lang => jl}
 
 import com.rrdinsights.russell.investigation.shots.expectedshots.ExpectedPointsArguments
 
-object ShotMover {
+object ShotDeterrence {
 
   def main(strings: Array[String]): Unit = {
 
@@ -33,15 +33,7 @@ object ShotMover {
     val shotsWithPlayers = readShotsWithPlayers(whereSeason)
 
     val mappedshotsWithPlayers = shotsWithPlayers
-      .map(v => {
-        try {
-          ((v.shooter, ShotZone.findShotZone(v.xCoordinate, v.yCoordinate, v.shotValue).toString), v)
-        } catch {
-          case e: Exception =>
-            println(v)
-            throw e
-        }
-      })
+      .map(v => ((v.shooter, ShotZone.findShotZone(v.xCoordinate, v.yCoordinate, v.shotValue).toString), v))
 
     val scoredShotSection = MapJoin.joinSeq(mappedshotsWithPlayers, shotChartSections)
       .map(v => (v._1.shooter, v))

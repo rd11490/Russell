@@ -4,10 +4,10 @@ import MySQLConnector
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"
 
-o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_game_total where season = '{}' ) a " \
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_game where season = '{}' and bin = 'Total' ) a " \
           "left join  (select * from nba.team_info) b " \
           "on (a.teamId = b.teamId)".format(season)
-d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_game_total where season = '{}' ) a " \
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_game where season = '{}' and bin = 'Total' ) a " \
           "left join  (select * from nba.team_info) b " \
           "on (a.teamId = b.teamId)".format(season)
 
@@ -81,7 +81,7 @@ onew = diff(o)
 teams = list(set(dnew["teamName"]))
 
 
-for t in teams[:1]:
+for t in teams:
     print(t)
     fig = plt.figure(figsize=(10, 8))
     ax1 = fig.add_subplot(3, 1, 1)

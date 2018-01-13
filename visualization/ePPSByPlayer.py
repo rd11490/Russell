@@ -4,13 +4,13 @@ sql = MySQLConnector.MySQLConnector()
 season = "2017-18"
 shotCutoff = 250
 
-o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player_total " \
-          "WHERE season = '{0}' and attempts > {1} ) a " \
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player " \
+          "WHERE season = '{0}' and attempts > {1} and bin = 'Total') a " \
           "left join  (SELECT primaryKey, playerName FROM nba.roster_player WHERE season = '{0}') b " \
           "on (a.id = b.primaryKey)".format(season, shotCutoff)
 
-d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player_total " \
-          "WHERE season = '{0}' and attempts > {1} ) a " \
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player " \
+          "WHERE season = '{0}' and attempts > {1} and bin = 'Total') a " \
           "left join  (SELECT primaryKey, playerName FROM nba.roster_player " \
           "WHERE season = '{0}') b " \
           "on (a.id = b.primaryKey)".format(season, shotCutoff)
@@ -28,7 +28,7 @@ def diffAndSort(df, ascending=True):
 
 
 d = diffAndSort(d)
-d.to_csv("data/DPPSByPlayer201718Filtered.csv")
+d.to_csv("results/DPPSByPlayer201718Filtered.csv")
 print("Defense: Points Per Shot Allowed While on Court")
 print(d.head(15))
 print()
@@ -39,7 +39,7 @@ print()
 print()
 
 o = diffAndSort(o, False)
-o.to_csv("data/OPPSByPlayer201718Filtered.csv")
+o.to_csv("results/OPPSByPlayer201718Filtered.csv")
 print("Offense: Points Per Shot Scored While on Court")
 print(o.head(15))
 print()

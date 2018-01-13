@@ -79,7 +79,6 @@ object ExpectedShotsPlayerCalculator {
     writeShots(NBATables.offense_expected_points_by_player, shots)
   }
 
-
   private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
     val shotsForReduction = scoredShot.flatMap(v => explodeScoredShotDefense(v))
 

@@ -28,23 +28,7 @@ object DatabaseExport {
     lineup_shots,
     team_info,
     play_by_play_with_lineup,
-    team_scored_shots,
-    offense_expected_points_total,
-    offense_expected_points_zoned,
-    defense_expected_points_total,
-    defense_expected_points_zoned,
-
-    offense_expected_points_by_player_total,
-    offense_expected_points_by_player_zoned,
-    defense_expected_points_by_player_total,
-    defense_expected_points_by_player_zoned,
-
-
-    offense_expected_points_by_game_total,
-    offense_expected_points_by_game_zoned,
-    defense_expected_points_by_game_total,
-    defense_expected_points_by_game_zoned
-  )
+    team_scored_shots)
 
   private val SeasonlessTables: Seq[MySqlTable] = Seq(
     player_shot_charts,

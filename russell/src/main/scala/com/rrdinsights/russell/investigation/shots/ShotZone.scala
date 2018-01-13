@@ -114,7 +114,13 @@ object ShotZone {
     (inches / 7.5) * 9.0
 
   def shotValue(shot: RawShotData): Int =
-    shot.shotZoneBasic.substring(0, 1).toInt
+    try {
+      shot.shotZoneBasic.substring(0, 1).toInt
+    } catch {
+      case e: Throwable =>
+        println(shot)
+        throw e
+    }
 
   private def realToShotLoc(inches: Double): Double =
     (inches / 9.0) * 7.5

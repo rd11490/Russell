@@ -30,7 +30,7 @@ object MySqlClient {
   private val Null: String = "NULL"
   private val Select: String = "SELECT"
   private val From: String = "FROM"
-  private val And: String = "AND"
+  private val And: String = " AND "
 
   private val DuplicateKey: String = "ON DUPLICATE KEY UPDATE"
   private val IfNotExists: String = s"$If $Not $Exists"
@@ -95,7 +95,7 @@ object MySqlClient {
           file.createNewFile()
         }
 
-        val writer = new CSVWriter(new FileWriter(fullPath), '\t')//.convertToCsv(results, fullPath)
+        val writer = new CSVWriter(new FileWriter(fullPath), ',')
         writer.writeAll(results, true)
       }
     }

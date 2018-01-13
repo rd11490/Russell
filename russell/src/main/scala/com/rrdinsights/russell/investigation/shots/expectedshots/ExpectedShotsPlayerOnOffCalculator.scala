@@ -116,7 +116,7 @@ object ExpectedShotsPlayerOnOffCalculator {
     writeShots(NBATables.defense_expected_points_by_player_on_off, shots)
   }
 
-  private def explodeScoredShotDefense(scoredShot: ScoredShot, rosters: Map[Integer, Seq[Integer]], total: Boolean = false): Seq[ExpectedPointsForReductionPlayerOnOff] = {
+  private def explodeScoredShotDefense(scoredShot: ScoredShot, rosters: Map[Integer, Seq[Integer]]): Seq[ExpectedPointsForReductionPlayerOnOff] = {
     val onCourt = Seq(
       scoredShot.defensePlayer1Id,
       scoredShot.defensePlayer2Id,
@@ -126,24 +126,8 @@ object ExpectedShotsPlayerOnOffCalculator {
 
     val offCourt = rosters(scoredShot.defenseTeamId).diff(onCourt)
 
-    onCourt.map(v =>
-      ExpectedPointsForReductionPlayerOnOff(
-        v,
-        if (total) "Total" else scoredShot.bin,
-        onOff = "On",
-        scoredShot.shotAttempted,
-        scoredShot.shotMade,
-        scoredShot.shotValue,
-        scoredShot.expectedPoints)) ++
-      offCourt.map(v =>
-        ExpectedPointsForReductionPlayerOnOff(
-          v,
-          if (total) "Total" else scoredShot.bin,
-          onOff = "Off",
-          scoredShot.shotAttempted,
-          scoredShot.shotMade,
-          scoredShot.shotValue,
-          scoredShot.expectedPoints))
+    onCourt.flatMap(v => buildExpectedPointsForReductionPlayerOnOff(scoredShot, v, "On")) ++
+      offCourt.flatMap(v => buildExpectedPointsForReductionPlayerOnOff(scoredShot, v, "Off"))
   }
 
   def writeShots(table: MySqlTable, shots: Seq[ExpectedPointsPlayerOnOff]): Unit = {

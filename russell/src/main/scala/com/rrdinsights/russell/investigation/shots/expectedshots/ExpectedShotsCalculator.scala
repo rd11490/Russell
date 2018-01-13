@@ -83,13 +83,22 @@ object ExpectedShotsCalculator {
   }
 
   private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
-    val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
-      v.defenseTeamId,
-      v.bin,
-      v.shotAttempted,
-      v.shotMade,
-      v.shotValue,
-      v.expectedPoints))
+    val shotsForReduction = scoredShot.flatMap(v =>
+      Seq(
+        ExpectedPointsForReduction(
+          v.defenseTeamId,
+          v.bin,
+          v.shotAttempted,
+          v.shotMade,
+          v.shotValue,
+          v.expectedPoints),
+        ExpectedPointsForReduction(
+          v.defenseTeamId,
+          "Total",
+          v.shotAttempted,
+          v.shotMade,
+          v.shotValue,
+          v.expectedPoints)))
 
     val shots = reduceShots(shotsForReduction, dt, season)
 

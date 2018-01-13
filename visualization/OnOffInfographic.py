@@ -8,7 +8,7 @@ import drawCourt
 import matplotlib.gridspec as gridspec
 
 shotZones = ShotZones.buildShotZones()
-players = ["Joel Embiid"]
+players = ["Nikola Jokic"]
 season = "2017-18"
 
 sql = MySQLConnector.MySQLConnector()
@@ -67,12 +67,12 @@ def plot_frequency_shot_chart(ax, df):
 
 
 o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player_on_off_zoned " \
-          "WHERE season = '{0}') a " \
+          "WHERE season = '{0}' and bin != 'Total') a " \
           "left join  (SELECT playerId, playerName FROM nba.roster_player WHERE season = '{0}') b " \
           "on (a.id = b.playerId)".format(season)
 
 d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player_on_off_zoned " \
-          "WHERE season = '{0}') a " \
+          "WHERE season = '{0}' and bin != 'Total') a " \
           "left join  (SELECT playerId, playerName FROM nba.roster_player " \
           "WHERE season = '{0}') b " \
           "on (a.id = b.playerId)".format(season)

@@ -1,6 +1,9 @@
-import mysql.connector
 import json
+
+import mysql.connector
 import pandas as pd
+import MySqlDatabases.NBADatabase
+from sqlalchemy import create_engine
 
 
 class MySQLConnector:
@@ -14,12 +17,30 @@ class MySQLConnector:
     def __password(self):
         return self.__creds['MySQL']['Password']
 
-    def runQuery(self, query):
+    def runQuery(self, query, database=MySqlDatabases.NBADatabase.NAME):
         """
         Takes in a query string and outputs a pandas dataframe of the results
         :param query: String Query
+        :param database: String database name
         :return: Pandas dataframe
         """
-        cnx = mysql.connector.connect(database='nba', user=self.__username(), password=self.__password())
+        cnx = mysql.connector.connect(database=database, user=self.__username(), password=self.__password())
         df = pd.read_sql(query, con=cnx)
         return df
+
+    def write(self, df, table, database=MySqlDatabases.NBADatabase.NAME, dtype=None):
+        """
+        Takes in a query string and outputs a pandas dataframe of the results
+        :param database:
+        :param query: String Query
+        """
+        # cnx = mysql.connector.connect(database=database, user=self.__username(), password=self.__password())
+        # username:password@host:port/database
+        engine = create_engine(
+            'mysql+mysqlconnector://{0}:{1}@localhost:3306/{2}'.format(self.__username(), self.__password(), database))
+        df.to_sql(name=table, con=engine, if_exists='append', index=False, dtype=dtype)
+
+    def drop_table(self, table, database):
+        engine = create_engine(
+            'mysql+mysqlconnector://{0}:{1}@localhost:3306/{2}'.format(self.__username(), self.__password(), database))
+        engine.execute("DROP TABLE IF EXISTS {}".format(table))
