@@ -8,8 +8,9 @@ import com.opencsv.CSVWriter
 import com.rrdinsights.russell.storage.datamodel.ResultSetMapper
 import com.rrdinsights.russell.storage.tables.MySqlTable
 import com.rrdinsights.russell.utils.Control._
-
 import java.io.FileWriter
+
+import com.rrdinsights.russell.utils.NullSafe
 
 import scala.collection.mutable
 
@@ -42,7 +43,7 @@ object MySqlClient {
    */
   def createTable(table: MySqlTable): Unit =
     using(MySqlConnection.getConnection(Database.nba)) { connection =>
-      using(connection.createStatement){ stmt =>
+      using(connection.createStatement) { stmt =>
         stmt.execute(createTableStatement(table.name, table.columns))
       }
     }
@@ -50,7 +51,7 @@ object MySqlClient {
 
   def dropTable(table: MySqlTable): Unit =
     using(MySqlConnection.getConnection(Database.nba)) { connection =>
-      using(connection.createStatement){ stmt =>
+      using(connection.createStatement) { stmt =>
         stmt.execute(dropTableStatement(table.name))
       }
     }
@@ -61,8 +62,17 @@ object MySqlClient {
 
   def insertIntoGrouped[T <: Product](table: MySqlTable, data: Seq[T]): Unit = {
     using(MySqlConnection.getConnection(Database.nba)) { connection =>
-      using(connection.createStatement){ stmt =>
-        stmt.execute(insertTableStatement(table, data))
+      using(connection.createStatement) { stmt =>
+        val query = insertTableStatement(table, data)
+        try {
+          stmt.execute(query)
+        } catch {
+          case e: Throwable =>
+            println(query)
+            println(e)
+            throw e
+        }
+
       }
     }
   }
@@ -121,11 +131,8 @@ object MySqlClient {
     Private Methods
    */
 
-  private[storage] def selectTableStatement(table: MySqlTable, whereClauses: String*): String = {
-    val where = s"$Select ${toColumnNamesForSelect(table)} $From ${table.name}${if (whereClauses.nonEmpty) whereClauses.mkString(" WHERE ", And, "") else ""}"
-    println(where)
-    where
-  }
+  private[storage] def selectTableStatement(table: MySqlTable, whereClauses: String*): String =
+    trace(s"$Select ${toColumnNamesForSelect(table)} $From ${table.name}${if (whereClauses.nonEmpty) whereClauses.mkString(" WHERE ", And, "") else ""}")
 
   private[storage] def createTableStatement(name: String, fields: Seq[SqlTypeHolder]): String =
     trace(s"$Create $Table $IfNotExists $name ${createFieldsStatement(fields)}".trim)
@@ -187,11 +194,12 @@ object MySqlClient {
     } else {
       (fields
         .map(toSqlColumn) :+ primaryKeyStatement(fields))
+        .filter(NullSafe.isNotNullOrEmpty)
         .mkString("(", ", ", ")")
     }
 
   private def toSqlColumn(sqlTypeHolder: SqlTypeHolder): String =
-    if (sqlTypeHolder.fieldName == PrimaryKey){
+    if (sqlTypeHolder.fieldName == PrimaryKey) {
       s"${sqlTypeHolder.sqlColumn} $Not $Null"
     } else {
       sqlTypeHolder.sqlColumn

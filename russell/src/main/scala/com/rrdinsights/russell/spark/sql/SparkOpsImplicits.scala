@@ -29,6 +29,12 @@ object SparkOpsImplicits {
 
     def apply(column: Column): Column = leftDs(column.toString())
 
+    def selectAs[U](implicit encoder: Encoder[U]): Dataset[U] = {
+      val fieldNames = encoder.schema.fieldNames
+      require(fieldNames.nonEmpty)
+      leftDs.select(fieldNames.head, fieldNames.tail: _*).as[U]
+    }
+
     /** DataFrame Joins */
     def joinUsing(rightDs: Dataset[_], joinColumn: Column, moreColumns: Column*): DataFrame =
     joinUsing(rightDs, JoinType.Inner, joinColumn, moreColumns: _*)
@@ -70,6 +76,9 @@ object SparkOpsImplicits {
 
     def fullOuterJoinUsingRawDS[R](rightDs: Dataset[R], joinColumn: Column, moreColumns: Column*): Dataset[(L, R)] =
       joinUsingRawDS(rightDs, JoinType.FullOuter, joinColumn, moreColumns: _*)
+
+    def crossJoinWithUsingRawDS[R](rightDs: Dataset[R], joinColumn: Column, moreColumns: Column*): Dataset[(L, R)] =
+      joinUsingRawDS(rightDs, JoinType.Cross, joinColumn, moreColumns: _*)
 
     def joinUsingRawDS[R](rightDs: Dataset[R], joinType: JoinType, joinColumn: Column, moreColumns: Column*): Dataset[(L, R)] = {
       val joinColumns = (joinColumn +: moreColumns).map(c => leftDs(c) === rightDs(c)).reduce(_ && _)

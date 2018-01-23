@@ -1,6 +1,6 @@
-from sklearn.linear_model import RidgeCV
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sklearn.linear_model import RidgeCV
 
 import MySQLConnector
 
@@ -8,21 +8,29 @@ sql = MySQLConnector.MySQLConnector()
 season = "2017-18"
 shotCutOff = 250
 
+shot_frequency = "shotFrequency"
+attempts = "attempts"
+
 shotsSeenQuery = "SELECT playerId, shots FROM nba.shots_seen where season = '{}';".format(season)
-stintsQuery = "SELECT * FROM nba.shot_stint_data where season = '{}' and bin = 'Total';".format(season)
+stintsQuery = "SELECT * FROM nba.shot_stint_data where season = '{}' and bin != 'Total';".format(season)
 playerNamesQuery = "select playerId, playerName from nba.roster_player where season = '{}';".format(season)
+
+o_query = "SELECT * FROM  nba.offense_expected_points_by_player_on_off_zoned " \
+          "WHERE season = '{0}' and bin != 'Total'".format(season)
+
+d_query = "SELECT * FROM  nba.defense_expected_points_by_player_on_off_zoned " \
+          "WHERE season = '{0}' and bin != 'Total'".format(season)
 
 stints = sql.runQuery(stintsQuery)
 playerNames = sql.runQuery(playerNamesQuery)
 shotsSeen = sql.runQuery(shotsSeenQuery)
 shotSeenMap = shotsSeen.set_index("playerId").to_dict()["shots"]
 
+o_shots = sql.runQuery(o_query)
+o_shots = o_shots[o_shots["onOff"] == "On"]
 
-stints["shotExpectedPointsPer100"] = stints["shotExpectedPoints"] * 100
-stints["shotExpectedPointsPer100"] = stints["shotExpectedPoints"] * 100
-
-stints["playerExpectedPointsPer100"] = stints["playerExpectedPoints"] * 100
-stints["difference100"] = stints["shotExpectedPointsPer100"] - stints["playerExpectedPointsPer100"]
+d_shots = sql.runQuery(d_query)
+d_shots = d_shots[d_shots["onOff"] == "On"]
 
 players = list(
     set(list(stints["offensePlayer1Id"]) + list(stints["offensePlayer2Id"]) + list(stints["offensePlayer3Id"]) + \
@@ -33,8 +41,15 @@ players.sort()
 
 filteredPlayers = [p for p in players if shotSeenMap[p] > shotCutOff]
 
+
+def calculate_shot_frequency(df):
+    df[shot_frequency] = 100 * df[attempts] / df[attempts].sum()
+    return df
+
+
 def checkPlayerQalifies(p):
     return shotSeenMap[p] > shotCutOff
+
 
 def mapPlayers(rowIn):
     p1 = rowIn[0]
@@ -75,10 +90,27 @@ def mapPlayers(rowIn):
     return rowOut
 
 
+stints = stints.groupby(
+    by=["offensePlayer1Id", "offensePlayer2Id", "offensePlayer3Id", "offensePlayer4Id", "offensePlayer5Id",
+        "defensePlayer1Id", "defensePlayer2Id", "defensePlayer3Id", "defensePlayer4Id", "defensePlayer5Id"]).apply(
+    calculate_shot_frequency)
+
+o_shots = o_shots.groupby(by=["id"]).apply(calculate_shot_frequency)
+o_shots = o_shots[o_shots['bin'] == 'RestrictedArea']
+o_shots = o_shots[["id", shot_frequency]]
+o_shots = o_shots.set_index("id").to_dict()[shot_frequency]
+
+d_shots = d_shots.groupby(by=["id"]).apply(calculate_shot_frequency)
+d_shots = d_shots[d_shots['bin'] == 'RestrictedArea']
+d_shots = d_shots[["id", shot_frequency]]
+d_shots = d_shots.set_index("id").to_dict()[shot_frequency]
+
+stints = stints[stints['bin'] == "RestrictedArea"]
+
 stintsForReg = stints[['offensePlayer1Id', 'offensePlayer2Id',
                        'offensePlayer3Id', 'offensePlayer4Id', 'offensePlayer5Id',
                        'defensePlayer1Id', 'defensePlayer2Id', 'defensePlayer3Id',
-                       'defensePlayer4Id', 'defensePlayer5Id', 'difference100']]
+                       'defensePlayer4Id', 'defensePlayer5Id', shot_frequency]]
 
 stintX = stintsForReg.as_matrix(columns=['offensePlayer1Id', 'offensePlayer2Id',
                                          'offensePlayer3Id', 'offensePlayer4Id', 'offensePlayer5Id',
@@ -87,36 +119,50 @@ stintX = stintsForReg.as_matrix(columns=['offensePlayer1Id', 'offensePlayer2Id',
 
 stintX = np.apply_along_axis(mapPlayers, 1, stintX)
 
-stintY = stintsForReg.as_matrix(["difference100"])
+stintY = stintsForReg.as_matrix([shot_frequency])
+
+weights = np.zeros(len(filteredPlayers) * 2)
+for i, f in enumerate(filteredPlayers):
+    weights[i] = o_shots[f]
+    weights[i + len(filteredPlayers)] = d_shots[f]
+weights = np.transpose(weights)
+
+print(len(filteredPlayers))
+print(weights.shape)
+print(len(weights))
+print(stintX.shape)
+print(stintY.shape)
 
 alphas = np.array([0.01, 0.05, 0.1, 0.5, 1.0, 5, 10, 50, 100, 500, 1000, 2000, 5000])
 clf = RidgeCV(alphas=alphas, cv=5)
+clf.coef_ = weights
 clf.fit(stintX, stintY)
 
-playerArr = np.transpose(np.array(filteredPlayers).reshape(1,len(filteredPlayers)))
+playerArr = np.transpose(np.array(filteredPlayers).reshape(1, len(filteredPlayers)))
 coefOArr = np.transpose(clf.coef_[:, 0:len(filteredPlayers)])
 coefDArr = np.transpose(clf.coef_[:, len(filteredPlayers):])
 playerIdWithCoef = np.concatenate([playerArr, coefOArr, coefDArr], axis=1)
 
 playersCoef = pd.DataFrame(playerIdWithCoef)
-playersCoef.columns = ["playerId", "ShotQualityImpactO", "ShotQualityImpactD"]
+playersCoef.columns = ["playerId", "RimAttempt O", "RimAttempt D"]
 
-merged = playersCoef.merge(playerNames, how='inner', on="playerId")[["playerName", "ShotQualityImpactO", "ShotQualityImpactD"]]
+merged = playersCoef.merge(playerNames, how='inner', on="playerId")[
+    ["playerName", "RimAttempt O", "RimAttempt D"]]
 
-merged.to_csv("results/shotQualityImpact{}.csv".format(season))
+merged.to_csv("results/RimAttemptImpact{}.csv".format(season))
 
-mergedO = merged.sort_values(by="ShotQualityImpactO", ascending=False)
+mergedO = merged.sort_values(by="RimAttempt O", ascending=False)
 
-print("Top 20 Offensive Shot Quality Impact")
+print("Top 20 Offensive Rim Attempt Impact")
 print(mergedO.head(20))
 
-print("Bottom 20 Offensive Shot Quality Impact")
+print("Bottom 20 Offensive Rim Attempt Impact")
 print(mergedO.tail(20))
 
-mergedD = merged.sort_values(by="ShotQualityImpactD", ascending=False)
+mergedD = merged.sort_values(by="RimAttempt D", ascending=False)
 
-print("Top 20 Defensive Shot Quality Impact")
+print("Top 20 Defensive Rim Attempt Impact")
 print(mergedD.head(20))
 
-print("Bottom 20 Defensive Shot Quality Impact")
+print("Bottom 20 Defensive Rim Attempt Impact")
 print(mergedD.tail(20))

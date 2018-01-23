@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
-season = "2017-18"
+season = "2016-17"
 
 o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_game where season = '{}' and bin = 'Total' ) a " \
           "left join  (select * from nba.team_info) b " \
@@ -107,7 +107,7 @@ for t in teams:
     ax3.set_ylabel("ePPS100 - PPS100")
     fig.legend([ld[0], lo[0]], ["Defense", "Offense"], loc="upper right", ncol=2)
     fig.tight_layout()
-    plt.savefig("plots/PPS100Comb/{}".format(t))
+    plt.savefig("plots/PPSComb/{0}/{1}".format(season,t))
     plt.close()
     #plt.show()
 

@@ -19,10 +19,9 @@ shotSeenMap = shotsSeen.set_index("playerId").to_dict()["shots"]
 
 
 stints["shotExpectedPointsPer100"] = stints["shotExpectedPoints"] * 100
-stints["shotExpectedPointsPer100"] = stints["shotExpectedPoints"] * 100
+stints["shotPointsPer100"] = stints["shotPoints"] * 100
 
-stints["playerExpectedPointsPer100"] = stints["playerExpectedPoints"] * 100
-stints["difference100"] = stints["shotExpectedPointsPer100"] - stints["playerExpectedPointsPer100"]
+stints["difference100"] = stints["shotPointsPer100"] - stints["shotExpectedPointsPer100"]
 
 players = list(
     set(list(stints["offensePlayer1Id"]) + list(stints["offensePlayer2Id"]) + list(stints["offensePlayer3Id"]) + \
@@ -99,24 +98,24 @@ coefDArr = np.transpose(clf.coef_[:, len(filteredPlayers):])
 playerIdWithCoef = np.concatenate([playerArr, coefOArr, coefDArr], axis=1)
 
 playersCoef = pd.DataFrame(playerIdWithCoef)
-playersCoef.columns = ["playerId", "ShotQualityImpactO", "ShotQualityImpactD"]
+playersCoef.columns = ["playerId", "PPS-ePPSO", "PPS-ePPSD"]
 
-merged = playersCoef.merge(playerNames, how='inner', on="playerId")[["playerName", "ShotQualityImpactO", "ShotQualityImpactD"]]
+merged = playersCoef.merge(playerNames, how='inner', on="playerId")[["playerName", "PPS-ePPSO", "PPS-ePPSD"]]
 
-merged.to_csv("results/shotQualityImpact{}.csv".format(season))
+merged.to_csv("results/RegularizedPPS_ePPS_{}.csv".format(season))
 
-mergedO = merged.sort_values(by="ShotQualityImpactO", ascending=False)
+mergedO = merged.sort_values(by="PPS-ePPSO", ascending=False)
 
-print("Top 20 Offensive Shot Quality Impact")
+print("Top 20 Offensive Regularized PPS-ePPS")
 print(mergedO.head(20))
 
-print("Bottom 20 Offensive Shot Quality Impact")
+print("Bottom 20 Offensive Regularized PPS-ePPS")
 print(mergedO.tail(20))
 
-mergedD = merged.sort_values(by="ShotQualityImpactD", ascending=False)
+mergedD = merged.sort_values(by="PPS-ePPSD", ascending=False)
 
-print("Top 20 Defensive Shot Quality Impact")
+print("Top 20 Defensive Regularized PPS-ePPS")
 print(mergedD.head(20))
 
-print("Bottom 20 Defensive Shot Quality Impact")
+print("Bottom 20 Defensive Regularized PPS-ePPS")
 print(mergedD.tail(20))

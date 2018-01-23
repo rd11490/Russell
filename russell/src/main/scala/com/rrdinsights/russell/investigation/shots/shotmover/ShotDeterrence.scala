@@ -1,15 +1,15 @@
 package com.rrdinsights.russell.investigation.shots.shotmover
 
+import java.{lang => jl}
+
+import com.rrdinsights.russell.investigation.shots.expectedshots.ExpectedPointsArguments
 import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotHistogram, ShotZone}
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.{RawShotData, ShotWithPlayers}
 import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.russell.utils.{MapJoin, TimeUtils}
-import java.{lang => jl}
 
-import com.rrdinsights.russell.investigation.shots.expectedshots.ExpectedPointsArguments
-
-object ShotMover {
+object ShotDeterrence {
 
   def main(strings: Array[String]): Unit = {
 
@@ -33,21 +33,13 @@ object ShotMover {
     val shotsWithPlayers = readShotsWithPlayers(whereSeason)
 
     val mappedshotsWithPlayers = shotsWithPlayers
-      .map(v => {
-        try {
-          ((v.shooter, ShotZone.findShotZone(v.xCoordinate, v.yCoordinate, v.shotValue).toString), v)
-        } catch {
-          case e: Exception =>
-            println(v)
-            throw e
-        }
-      })
+      .map(v => ((v.shooter, ShotZone.findShotZone(v.xCoordinate, v.yCoordinate, v.shotValue).toString), v))
 
     val scoredShotSection = MapJoin.joinSeq(mappedshotsWithPlayers, shotChartSections)
       .map(v => (v._1.shooter, v))
 
     val fullScoredShots = scoredShotSection.map(v => (v._2, buildPointsPerShotLineup(v._2._1, shotChartTotalSection)))
-      .map(v => toFullScoredShot(v._1._1, v._1._2, v._2, season, dt))
+      .flatMap(v => toFullScoredShot(v._1._1, v._1._2, v._2, season, dt))
 
     val stints = reduceStints(fullScoredShots, season)
 
@@ -64,20 +56,20 @@ object ShotMover {
       .flatten
       .reduce((a, b) => (a._1 + b._1, a._2 + b._2, a._3 + b._3))
 
-    val pointsPerShotLineup = attemptsAndPoitns._3/attemptsAndPoitns._1.doubleValue()
+    val pointsPerShotLineup = attemptsAndPoitns._3 / attemptsAndPoitns._1.doubleValue()
 
     ShotChartTotalSection(shot.shooter, attemptsAndPoitns._2, attemptsAndPoitns._1, pointsPerShotLineup)
   }
 
   private def extractShotValue(id: Integer, shotMap: Map[Integer, ShotChartTotalSection]): Option[(Int, Int, Double)] =
-    shotMap.get(id).map(v => (v.attempts, v.made, v.attempts*v.pointsPerShot))
+    shotMap.get(id).map(v => (v.attempts, v.made, v.attempts * v.pointsPerShot))
 
-  private def writeShotStints(stints: Seq[ShotStintData]): Unit = {
+  private def writeShotStints(stints: Seq[ShotStintByZoneData]): Unit = {
     MySqlClient.createTable(NBATables.shot_stint_data)
     MySqlClient.insertInto(NBATables.shot_stint_data, stints)
   }
 
-  private def reduceStints(shots: Seq[FullScoredShot], season: String): Seq[ShotStintData] = {
+  private def reduceStints(shots: Seq[FullScoredShot], season: String): Seq[ShotStintByZoneData] = {
     shots.groupBy(v => (
       v.offensePlayer1Id,
       v.offensePlayer2Id,
@@ -88,9 +80,22 @@ object ShotMover {
       v.defensePlayer2Id,
       v.defensePlayer3Id,
       v.defensePlayer4Id,
-      v.defensePlayer5Id))
-      .map(v => v._2.map(v => ShotStintData(
-        Seq(v.offensePlayer1Id,
+      v.defensePlayer5Id,
+      v.bin))
+      .map(v => v._2.map(v =>
+        ShotStintByZoneData(
+          Seq(v.offensePlayer1Id,
+            v.offensePlayer2Id,
+            v.offensePlayer3Id,
+            v.offensePlayer4Id,
+            v.offensePlayer5Id,
+            v.defensePlayer1Id,
+            v.defensePlayer2Id,
+            v.defensePlayer3Id,
+            v.defensePlayer4Id,
+            v.defensePlayer5Id,
+            v.bin).mkString("_"),
+          v.offensePlayer1Id,
           v.offensePlayer2Id,
           v.offensePlayer3Id,
           v.offensePlayer4Id,
@@ -99,67 +104,95 @@ object ShotMover {
           v.defensePlayer2Id,
           v.defensePlayer3Id,
           v.defensePlayer4Id,
-          v.defensePlayer5Id).mkString("_"),
-        v.offensePlayer1Id,
-        v.offensePlayer2Id,
-        v.offensePlayer3Id,
-        v.offensePlayer4Id,
-        v.offensePlayer5Id,
-        v.defensePlayer1Id,
-        v.defensePlayer2Id,
-        v.defensePlayer3Id,
-        v.defensePlayer4Id,
-        v.defensePlayer5Id,
-        1,
-        v.shotMade,
-        v.shotValue.toDouble * v.shotMade,
-        v.expectedPoints,
-        v.playerTotalExpectedPoints,
-        v.difference,
-        season))
+          v.defensePlayer5Id,
+          v.bin,
+          1,
+          v.shotMade,
+          v.shotValue.toDouble * v.shotMade,
+          v.expectedPoints,
+          v.playerTotalExpectedPoints,
+          v.difference,
+          season))
         .reduce(_ + _) / v._2.size.doubleValue())
       .toSeq
   }
 
-  private def toFullScoredShot(shotWithPlayers: ShotWithPlayers, shotChart: PlayerShotChartSection, playerExpectedPointsPerShot: ShotChartTotalSection, season: String, dt: String): FullScoredShot = {
+  private def toFullScoredShot(shotWithPlayers: ShotWithPlayers, shotChart: PlayerShotChartSection, playerExpectedPointsPerShot: ShotChartTotalSection, season: String, dt: String): Seq[FullScoredShot] = {
     val expectedPoints = (shotChart.made.toDouble / shotChart.shots.toDouble) * shotChart.value
 
-    FullScoredShot(
-      s"${shotWithPlayers.gameId}_${shotWithPlayers.eventNumber}_$season",
-      shotWithPlayers.gameId,
-      shotWithPlayers.eventNumber,
-      shotWithPlayers.shooter,
+    Seq(
+      FullScoredShot(
+        s"${shotWithPlayers.gameId}_${shotWithPlayers.eventNumber}_$season",
+        shotWithPlayers.gameId,
+        shotWithPlayers.eventNumber,
+        shotWithPlayers.shooter,
 
-      shotWithPlayers.offenseTeamId,
-      shotWithPlayers.offensePlayer1Id,
-      shotWithPlayers.offensePlayer2Id,
-      shotWithPlayers.offensePlayer3Id,
-      shotWithPlayers.offensePlayer4Id,
-      shotWithPlayers.offensePlayer5Id,
+        shotWithPlayers.offenseTeamId,
+        shotWithPlayers.offensePlayer1Id,
+        shotWithPlayers.offensePlayer2Id,
+        shotWithPlayers.offensePlayer3Id,
+        shotWithPlayers.offensePlayer4Id,
+        shotWithPlayers.offensePlayer5Id,
 
-      shotWithPlayers.defenseTeamId,
-      shotWithPlayers.defensePlayer1Id,
-      shotWithPlayers.defensePlayer2Id,
-      shotWithPlayers.defensePlayer3Id,
-      shotWithPlayers.defensePlayer4Id,
-      shotWithPlayers.defensePlayer5Id,
+        shotWithPlayers.defenseTeamId,
+        shotWithPlayers.defensePlayer1Id,
+        shotWithPlayers.defensePlayer2Id,
+        shotWithPlayers.defensePlayer3Id,
+        shotWithPlayers.defensePlayer4Id,
+        shotWithPlayers.defensePlayer5Id,
 
-      shotChart.bin,
-      shotChart.value,
+        shotChart.bin,
+        shotChart.value,
 
-      shotWithPlayers.shotAttemptedFlag,
-      shotWithPlayers.shotMadeFlag,
+        shotWithPlayers.shotAttemptedFlag,
+        shotWithPlayers.shotMadeFlag,
 
-      expectedPoints,
-      shotChart.shots,
-      shotChart.made,
+        expectedPoints,
+        shotChart.shots,
+        shotChart.made,
 
-      playerExpectedPointsPerShot.pointsPerShot,
+        playerExpectedPointsPerShot.pointsPerShot,
 
-      expectedPoints - playerExpectedPointsPerShot.pointsPerShot,
+        expectedPoints - playerExpectedPointsPerShot.pointsPerShot,
 
-      season,
-      dt)
+        season,
+        dt),
+      FullScoredShot(
+        s"${shotWithPlayers.gameId}_${shotWithPlayers.eventNumber}_$season",
+        shotWithPlayers.gameId,
+        shotWithPlayers.eventNumber,
+        shotWithPlayers.shooter,
+
+        shotWithPlayers.offenseTeamId,
+        shotWithPlayers.offensePlayer1Id,
+        shotWithPlayers.offensePlayer2Id,
+        shotWithPlayers.offensePlayer3Id,
+        shotWithPlayers.offensePlayer4Id,
+        shotWithPlayers.offensePlayer5Id,
+
+        shotWithPlayers.defenseTeamId,
+        shotWithPlayers.defensePlayer1Id,
+        shotWithPlayers.defensePlayer2Id,
+        shotWithPlayers.defensePlayer3Id,
+        shotWithPlayers.defensePlayer4Id,
+        shotWithPlayers.defensePlayer5Id,
+
+        "Total",
+        shotChart.value,
+
+        shotWithPlayers.shotAttemptedFlag,
+        shotWithPlayers.shotMadeFlag,
+
+        expectedPoints,
+        shotChart.shots,
+        shotChart.made,
+
+        playerExpectedPointsPerShot.pointsPerShot,
+
+        expectedPoints - playerExpectedPointsPerShot.pointsPerShot,
+
+        season,
+        dt))
   }
 
 
@@ -200,27 +233,28 @@ private final case class ShotChartTotalInfo(made: jl.Integer, attempts: jl.Integ
 
 private final case class ShotChartTotalSection(playerId: Integer, made: jl.Integer, attempts: jl.Integer, pointsPerShot: jl.Double)
 
-final case class ShotStintData(
-                                primaryKey: String,
-                                offensePlayer1Id: jl.Integer,
-                                offensePlayer2Id: jl.Integer,
-                                offensePlayer3Id: jl.Integer,
-                                offensePlayer4Id: jl.Integer,
-                                offensePlayer5Id: jl.Integer,
-                                defensePlayer1Id: jl.Integer,
-                                defensePlayer2Id: jl.Integer,
-                                defensePlayer3Id: jl.Integer,
-                                defensePlayer4Id: jl.Integer,
-                                defensePlayer5Id: jl.Integer,
-                                attempts: jl.Integer,
-                                made: jl.Integer,
-                                shotPoints: jl.Double,
-                                shotExpectedPoints: jl.Double,
-                                playerExpectedPoints: jl.Double,
-                                difference: jl.Double,
-                                season: String) {
-  def +(other: ShotStintData): ShotStintData =
-    ShotStintData(
+final case class ShotStintByZoneData(
+                                      primaryKey: String,
+                                      offensePlayer1Id: jl.Integer,
+                                      offensePlayer2Id: jl.Integer,
+                                      offensePlayer3Id: jl.Integer,
+                                      offensePlayer4Id: jl.Integer,
+                                      offensePlayer5Id: jl.Integer,
+                                      defensePlayer1Id: jl.Integer,
+                                      defensePlayer2Id: jl.Integer,
+                                      defensePlayer3Id: jl.Integer,
+                                      defensePlayer4Id: jl.Integer,
+                                      defensePlayer5Id: jl.Integer,
+                                      bin: String,
+                                      attempts: jl.Integer,
+                                      made: jl.Integer,
+                                      shotPoints: jl.Double,
+                                      shotExpectedPoints: jl.Double,
+                                      playerExpectedPoints: jl.Double,
+                                      difference: jl.Double,
+                                      season: String) {
+  def +(other: ShotStintByZoneData): ShotStintByZoneData =
+    ShotStintByZoneData(
       primaryKey,
       offensePlayer1Id,
       offensePlayer2Id,
@@ -232,6 +266,7 @@ final case class ShotStintData(
       defensePlayer3Id,
       defensePlayer4Id,
       defensePlayer5Id,
+      bin,
       attempts + other.attempts,
       made + other.made,
       shotPoints + other.shotPoints,
@@ -240,8 +275,8 @@ final case class ShotStintData(
       difference + other.difference,
       season)
 
-  def /(scalar: Double): ShotStintData =
-    ShotStintData(
+  def /(scalar: Double): ShotStintByZoneData =
+    ShotStintByZoneData(
       primaryKey,
       offensePlayer1Id,
       offensePlayer2Id,
@@ -253,6 +288,7 @@ final case class ShotStintData(
       defensePlayer3Id,
       defensePlayer4Id,
       defensePlayer5Id,
+      bin,
       attempts,
       made,
       shotPoints / scalar,

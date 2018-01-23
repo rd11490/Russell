@@ -71,7 +71,7 @@ final class SparkJobConfiguration {
   }
 
   def withAppName(name: String): this.type = {
-    if (NullSafe.isNullOrEmpty(name)) {
+    if (NullSafe.isNotNullOrEmpty(name)) {
       throw new IllegalArgumentException("user-specified AppName cannot be null or empty!")
     }
     _appName = Some(name)
@@ -295,7 +295,7 @@ final class SparkJobConfiguration {
   private[this] def addExtraConfsFromEnv(): Unit = SparkJobConfiguration.buildWithArgs(this, extraConfs())
 
   private[this] def extraConfs(): Array[String] = sys.env.get(SparkOptions.AdditionalSparkConfs)
-    .map(_.split("\\s+").filterNot(NullSafe.isNullOrEmpty))
+    .map(_.split("\\s+").filterNot(NullSafe.isNotNullOrEmpty))
     .getOrElse {
       Array.empty
     }

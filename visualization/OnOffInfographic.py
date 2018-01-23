@@ -8,7 +8,7 @@ import drawCourt
 import matplotlib.gridspec as gridspec
 
 shotZones = ShotZones.buildShotZones()
-players = ["Nikola Jokic"]
+players = ["Michael Kidd-Gilchrist"]
 season = "2017-18"
 
 sql = MySQLConnector.MySQLConnector()
@@ -141,6 +141,6 @@ for player in players:
 
     ax2 = plot_frequency_shot_chart(ax2, shot_zones_d_comb)
     fig.tight_layout(rect=[0, 0, 1, .925])
-    plt.savefig("plots/PlayerShotFreqChart/{}_{}".format(player, season), figsize=(16, 6), dpi=900)
+    plt.savefig("plots/PlayerShotFreqChart/{0}_{1}.png".format(player, season), figsize=(16, 6), dpi=900)
     plt.close()
     # plt.show()

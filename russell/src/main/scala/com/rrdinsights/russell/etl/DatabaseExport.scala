@@ -19,6 +19,7 @@ object DatabaseExport {
     raw_game_summary,
     raw_play_by_play,
     raw_shot_data,
+    raw_player_profile_season_totals,
     roster_player,
     roster_coach,
     raw_team_box_score_advanced,
@@ -28,7 +29,17 @@ object DatabaseExport {
     lineup_shots,
     team_info,
     play_by_play_with_lineup,
-    team_scored_shots)
+    team_scored_shots,
+    offense_expected_points,
+    defense_expected_points,
+    offense_expected_points_by_player,
+    defense_expected_points_by_player,
+    offense_expected_points_by_player_on_off,
+    defense_expected_points_by_player_on_off,
+    offense_expected_points_by_game,
+    defense_expected_points_by_game,
+    shot_stint_data
+  )
 
   private val SeasonlessTables: Seq[MySqlTable] = Seq(
     player_shot_charts,
