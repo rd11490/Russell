@@ -1,16 +1,20 @@
 import numpy as np
 import pandas as pd
+from sklearn import metrics
 from sklearn.linear_model import RidgeCV
+import matplotlib.pyplot as plt
 
 import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
-season = "2017-18"
+season = "2016-17"
 shotCutOff = 250
 
 shot_frequency = "shotFrequency"
 shot_3pt_frequency = "shot3PtFrequency"
 attempts = "attempts"
+true_attempts = "true_attempts"
+
 
 zones = ["Right27FT", "Left27FT", "RightCorner", "LeftCorner", "RightLong3", "LeftLong3"]
 
@@ -47,10 +51,11 @@ filteredPlayers = [p for p in players if shotSeenMap[p] > shotCutOff]
 
 def calculate_shot_frequency(df):
     df[shot_frequency] = 100 * df[attempts] / df[attempts].sum()
+    df[true_attempts] = df[attempts].sum()
     return df
 
 
-def calculate_3pt_frequency(df):
+def calculate_league_3pt_frequency(df):
     df[shot_3pt_frequency] = df[shot_frequency].sum()
     return df
 
@@ -59,17 +64,17 @@ def check_player_qalifies(p):
     return shotSeenMap[p] > shotCutOff
 
 
-def map_players(rowIn):
-    p1 = rowIn[0]
-    p2 = rowIn[1]
-    p3 = rowIn[2]
-    p4 = rowIn[3]
-    p5 = rowIn[4]
-    p6 = rowIn[5]
-    p7 = rowIn[6]
-    p8 = rowIn[7]
-    p9 = rowIn[8]
-    p10 = rowIn[9]
+def map_players(row_in):
+    p1 = row_in[0]
+    p2 = row_in[1]
+    p3 = row_in[2]
+    p4 = row_in[3]
+    p5 = row_in[4]
+    p6 = row_in[5]
+    p7 = row_in[6]
+    p8 = row_in[7]
+    p9 = row_in[8]
+    p10 = row_in[9]
 
     rowOut = np.zeros([len(filteredPlayers) * 2])
 
@@ -98,6 +103,30 @@ def map_players(rowIn):
     return rowOut
 
 
+def filter_row(row):
+    # Filter stints that have players who have seen less than n shots
+    return check_player_qalifies(row["offensePlayer1Id"]) and check_player_qalifies(
+        row["offensePlayer2Id"]) and check_player_qalifies(row["offensePlayer3Id"]) and check_player_qalifies(
+        row["offensePlayer4Id"]) and check_player_qalifies(row["offensePlayer5Id"]) and check_player_qalifies(
+        row["defensePlayer1Id"]) and check_player_qalifies(row["defensePlayer2Id"]) and check_player_qalifies(
+        row["defensePlayer3Id"]) and check_player_qalifies(row["defensePlayer4Id"]) and check_player_qalifies(
+        row["defensePlayer5Id"])
+
+
+bin_totals = stints["attempts"].groupby(stints["bin"]).sum().reset_index()
+bin_totals.columns = ["bin", attempts]
+print(bin_totals)
+league_freq = calculate_shot_frequency(bin_totals)
+print(league_freq)
+league_avg = calculate_league_3pt_frequency(league_freq[league_freq["bin"].isin(zones)])[shot_3pt_frequency].values[0]
+print(league_avg)
+
+
+def calculate_3pt_frequency(df):
+    df[shot_3pt_frequency] = df[shot_frequency].sum()  # - league_avg
+    return df
+
+
 stints = stints.groupby(
     by=["offensePlayer1Id", "offensePlayer2Id", "offensePlayer3Id", "offensePlayer4Id", "offensePlayer5Id",
         "defensePlayer1Id", "defensePlayer2Id", "defensePlayer3Id", "defensePlayer4Id", "defensePlayer5Id"]).apply(
@@ -110,12 +139,13 @@ stints = stints.groupby(
         "offensePlayer4Id", "offensePlayer5Id", "defensePlayer1Id",
         "defensePlayer2Id", "defensePlayer3Id", "defensePlayer4Id", "defensePlayer5Id"]).apply(calculate_3pt_frequency)
 
+stints = stints[stints.apply(filter_row, axis=1)]
+stints = stints.drop_duplicates()
+
 stintsForReg = stints[["offensePlayer1Id", "offensePlayer2Id",
                        "offensePlayer3Id", "offensePlayer4Id", "offensePlayer5Id",
                        "defensePlayer1Id", "defensePlayer2Id", "defensePlayer3Id",
                        "defensePlayer4Id", "defensePlayer5Id", shot_3pt_frequency]]
-
-stintsForReg = stintsForReg.drop_duplicates()
 
 stintX = stintsForReg.as_matrix(columns=["offensePlayer1Id", "offensePlayer2Id",
                                          "offensePlayer3Id", "offensePlayer4Id", "offensePlayer5Id",
@@ -126,13 +156,13 @@ stintX = np.apply_along_axis(map_players, 1, stintX)
 
 stintY = stintsForReg.as_matrix([shot_3pt_frequency])
 
-alphas = np.array([0.01, 0.05, 0.1, 0.5, 1.0, 5, 10, 50, 100, 500, 1000, 2000, 5000])
-clf = RidgeCV(alphas=alphas, cv=5)
-clf.fit(stintX, stintY)
+alphas = np.array([0.01, 0.05, 0.1, 0.5, 1.0, 5.0, 10.0, 50.0, 100.0, 500.0, 1000.0])
+clf = RidgeCV(alphas=alphas, cv=5, fit_intercept=True)
+model = clf.fit(stintX, stintY)
 
 playerArr = np.transpose(np.array(filteredPlayers).reshape(1, len(filteredPlayers)))
-coefOArr = np.transpose(clf.coef_[:, 0:len(filteredPlayers)])
-coefDArr = np.transpose(clf.coef_[:, len(filteredPlayers):])
+coefOArr = np.transpose(model.coef_[:, 0:len(filteredPlayers)])
+coefDArr = np.transpose(model.coef_[:, len(filteredPlayers):])
 playerIdWithCoef = np.concatenate([playerArr, coefOArr, coefDArr], axis=1)
 
 playersCoef = pd.DataFrame(playerIdWithCoef)
@@ -158,3 +188,59 @@ print(mergedD.head(20))
 
 print("Bottom 20 Defensive 3Pt Attempt Deterrence")
 print(mergedD.tail(20))
+
+print("r^2 value: {}".format(model.score(stintX, stintY)))
+print(model.alpha_)
+print(model.intercept_)
+
+pred = model.predict(stintX)
+
+err = pred-stintY
+
+print("max: {}".format(max(err)))
+print("min: {}".format(min(err)))
+
+err = pred - stintY
+print("METRICS:")
+
+print("max: {}".format(max(err)))
+print("min: {}".format(min(err)))
+
+abs_error = metrics.mean_absolute_error(stintY, pred)
+print("mean absolute error: {}".format(abs_error))
+
+rms_error = metrics.mean_squared_error(stintY, pred)
+print("mean squared error: {}".format(rms_error))
+
+log_error = metrics.mean_squared_log_error(stintY, pred)
+print("log squared error: {}".format(log_error))
+
+r2 = metrics.r2_score(stintY, pred)
+print("r2: {}".format(r2))
+
+
+stints["Prediction"] = pred
+
+stints["Error"] = stints["Prediction"] - stints[shot_frequency]
+
+def calculate_rmse(group):
+    group["RMSE"] = ((group["Error"]) ** 2).mean() ** .5
+    group["AvgError"] = abs(group["Error"]).mean()
+    group["Count"] = len(group)
+    return group
+
+rmse = stints.groupby(by=true_attempts).apply(calculate_rmse)
+
+rmse_for_plot = rmse[[true_attempts, "Count", "RMSE", "AvgError"]].drop_duplicates().sort_values(by=true_attempts)
+
+print(rmse_for_plot)
+
+fig, ax = plt.subplots()
+rmse_for_plot.plot.scatter(ax=ax, x=true_attempts, y="RMSE", color="Red", )
+rmse_for_plot.plot.scatter(ax=ax, x=true_attempts, y="AvgError", color="Blue")
+plt.legend(["RMSE", "AvgError"])
+plt.xlabel("Attempts")
+plt.ylabel("Error")
+plt.title("In-Sample Error for Regularized 3Pt Frequency")
+plt.ylim([0, 50])
+plt.show()

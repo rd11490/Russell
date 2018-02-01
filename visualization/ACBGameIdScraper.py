@@ -11,7 +11,7 @@ link_string_lit = "partido.php?c="
 
 
 def game_index_page(day):
-    return "http://www.acb.com/jv/index.php?jornada={}".format(day)
+    return "http://jv.acb.com/historico.php?jornada={}".format(day)
 
 
 def game_stat_link(game_id):
@@ -27,13 +27,14 @@ http = urllib3.PoolManager()
 day = 1
 sql = MySQLConnector.MySQLConnector()
 sql.drop_table(MySqlDatabases.ACBDatabase.raw_game_json, MySqlDatabases.ACBDatabase.NAME)
+last_links = None
 while active:
     print(day)
     r = http.request('GET', game_index_page(day))
     soup = bs4.BeautifulSoup(r.data, 'html')
     f = soup.find_all("a")
     links = set([extract_id(l["href"]) for l in f if "partido.php?c=" in l["href"]])
-    if len(links) < 1:
+    if len(links) < 1 or day > 40 or links == last_links:
         active = False
     else:
         frame = pd.DataFrame()
@@ -48,4 +49,5 @@ while active:
                  'json': LONGTEXT}
         sql.write(frame, MySqlDatabases.ACBDatabase.raw_game_json, MySqlDatabases.ACBDatabase.NAME, dtype=types)
         day += 1
+    last_links = links
 

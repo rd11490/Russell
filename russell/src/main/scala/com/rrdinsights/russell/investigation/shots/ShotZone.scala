@@ -44,6 +44,8 @@ sealed trait CornerShotZone extends ShotZone {
 
 object ShotZone {
 
+  lazy val zones: Seq[ShotZone] = CornerShotZones ++ NonCornerShotZones :+ RestrictedArea
+
   private val CornerShotZones: Seq[CornerShotZone] =
     Seq(
       LeftCorner,

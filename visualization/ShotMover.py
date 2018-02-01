@@ -33,10 +33,19 @@ players.sort()
 
 filteredPlayers = [p for p in players if shotSeenMap[p] > shotCutOff]
 
-def checkPlayerQalifies(p):
+def check_player_qalifies(p):
     return shotSeenMap[p] > shotCutOff
 
-def mapPlayers(rowIn):
+def filter_row(row):
+    # Filter stints that have players who have seen less than n shots
+    return check_player_qalifies(row["offensePlayer1Id"]) and check_player_qalifies(
+        row["offensePlayer2Id"]) and check_player_qalifies(row["offensePlayer3Id"]) and check_player_qalifies(
+        row["offensePlayer4Id"]) and check_player_qalifies(row["offensePlayer5Id"]) and check_player_qalifies(
+        row["defensePlayer1Id"]) and check_player_qalifies(row["defensePlayer2Id"]) and check_player_qalifies(
+        row["defensePlayer3Id"]) and check_player_qalifies(row["defensePlayer4Id"]) and check_player_qalifies(
+        row["defensePlayer5Id"])
+
+def map_players(rowIn):
     p1 = rowIn[0]
     p2 = rowIn[1]
     p3 = rowIn[2]
@@ -50,26 +59,26 @@ def mapPlayers(rowIn):
 
     rowOut = np.zeros([len(filteredPlayers) * 2])
 
-    if checkPlayerQalifies(p1):
+    if check_player_qalifies(p1):
         rowOut[filteredPlayers.index(p1)] = 1
-    if checkPlayerQalifies(p2):
+    if check_player_qalifies(p2):
         rowOut[filteredPlayers.index(p2)] = 1
-    if checkPlayerQalifies(p3):
+    if check_player_qalifies(p3):
         rowOut[filteredPlayers.index(p3)] = 1
-    if checkPlayerQalifies(p4):
+    if check_player_qalifies(p4):
         rowOut[filteredPlayers.index(p4)] = 1
-    if checkPlayerQalifies(p5):
+    if check_player_qalifies(p5):
         rowOut[filteredPlayers.index(p5)] = 1
 
-    if checkPlayerQalifies(p6):
+    if check_player_qalifies(p6):
         rowOut[filteredPlayers.index(p6) + len(filteredPlayers)] = -1
-    if checkPlayerQalifies(p7):
+    if check_player_qalifies(p7):
         rowOut[filteredPlayers.index(p7) + len(filteredPlayers)] = -1
-    if checkPlayerQalifies(p8):
+    if check_player_qalifies(p8):
         rowOut[filteredPlayers.index(p8) + len(filteredPlayers)] = -1
-    if checkPlayerQalifies(p9):
+    if check_player_qalifies(p9):
         rowOut[filteredPlayers.index(p9) + len(filteredPlayers)] = -1
-    if checkPlayerQalifies(p10):
+    if check_player_qalifies(p10):
         rowOut[filteredPlayers.index(p10) + len(filteredPlayers)] = -1
 
     return rowOut
@@ -80,22 +89,26 @@ stintsForReg = stints[['offensePlayer1Id', 'offensePlayer2Id',
                        'defensePlayer1Id', 'defensePlayer2Id', 'defensePlayer3Id',
                        'defensePlayer4Id', 'defensePlayer5Id', 'difference100']]
 
+
+stintsForReg = stintsForReg.drop_duplicates()
+stintsForReg = stintsForReg[stintsForReg.apply(filter_row, axis=1)]
+
 stintX = stintsForReg.as_matrix(columns=['offensePlayer1Id', 'offensePlayer2Id',
                                          'offensePlayer3Id', 'offensePlayer4Id', 'offensePlayer5Id',
                                          'defensePlayer1Id', 'defensePlayer2Id', 'defensePlayer3Id',
                                          'defensePlayer4Id', 'defensePlayer5Id'])
 
-stintX = np.apply_along_axis(mapPlayers, 1, stintX)
+stintX = np.apply_along_axis(map_players, 1, stintX)
 
 stintY = stintsForReg.as_matrix(["difference100"])
 
 alphas = np.array([0.01, 0.05, 0.1, 0.5, 1.0, 5, 10, 50, 100, 500, 1000, 2000, 5000])
-clf = RidgeCV(alphas=alphas, cv=5)
-clf.fit(stintX, stintY)
+clf = RidgeCV(alphas=alphas, cv=5, fit_intercept=False)
+model = clf.fit(stintX, stintY)
 
 playerArr = np.transpose(np.array(filteredPlayers).reshape(1,len(filteredPlayers)))
-coefOArr = np.transpose(clf.coef_[:, 0:len(filteredPlayers)])
-coefDArr = np.transpose(clf.coef_[:, len(filteredPlayers):])
+coefOArr = np.transpose(model.coef_[:, 0:len(filteredPlayers)])
+coefDArr = np.transpose(model.coef_[:, len(filteredPlayers):])
 playerIdWithCoef = np.concatenate([playerArr, coefOArr, coefDArr], axis=1)
 
 playersCoef = pd.DataFrame(playerIdWithCoef)
@@ -120,3 +133,9 @@ print(mergedD.head(20))
 
 print("Bottom 20 Defensive Shot Quality Impact")
 print(mergedD.tail(20))
+
+
+print("r^2 value: {}".format(model.score(stintX, stintY)))
+print(model.alpha_)
+print(model.intercept_)
+

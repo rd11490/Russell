@@ -43,7 +43,54 @@ object ShotDeterrence {
 
     val stints = reduceStints(fullScoredShots, season)
 
-    writeShotStints(stints)
+    val fullStints = addZeroBins(stints)
+
+    writeShotStints(fullStints)
+  }
+
+  private def addZeroBins(stints: Seq[ShotStintByZoneData]): Seq[ShotStintByZoneData] = {
+    stints.groupBy(v => (
+      v.offensePlayer1Id,
+      v.offensePlayer2Id,
+      v.offensePlayer3Id,
+      v.offensePlayer4Id,
+      v.offensePlayer5Id,
+      v.defensePlayer1Id,
+      v.defensePlayer2Id,
+      v.defensePlayer3Id,
+      v.defensePlayer4Id,
+      v.defensePlayer5Id))
+      .flatMap(v => addZeroBinsToGroup(v._2))
+      .toSeq
+  }
+
+  private def addZeroBinsToGroup(stints: Seq[ShotStintByZoneData]): Seq[ShotStintByZoneData] = {
+    val base = stints.head
+    (ShotZone.zones.map(v => emptyStintData(base, v)) ++ stints).groupBy(_.bin).map(v => v._2.reduce(_ + _))
+      .toSeq
+  }
+
+  private def emptyStintData(base: ShotStintByZoneData, bin: ShotZone): ShotStintByZoneData = {
+    val newPk = Seq(base.offensePlayer1Id,
+      base.offensePlayer2Id,
+      base.offensePlayer3Id,
+      base.offensePlayer4Id,
+      base.offensePlayer5Id,
+      base.defensePlayer1Id,
+      base.defensePlayer2Id,
+      base.defensePlayer3Id,
+      base.defensePlayer4Id,
+      base.defensePlayer5Id,
+      base.season,
+      bin.toString).mkString("_")
+    base.copy(primaryKey = newPk,
+      attempts = 0,
+      made = 0,
+      bin = bin.toString,
+      shotPoints = 0.0,
+      shotExpectedPoints = 0.0,
+      playerExpectedPoints = 0.0,
+      difference = 0.0)
   }
 
   private def buildPointsPerShotLineup(shot: ShotWithPlayers, shotMap: Map[Integer, ShotChartTotalSection]): ShotChartTotalSection = {
@@ -94,6 +141,7 @@ object ShotDeterrence {
             v.defensePlayer3Id,
             v.defensePlayer4Id,
             v.defensePlayer5Id,
+            season,
             v.bin).mkString("_"),
           v.offensePlayer1Id,
           v.offensePlayer2Id,
@@ -194,7 +242,6 @@ object ShotDeterrence {
         season,
         dt))
   }
-
 
   private def readShotsWithPlayers(where: String*): Seq[ShotWithPlayers] =
     MySqlClient.selectFrom(NBATables.lineup_shots, ShotWithPlayers.apply, where: _*)

@@ -8,8 +8,8 @@ import drawCourt
 import matplotlib.gridspec as gridspec
 
 shotZones = ShotZones.buildShotZones()
-players = ["Michael Kidd-Gilchrist"]
-season = "2017-18"
+players = ["Andre Drummond"]
+season = "2016-17"
 
 sql = MySQLConnector.MySQLConnector()
 
