@@ -15,19 +15,21 @@ def game_index_page(id, season):
 
 def extract_column_names(table):
     columns = [col["aria-label"] for col in table.find_all("thead")[0].find_all("th")]
+    columns.append("id")
     return [col for i, col in enumerate(columns) if i not in empty_columns]
 
 
-def extract_rows(table):
+def extract_rows(table, id):
     rows = table.find_all("tbody")[0].find_all("tr")
-    return [parse_row(r) for r in rows]
+    return [parse_row(r, id) for r in rows]
 
 
-def parse_row(row):
+def parse_row(row, id):
     rank = row.find_all("th")[0].string
     other_data = row.find_all("td")
     row_data = [td.string for i, td in enumerate(other_data) if i not in empty_columns_data]
     row_data.insert(0, rank)
+    row_data.append(id)
     return row_data
 
 
@@ -45,9 +47,8 @@ columns = []
 rows = []
 
 for season in seasons:
+    print(season)
     for id in ids:
-        print(season)
-        print(id)
         years = player_map[id]
         if years[0] <= season <= years[1]:
             r = http.request('GET', game_index_page(id, season))
@@ -59,7 +60,8 @@ for season in seasons:
                 new_soup = bs4.BeautifulSoup(table, 'html')
                 new_table = new_soup.find_all("table")[0]
                 columns = extract_column_names(new_table)
-                rows = rows + extract_rows(new_table)
+                rows = rows + extract_rows(new_table, id)
+
 
 frame = pd.DataFrame()
 
