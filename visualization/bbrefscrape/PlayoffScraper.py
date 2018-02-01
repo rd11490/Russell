@@ -8,6 +8,7 @@ seasons = range(2010, 2018)
 empty_columns = [5, 7]
 empty_columns_data = [4, 6]
 
+
 def game_index_page(id, season):
     return "https://www.basketball-reference.com/players/i/{0}/gamelog/{1}".format(id, season)
 
