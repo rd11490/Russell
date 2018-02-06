@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
-season = "2016-17"
+season = "2017-18"
 shotCutOff = 250
 
 shot_frequency = "shotFrequency"
@@ -29,7 +29,7 @@ d_query = "SELECT * FROM  nba.defense_expected_points_by_player_on_off_zoned " \
           "WHERE season = '{0}' and bin != 'Total'".format(season)
 
 stints = sql.runQuery(stintsQuery)
-playerNames = sql.runQuery(playerNamesQuery)
+playerNames = sql.runQuery(playerNamesQuery).drop_duplicates()
 shotsSeen = sql.runQuery(shotsSeenQuery)
 shotSeenMap = shotsSeen.set_index("playerId").to_dict()["shots"]
 
@@ -226,7 +226,8 @@ stints["Error"] = stints["Prediction"] - stints[shot_frequency]
 def calculate_rmse(group):
     group["RMSE"] = ((group["Error"]) ** 2).mean() ** .5
     group["AvgError"] = abs(group["Error"]).mean()
-    group["Count"] = len(group)
+    group["Count"] = len(group)/6
+
     return group
 
 rmse = stints.groupby(by=true_attempts).apply(calculate_rmse)

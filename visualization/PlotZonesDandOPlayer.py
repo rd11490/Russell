@@ -7,7 +7,7 @@ import ShotZones
 
 shotZones = ShotZones.buildShotZones()
 valueForPlotting = "Diff"
-player = "Shabazz Muhammad"
+player = "Russell Westbrook"
 season = "2017-18"
 
 o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player " \
