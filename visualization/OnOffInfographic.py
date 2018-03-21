@@ -8,8 +8,10 @@ import MySQLConnector
 import ShotZones
 import drawCourt
 
+import os
+
 shotZones = ShotZones.buildShotZones()
-players = ["Ben Simmons", "Donovan Mitchell"]
+players = ["Lonzo Ball"]
 season = "2017-18"
 
 sql = MySQLConnector.MySQLConnector()
@@ -145,8 +147,12 @@ for player in players:
 
     ax2 = plot_on_off_shot_chart(ax2, shot_zones_d_comb, shot_frequency, -4, 4, "%")
 
+    results_dir = "plots/PlayerShotFreqChart/{0}".format(season)
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
     fig.tight_layout(rect=[0, 0, 1, .925])
-    plt.savefig("plots/PlayerShotFreqChart/{0}_{1}.png".format(player, season), figsize=(16, 6), dpi=900)
+    plt.savefig("{0}/{1}.png".format(results_dir,player), figsize=(16, 6), dpi=900)
     plt.close()
 
     ####
@@ -188,8 +194,12 @@ for player in players:
 
     ax2 = plot_on_off_shot_chart(ax2, shot_zones_d_comb, pps, -1, 1, " PPS")
 
+    results_dir = "plots/PlayerPPSChart/{0}".format(season)
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
     fig.tight_layout(rect=[0, 0, 1, .925])
-    plt.savefig("plots/PlayerPPSChart/{0}_{1}.png".format(player, season), figsize=(16, 6), dpi=900)
+    plt.savefig("{0}/{1}.png".format(results_dir,player), figsize=(16, 6), dpi=900)
     plt.close()
 
     ####
@@ -230,7 +240,11 @@ for player in players:
 
     ax2 = plot_on_off_shot_chart(ax2, shot_zones_d_comb, epps, -1, 1, " ePPS")
 
+    results_dir = "plots/PlayerEPPSChart/{0}".format(season)
+    if not os.path.isdir(results_dir):
+        os.makedirs(results_dir)
+
     fig.tight_layout(rect=[0, 0, 1, .925])
-    plt.savefig("plots/PlayerEPPSChart/{0}_{1}.png".format(player, season), figsize=(16, 6), dpi=900)
+    plt.savefig("{0}/{1}.png".format(results_dir,player), figsize=(16, 6), dpi=900)
     plt.close()
     # plt.show()

@@ -1,10 +1,11 @@
 package com.rrdinsights.russell.storage.tables
 
-import com.rrdinsights.russell.etl.application.TeamInfo
+import com.rrdinsights.russell.etl.application.{GameDate, TeamInfo}
 import com.rrdinsights.russell.investigation.movement.{EventRow, PlayerWithBall}
-import com.rrdinsights.russell.investigation.shots.PlayerShotChartSection
+import com.rrdinsights.russell.investigation.playbyplay.{LuckAdjustedStint, SecondsPlayedContainer}
+import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotStintByZoneData}
 import com.rrdinsights.russell.investigation.shots.expectedshots.{ExpectedPointsByGame, ExpectedPointsPlayer, ExpectedPointsPlayerOnOff}
-import com.rrdinsights.russell.investigation.shots.shotmover.{ShotStintByZoneData, ShotsSeen}
+import com.rrdinsights.russell.investigation.shots.shotmover.ShotsSeen
 import com.rrdinsights.russell.storage.datamodel._
 
 object NBATables {
@@ -17,6 +18,7 @@ object NBATables {
   val raw_game_score_line: MySqlTable = MySqlTable[RawGameScoreLine]("raw_game_score_line")
   val raw_game_summary: MySqlTable = MySqlTable[RawGameSummary]("raw_game_summary")
   val raw_play_by_play: MySqlTable = MySqlTable[RawPlayByPlayEvent]("raw_play_by_play")
+
   val raw_shot_data: MySqlTable = MySqlTable[RawShotData]("raw_shot_data")
   val raw_player_profile_career_totals: MySqlTable = MySqlTable[RawPlayerProfileCareer]("raw_player_profile_career_totals")
   val raw_player_profile_season_totals: MySqlTable = MySqlTable[RawPlayerProfileSeason]("raw_player_profile_season_totals")
@@ -29,6 +31,7 @@ object NBATables {
   val player_shot_charts: MySqlTable = MySqlTable[PlayerShotChartSection]("player_shot_charts")
   val lineup_shots: MySqlTable = MySqlTable[ShotWithPlayers]("lineup_shots")
   val team_info: MySqlTable = MySqlTable[TeamInfo]("team_info")
+  val game_dates: MySqlTable = MySqlTable[GameDate]("game_date")
   val shots_seen: MySqlTable = MySqlTable[ShotsSeen]("shots_seen")
 
   val play_by_play_with_lineup: MySqlTable = MySqlTable[PlayByPlayWithLineup]("play_by_play_with_lineup")
@@ -54,5 +57,6 @@ object NBATables {
   val movement_data: MySqlTable = MySqlTable[EventRow]("movement_data")
   val player_with_ball: MySqlTable = MySqlTable[PlayerWithBall]("player_with_ball")
 
-
+  val luck_adjusted_stints: MySqlTable = MySqlTable[LuckAdjustedStint]("luck_adjusted_stints")
+  val seconds_played: MySqlTable = MySqlTable[SecondsPlayedContainer]("seconds_played")
 }

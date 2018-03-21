@@ -67,7 +67,7 @@ final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt
 
 private[investigation] object PlayByPlayParser {
   def properlySortPlayByPlay(pbpRaw: Seq[RawPlayByPlayEvent]): Seq[RawPlayByPlayEvent] = {
-    val pbp = pbpRaw.sortBy(_.eventNumber)
+    val pbp = pbpRaw.sorted
     val pbpFixed: mutable.ArrayBuffer[RawPlayByPlayEvent] = new ArrayBuffer[RawPlayByPlayEvent]()
     var i: Int = 0
     while (i < pbp.size) {

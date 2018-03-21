@@ -4,7 +4,7 @@ sql = MySQLConnector.MySQLConnector()
 season = "2017-18"
 
 o_query = "SELECT * FROM (select * from nba.offense_expected_points where season = '{0}' and bin = 'Total' ) a " \
-          "left join  (select * from nba.team_info where season = '{0}') b " \
+          "left join  (select * from nba.team_ info where season = '{0}') b " \
           "on (a.teamId = b.teamId)".format(season)
 d_query = "SELECT * FROM (select * from nba.defense_expected_points where season = '{0}' and bin = 'Total' ) a " \
           "left join  (select * from nba.team_info where season = '{0}') b " \

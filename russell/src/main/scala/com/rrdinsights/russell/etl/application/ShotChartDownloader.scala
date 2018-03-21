@@ -6,27 +6,29 @@ import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.scalabrine.ScalabrineClient
 import com.rrdinsights.scalabrine.endpoints.ShotChartDetailEndpoint
 import com.rrdinsights.scalabrine.models.Shot
-import com.rrdinsights.scalabrine.parameters.{ParameterValue, PlayerIdParameter, SeasonParameter}
+import com.rrdinsights.scalabrine.parameters.{ParameterValue, PlayerIdParameter, SeasonParameter, TeamIdParameter}
 
 object ShotChartDownloader {
 
-  def downloadAndWritePlayersShotData(playerIds: Seq[String], dt: String, season: Option[String] = None): Unit = {
+  def downloadAndWritePlayersShotData(playerIds: Seq[(String, String)], dt: String, season: Option[String] = None): Unit = {
     val shotData = downloadPlayersShotData(playerIds, season)
     writeShotData(shotData, dt)
   }
 
-  private def downloadPlayersShotData(playerIds: Seq[String], season: Option[String]): Seq[Shot] = {
+  private def downloadPlayersShotData(playerIds: Seq[(String, String)], season: Option[String]): Seq[Shot] = {
     playerIds
-      .map(PlayerIdParameter.newParameterValue)
+      .sortBy(_._2)
+      .map(v => (PlayerIdParameter.newParameterValue(v._1), TeamIdParameter.newParameterValue(v._2)))
       .flatMap(v => {
-        Thread.sleep(1000)
-        val seasonParam = season.map(v => SeasonParameter.newParameterValue(v)).getOrElse(SeasonParameter.defaultParameterValue)
-        downloadPlayerShotData(v, seasonParam)
+        println(s"PlayerId: ${v._1}, TeamId: ${v._2}")
+        Thread.sleep(1500)
+        val seasonParam = season.map(s => SeasonParameter.newParameterValue(s)).getOrElse(SeasonParameter.defaultParameterValue)
+        downloadPlayerShotData(v._1, v._2, seasonParam)
       })
   }
 
-  private def downloadPlayerShotData(playerIdParameter: ParameterValue, season: ParameterValue): Seq[Shot] = {
-    val shotChartEndpoint = ShotChartDetailEndpoint(playerIdParameter, season = season)
+  private def downloadPlayerShotData(playerIdParameter: ParameterValue, teamId: ParameterValue, season: ParameterValue): Seq[Shot] = {
+    val shotChartEndpoint = ShotChartDetailEndpoint(playerIdParameter, season = season, teamId = teamId)
     ScalabrineClient.getShotChart(shotChartEndpoint).teamGameLog.shots
   }
 

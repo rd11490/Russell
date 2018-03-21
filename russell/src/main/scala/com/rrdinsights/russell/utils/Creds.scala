@@ -10,12 +10,14 @@ import org.json4s.jackson.JsonMethods._
 object Creds {
   implicit val defaultFormats: DefaultFormats.type = DefaultFormats
   private val fileLocation: String = "MySqlCred.json"
-  private lazy val creds: Creds = parse(
-    scala.io.Source.fromInputStream(getStream())
-      .getLines.mkString)
-    .extract[Creds]
+  private lazy val creds: Creds =
+    parse(scala.io.Source.fromInputStream(getStream()).getLines.mkString).extract[Creds]
 
-  private def getStream(/*IO*/): InputStream = getClass.getClassLoader.getResourceAsStream(fileLocation)
+  private def getStream( /*IO*/ ): InputStream = {
+    val out = getClass.getClassLoader.getResourceAsStream(fileLocation)
+    println(out)
+    out
+  }
 
   def getCreds: Creds = creds
 }

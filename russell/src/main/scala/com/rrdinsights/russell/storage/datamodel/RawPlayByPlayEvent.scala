@@ -3,6 +3,7 @@ package com.rrdinsights.russell.storage.datamodel
 import java.sql.ResultSet
 import java.{lang => jl}
 
+import com.rrdinsights.russell.utils.TimeUtils
 import com.rrdinsights.scalabrine.models.PlayByPlayEvent
 
 final case class RawPlayByPlayEvent(
@@ -45,8 +46,22 @@ final case class RawPlayByPlayEvent(
                                      player3TeamNickname: String,
                                      player3TeamAbbreviation: String,
 
+                                     timeElapsed: jl.Integer,
                                      season: String,
-                                     dt: String)
+                                     dt: String) extends Ordered[RawPlayByPlayEvent] {
+
+  override def compare(that: RawPlayByPlayEvent): Int =
+    sortByTimeLeft(that) match {
+      case 0 => sortByEventNumber(that)
+      case n => n
+    }
+
+  private def sortByTimeLeft(that: RawPlayByPlayEvent): Int =
+    this.timeElapsed.compareTo(that.timeElapsed)
+
+  private def sortByEventNumber(that: RawPlayByPlayEvent): Int =
+    this.eventNumber.compareTo(that.eventNumber)
+}
 
 object RawPlayByPlayEvent extends ResultSetMapper {
 
@@ -86,6 +101,7 @@ object RawPlayByPlayEvent extends ResultSetMapper {
       playByPlayEvent.player3TeamCity,
       playByPlayEvent.player3TeamNickname,
       playByPlayEvent.player3TeamAbbreviation,
+      TimeUtils.convertTimeStringToTime(playByPlayEvent.period, playByPlayEvent.pcTimeString),
       season,
       dt)
 
@@ -126,12 +142,13 @@ object RawPlayByPlayEvent extends ResultSetMapper {
       getInt(resultSet, 28),
       getString(resultSet, 29),
       getInt(resultSet, 30),
-      getString(resultSet, 32),
+      getString(resultSet, 31),
       getString(resultSet, 32),
       getString(resultSet, 33),
 
-      getString(resultSet, 34),
-      getString(resultSet, 35))
+      getInt(resultSet, 34),
+      getString(resultSet, 35),
+      getString(resultSet, 36))
 }
 
 sealed trait PlayByPlayEventMessageType {

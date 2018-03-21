@@ -1,11 +1,15 @@
 package com.rrdinsights.russell.utils
 
+import java.text.SimpleDateFormat
 import java.time.{Instant, LocalDate, LocalDateTime, ZoneId}
 import java.time.format.{DateTimeFormatter, DateTimeFormatterBuilder}
+
 
 object TimeUtils {
 
   private val Formatter: DateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+  private val GameDateFormat = new SimpleDateFormat("E, MMMMM dd, yyyy")
+
 
   private val DateFormatter: DateTimeFormatter =
     new DateTimeFormatterBuilder().parseCaseInsensitive.appendPattern("MMM dd, yyyy").toFormatter
@@ -15,6 +19,9 @@ object TimeUtils {
   def parseGameLogDate(date: String): Instant = {
     LocalDate.parse(date, DateFormatter).atStartOfDay(ZoneId.systemDefault()).toInstant
   }
+
+  def parseGameDate(date: String): Long =
+    GameDateFormat.parse(date).toInstant.toEpochMilli
 
   def timeFromStartOfGame(period: Int, minutesRemaining: Int, secondsRemaining: Int): Int = {
     val previousPeriods = periodToMinutesPlayed(period) * 60
@@ -33,7 +40,7 @@ object TimeUtils {
   }
 
   def timeFromStartOfGameAtPeriod(period: Int): Int =
-    timeFromStartOfGame(period, minutesInPeriod(period)-1, 35)
+    timeFromStartOfGame(period, minutesInPeriod(period), 0)
 
   private[utils] def periodToMinutesPlayed(period: Int): Int =
     if (period > 4) {

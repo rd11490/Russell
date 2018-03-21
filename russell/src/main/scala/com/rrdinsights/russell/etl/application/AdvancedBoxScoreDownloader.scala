@@ -23,6 +23,7 @@ object AdvancedBoxScoreDownloader {
       .distinct
       .map(GameIdParameter.newParameterValue)
       .flatMap(v => {
+        println(v)
         Thread.sleep(1000)
         downloadAdvancedBoxScore(v)
       })
@@ -52,5 +53,8 @@ object AdvancedBoxScoreDownloader {
     val playersAdvanced = players.map(RawPlayerBoxScoreAdvanced(_, season, dt))
     MySqlClient.insertInto(NBATables.raw_player_box_score_advanced, playersAdvanced)
   }
+
+  def readPlayerStats(whereClauses: String*): Seq[RawPlayerBoxScoreAdvanced] =
+    MySqlClient.selectFrom(NBATables.raw_player_box_score_advanced, RawPlayerBoxScoreAdvanced.apply, whereClauses:_*)
 
 }

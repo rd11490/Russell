@@ -42,7 +42,7 @@ object RawPlayerBoxScoreAdvanced extends ResultSetMapper {
   def apply(playerStats: PlayerStats, season: String, dt: String): RawPlayerBoxScoreAdvanced = {
     val seasonStr = if (season != "") season else DataModelUtils.gameIdToSeason(playerStats.gameId)
     RawPlayerBoxScoreAdvanced(
-      s"${playerStats.gameId}_${playerStats.teamId}",
+      s"${playerStats.gameId}_${playerStats.teamId}_${playerStats.playerId}",
       playerStats.gameId,
       playerStats.teamId,
       playerStats.teamAbbreviation,

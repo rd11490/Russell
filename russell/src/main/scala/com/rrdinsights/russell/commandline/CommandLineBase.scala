@@ -1,8 +1,8 @@
 package com.rrdinsights.russell.commandline
 
-import org.apache.commons.cli
-import org.apache.commons.cli.{CommandLine, HelpFormatter, MissingOptionException, Options, PosixParser}
 import com.rrdinsights.russell.utils.SmartOption
+import org.apache.commons.cli
+import org.apache.commons.cli.{CommandLine, DefaultParser, HelpFormatter, MissingOptionException, Options}
 
 /** Base class for specifying and processing command line arguments.
   *
@@ -10,7 +10,7 @@ import com.rrdinsights.russell.utils.SmartOption
   */
 class CommandLineBase(args: Array[String], helpTitle: String) {
 
-  protected final val cmd: CommandLine = new PosixParser().parse(this.options, args, false)
+  protected final val cmd: CommandLine = new DefaultParser().parse(this.options, args, false)
 
   protected def options: cli.Options =
     new Options().addOption(CommandLineBase.HelpOption)

@@ -43,8 +43,22 @@ final case class PlayByPlayWithLineup(primaryKey: String,
                                       team2player4Id: jl.Integer,
                                       team2player5Id: jl.Integer,
 
+                                      timeElapsed: jl.Integer,
                                       season: String,
-                                      dt: String)
+                                      dt: String) extends Ordered[PlayByPlayWithLineup]{
+  override def compare(that: PlayByPlayWithLineup): Int =
+    sortByTimeLeft(that) match {
+      case 0 => sortByEventNumber(that)
+      case n => n
+    }
+
+  private def sortByTimeLeft(that: PlayByPlayWithLineup): Int =
+    this.timeElapsed.compareTo(that.timeElapsed)
+
+  private def sortByEventNumber(that: PlayByPlayWithLineup): Int =
+    this.eventNumber.compareTo(that.eventNumber)
+
+}
 
 object PlayByPlayWithLineup extends ResultSetMapper {
 
@@ -90,6 +104,7 @@ object PlayByPlayWithLineup extends ResultSetMapper {
       playersOnCourt.team2player4Id,
       playersOnCourt.team2player5Id,
 
+      playByPlay.timeElapsed,
       playByPlay.season,
       dt)
 
@@ -129,6 +144,8 @@ object PlayByPlayWithLineup extends ResultSetMapper {
       getInt(resultSet, 31),
       getInt(resultSet, 32),
       getInt(resultSet, 33),
-      getString(resultSet, 34),
-      getString(resultSet, 35))
+      getInt(resultSet, 34),
+
+      getString(resultSet, 35),
+      getString(resultSet, 36))
 }

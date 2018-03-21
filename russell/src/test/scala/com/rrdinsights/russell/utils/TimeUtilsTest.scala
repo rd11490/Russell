@@ -37,8 +37,13 @@ final class TimeUtilsTest extends TestSpec {
   }
 
   test("timeFromStartOfGameAtPeriod") {
-    val period = 1
-    assert(TimeUtils.timeFromStartOfGameAtPeriod(period) === 25)
+    assert(TimeUtils.timeFromStartOfGameAtPeriod(1) === 0)
+    assert(TimeUtils.timeFromStartOfGameAtPeriod(2) === 720)
+    assert(TimeUtils.timeFromStartOfGameAtPeriod(3) === 1440)
+    assert(TimeUtils.timeFromStartOfGameAtPeriod(4) === 2160)
+    assert(TimeUtils.timeFromStartOfGameAtPeriod(5) === 2880)
+    assert(TimeUtils.timeFromStartOfGameAtPeriod(6) === 3180)
+
   }
 
   test("sort dates") {
@@ -54,6 +59,10 @@ final class TimeUtilsTest extends TestSpec {
 
     assert(out.head._1 == 2)
     assert(out.last._1 == 3)
+  }
 
+  test("parse game date") {
+    val testDate = "THURSDAY, DECEMBER 9, 2004"
+    assert(TimeUtils.parseGameDate(testDate) === 1102568400000L)
   }
 }

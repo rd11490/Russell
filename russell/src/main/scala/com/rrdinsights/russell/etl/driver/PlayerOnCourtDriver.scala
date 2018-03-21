@@ -58,7 +58,6 @@ object PlayerOnCourtDriver {
       .toSeq
 
     PlayersOnCourtDownloader.writePlayersOnCourt(playersOnCourt)
-
   }
 
   def calculatePlayersOnCourt(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt: Seq[PlayersOnCourt], dt: String): Seq[PlayersOnCourt] = {

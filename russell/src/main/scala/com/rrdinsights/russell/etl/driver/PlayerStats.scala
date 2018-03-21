@@ -4,8 +4,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
-import com.rrdinsights.russell.etl.application.{PlayerProfileDownloader, RosterDownloader, ShotChartDownloader}
-import com.rrdinsights.scalabrine.parameters.SeasonParameter
+import com.rrdinsights.russell.etl.application.{AdvancedBoxScoreDownloader, PlayerProfileDownloader, RosterDownloader, ShotChartDownloader}
 import org.apache.commons.cli
 
 object PlayerStats {
@@ -14,11 +13,12 @@ object PlayerStats {
   def main(strings: Array[String]): Unit = {
     val args = PlayerStatsArguments(strings)
     val playerId = args.playerId
+    val teamId = args.teamId
     val dt = LocalDateTime.now().format(Formatter)
     val season = args.seasonOpt
 
-    if (playerId.isDefined) {
-      downloadAndWritePlayerStats(args, dt, playerId.get)
+    if (playerId.isDefined && teamId.isDefined) {
+      downloadAndWritePlayerStats(args, dt, (playerId.get, teamId.get))
     } else {
       val playersFromRosters = readPlayersFromRosters(season)
 
@@ -32,20 +32,21 @@ object PlayerStats {
     }
   }
 
-  private def downloadAndWritePlayerStats(args: PlayerStatsArguments, dt: String, playerIds: String*): Unit = {
+  private def downloadAndWritePlayerStats(args: PlayerStatsArguments, dt: String, playerIds: (String, String)*): Unit = {
     val season = args.seasonOpt
     if (args.downloadShotData) {
       ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, season)
     }
     if (args.playerProfiles) {
-      PlayerProfileDownloader.downloadAndWriteAllPlayerProfiles(playerIds, dt)
+      PlayerProfileDownloader.downloadAndWriteAllPlayerProfiles(playerIds.map(_._1), dt)
     }
   }
 
-  private def readPlayersFromRosters(season: Option[String]): Seq[String] = {
+  private def readPlayersFromRosters(season: Option[String]): Seq[(String, String)] = {
     val where = season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
-    RosterDownloader.readPlayerInfo(where)
-      .map(_.playerId.toString)
+    val boxScores = AdvancedBoxScoreDownloader.readPlayerStats(where:_*)
+    boxScores
+      .map(v => (v.playerId.toString, v.teamId.toString))
       .distinct
   }
 
@@ -64,9 +65,13 @@ private final class PlayerStatsArguments private(args: Array[String])
     .addOption(PlayerStatsArguments.ShotDataOption)
     .addOption(PlayerStatsArguments.DeltaOption)
     .addOption(PlayerStatsArguments.PlayerProfileTotals)
+    .addOption(PlayerStatsArguments.TeamIdOption)
 
 
   def playerId: Option[String] = valueOf(PlayerStatsArguments.PlayerIdOption)
+
+  def teamId: Option[String] = valueOf(PlayerStatsArguments.TeamIdOption)
+
 
   lazy val downloadShotData: Boolean = has(PlayerStatsArguments.ShotDataOption) || runAll
 
@@ -80,6 +85,9 @@ private object PlayerStatsArguments {
 
   val PlayerIdOption: cli.Option =
     new cli.Option(null, "player", true, "The player id you want to collect data for")
+
+  val TeamIdOption: cli.Option =
+    new cli.Option(null, "team", true, "The team id you want to collect data for")
 
   val PlayerProfileTotals: cli.Option =
     new cli.Option(null, "profiles", false, "Download and store all basic player profile totals")
