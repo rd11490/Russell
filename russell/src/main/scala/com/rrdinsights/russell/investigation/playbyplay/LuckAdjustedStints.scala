@@ -49,6 +49,10 @@ object LuckAdjustedStints {
 
     writeStints(stints)
 
+    val oneWayStints = stints.flatMap(_.toOneWayStints).groupBy(_.primaryKey).map(v => v._2.reduce(_ + _)).toSeq
+
+    writeOneWayStints(oneWayStints)
+
     val secondsPlayed = stints
       .flatMap(v => {
         Seq(v.team1player1Id,
@@ -73,6 +77,11 @@ object LuckAdjustedStints {
   private def writeStints(stints: Seq[LuckAdjustedStint]): Unit = {
     MySqlClient.createTable(NBATables.luck_adjusted_stints)
     MySqlClient.insertInto(NBATables.luck_adjusted_stints, stints)
+  }
+
+  private def writeOneWayStints(stints: Seq[LuckAdjustedOneWayStint]): Unit = {
+    MySqlClient.createTable(NBATables.luck_adjusted_one_way_stints)
+    MySqlClient.insertInto(NBATables.luck_adjusted_one_way_stints, stints)
   }
 
   private def writeSecondsPlayed(secondsPlayed: Seq[SecondsPlayedContainer]): Unit = {
@@ -409,6 +418,65 @@ final case class LuckAdjustedStint(primaryKey: String,
       team2Possessions + other.team2Possessions,
 
       seconds + other.seconds)
+
+  def toOneWayStints: Seq[LuckAdjustedOneWayStint] =
+    Seq(
+      LuckAdjustedOneWayStint(
+        primaryKey = Seq(
+          team1player1Id, team1player2Id, team1player3Id, team1player4Id, team1player5Id,
+          team2player1Id, team2player2Id, team2player3Id, team2player4Id, team2player5Id,
+          season).mkString("_"),
+        season = season,
+        dt = dt,
+        offenseTeamId1 = teamId1,
+        offensePlayer1Id = team1player1Id,
+        offensePlayer2Id = team1player2Id,
+        offensePlayer3Id = team1player3Id,
+        offensePlayer4Id = team1player4Id,
+        offensePlayer5Id = team1player5Id,
+
+        defenseTeamId2 = teamId2,
+        defensePlayer1Id = team2player1Id,
+        defensePlayer2Id = team2player2Id,
+        defensePlayer3Id = team2player3Id,
+        defensePlayer4Id = team2player4Id,
+        defensePlayer5Id = team2player5Id,
+
+        points = team1Points,
+        expectedPoints = team1ExpectedPoints,
+        defensiveRebounds = team2DefensiveRebounds,
+        offensiveRebounds = team1OffensiveRebounds,
+
+        possessions = team1Possessions,
+        seconds = seconds),
+      LuckAdjustedOneWayStint(
+        primaryKey = Seq(
+          team2player1Id, team2player2Id, team2player3Id, team2player4Id, team2player5Id,
+          team1player1Id, team1player2Id, team1player3Id, team1player4Id, team1player5Id,
+          season).mkString("_"),
+        season = season,
+        dt = dt,
+        offenseTeamId1 = teamId2,
+        offensePlayer1Id = team2player1Id,
+        offensePlayer2Id = team2player2Id,
+        offensePlayer3Id = team2player3Id,
+        offensePlayer4Id = team2player4Id,
+        offensePlayer5Id = team2player5Id,
+
+        defenseTeamId2 = teamId1,
+        defensePlayer1Id = team1player1Id,
+        defensePlayer2Id = team1player2Id,
+        defensePlayer3Id = team1player3Id,
+        defensePlayer4Id = team1player4Id,
+        defensePlayer5Id = team1player5Id,
+
+        points = team2Points,
+        expectedPoints = team2ExpectedPoints,
+        defensiveRebounds = team1DefensiveRebounds,
+        offensiveRebounds = team2OffensiveRebounds,
+
+        possessions = team2Possessions,
+        seconds = seconds))
 }
 
 private final case class TeamPoints(teamId: Integer, points: jl.Double, expectedPoints: jl.Double) {
@@ -419,4 +487,71 @@ private final case class TeamPoints(teamId: Integer, points: jl.Double, expected
 final case class SecondsPlayedContainer(primaryKey: String, playerId: jl.Integer, secondsPlayed: jl.Integer, season: String) {
   def +(other: SecondsPlayedContainer): SecondsPlayedContainer =
     SecondsPlayedContainer(primaryKey, playerId, secondsPlayed + other.secondsPlayed, season)
+}
+
+final case class LuckAdjustedOneWayStint(
+                                          primaryKey: String,
+                                          season: String,
+                                          dt: String,
+
+                                          offenseTeamId1: jl.Integer,
+                                          offensePlayer1Id: jl.Integer,
+                                          offensePlayer2Id: jl.Integer,
+                                          offensePlayer3Id: jl.Integer,
+                                          offensePlayer4Id: jl.Integer,
+                                          offensePlayer5Id: jl.Integer,
+                                          defenseTeamId2: jl.Integer,
+                                          defensePlayer1Id: jl.Integer,
+                                          defensePlayer2Id: jl.Integer,
+                                          defensePlayer3Id: jl.Integer,
+                                          defensePlayer4Id: jl.Integer,
+                                          defensePlayer5Id: jl.Integer,
+
+                                          points: jl.Double = 0.0,
+                                          expectedPoints: jl.Double = 0.0,
+
+                                          defensiveRebounds: jl.Integer = 0,
+
+                                          offensiveRebounds: jl.Integer = 0,
+
+                                          offensiveFouls: jl.Integer = 0,
+                                          defensiveFouls: jl.Integer = 0,
+
+                                          turnovers: jl.Integer = 0,
+                                          possessions: jl.Integer = 0,
+                                          seconds: jl.Integer = 0) {
+
+  def +(other: LuckAdjustedOneWayStint): LuckAdjustedOneWayStint =
+    LuckAdjustedOneWayStint(
+      primaryKey,
+      season,
+      dt,
+
+      offenseTeamId1,
+      offensePlayer1Id,
+      offensePlayer2Id,
+      offensePlayer3Id,
+      offensePlayer4Id,
+      offensePlayer5Id,
+      defenseTeamId2,
+      defensePlayer1Id,
+      defensePlayer2Id,
+      defensePlayer3Id,
+      defensePlayer4Id,
+      defensePlayer5Id,
+
+      points + other.points,
+      expectedPoints + other.expectedPoints,
+
+      defensiveRebounds + other.defensiveRebounds,
+
+      offensiveRebounds + other.offensiveRebounds,
+
+      offensiveFouls + other.offensiveFouls,
+      defensiveFouls + other.defensiveFouls,
+
+      turnovers + other.turnovers,
+      possessions + other.possessions,
+      seconds + other.seconds
+    )
 }

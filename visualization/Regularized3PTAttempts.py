@@ -90,15 +90,15 @@ def map_players(row_in):
         rowOut[filteredPlayers.index(p5)] = 1
 
     if check_player_qalifies(p6):
-        rowOut[filteredPlayers.index(p6) + len(filteredPlayers)] = -1
+        rowOut[filteredPlayers.index(p6) + len(filteredPlayers)] = 1
     if check_player_qalifies(p7):
-        rowOut[filteredPlayers.index(p7) + len(filteredPlayers)] = -1
+        rowOut[filteredPlayers.index(p7) + len(filteredPlayers)] = 1
     if check_player_qalifies(p8):
-        rowOut[filteredPlayers.index(p8) + len(filteredPlayers)] = -1
+        rowOut[filteredPlayers.index(p8) + len(filteredPlayers)] = 1
     if check_player_qalifies(p9):
-        rowOut[filteredPlayers.index(p9) + len(filteredPlayers)] = -1
+        rowOut[filteredPlayers.index(p9) + len(filteredPlayers)] = 1
     if check_player_qalifies(p10):
-        rowOut[filteredPlayers.index(p10) + len(filteredPlayers)] = -1
+        rowOut[filteredPlayers.index(p10) + len(filteredPlayers)] = 1
 
     return rowOut
 

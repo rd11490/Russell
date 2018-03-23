@@ -2,7 +2,7 @@ package com.rrdinsights.russell.storage.tables
 
 import com.rrdinsights.russell.etl.application.{GameDate, TeamInfo}
 import com.rrdinsights.russell.investigation.movement.{EventRow, PlayerWithBall}
-import com.rrdinsights.russell.investigation.playbyplay.{LuckAdjustedStint, SecondsPlayedContainer}
+import com.rrdinsights.russell.investigation.playbyplay.{LuckAdjustedOneWayStint, LuckAdjustedStint, SecondsPlayedContainer}
 import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotStintByZoneData}
 import com.rrdinsights.russell.investigation.shots.expectedshots.{ExpectedPointsByGame, ExpectedPointsPlayer, ExpectedPointsPlayerOnOff}
 import com.rrdinsights.russell.investigation.shots.shotmover.ShotsSeen
@@ -58,5 +58,6 @@ object NBATables {
   val player_with_ball: MySqlTable = MySqlTable[PlayerWithBall]("player_with_ball")
 
   val luck_adjusted_stints: MySqlTable = MySqlTable[LuckAdjustedStint]("luck_adjusted_stints")
+  val luck_adjusted_one_way_stints: MySqlTable = MySqlTable[LuckAdjustedOneWayStint]("luck_adjusted_one_way_stints")
   val seconds_played: MySqlTable = MySqlTable[SecondsPlayedContainer]("seconds_played")
 }

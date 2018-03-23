@@ -22,6 +22,7 @@ object PlayerProfileDownloader {
       .distinct
       .map(v => PlayerIdParameter.newParameterValue(v))
       .flatMap(v => {
+        println(v)
         Thread.sleep(1000)
         downloadPlayerProfiles(v)
       })
@@ -51,10 +52,16 @@ object PlayerProfileDownloader {
     val seasonSplits = players.map(v => RawPlayerProfileSeason(v, dt))
       .groupBy(v => (v.playerId, v.season))
       .map(v => {
-        if (v._2.size > 1) {
-          v._2.filter(_.teamId == -1).head
-        } else {
-          v._2.head
+        try {
+          if (v._2.lengthCompare(1) > 0) {
+            v._2.filter(_.teamId <= 1).head
+          } else {
+            v._2.head
+          }
+        } catch {
+          case e: Throwable =>
+            println(v._2)
+            throw e
         }
       }).toSeq
     MySqlClient.insertInto(NBATables.raw_player_profile_season_totals, seasonSplits)
