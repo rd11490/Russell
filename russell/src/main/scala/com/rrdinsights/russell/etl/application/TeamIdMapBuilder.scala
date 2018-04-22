@@ -8,9 +8,12 @@ import com.rrdinsights.russell.storage.tables.NBATables
 
 object TeamIdMapBuilder {
 
+  private val league: String = "League"
+
   def main(strings: Array[String]): Unit = {
     val teams = buildTeamMap()
-    writeTeamMap(teams)
+    val league = addLeague(teams)
+    writeTeamMap(teams ++ league)
   }
 
 
@@ -19,6 +22,12 @@ object TeamIdMapBuilder {
       .map(v => TeamInfo(s"${v.teamId}_${v.season}", v.teamId, v.teamName, v.teamAbbreviation, v.teamCity, v.season))
       .distinct
   }
+
+  private def addLeague(teamInfo: Seq[TeamInfo]): Seq[TeamInfo] =
+    teamInfo
+      .map(v => v.season)
+      .distinct
+      .map(v => TeamInfo(s"0_$v", 0, league, league, league, v))
 
   private def writeTeamMap(teams: Seq[TeamInfo]): Unit = {
     MySqlClient.createTable(NBATables.team_info)

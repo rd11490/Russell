@@ -44,6 +44,7 @@ object PlayerProfileDownloader {
   private def writeCareerStats(careerStats: Seq[PlayerProfileCareer], dt: String): Unit = {
     MySqlClient.createTable(NBATables.raw_player_profile_career_totals)
     val careerSplits = careerStats.map(v => RawPlayerProfileCareer(v, dt))
+    println(careerSplits)
     MySqlClient.insertInto(NBATables.raw_player_profile_career_totals, careerSplits)
   }
 

@@ -3,7 +3,7 @@ package com.rrdinsights.russell.investigation.playbyplay
 import com.rrdinsights.russell.etl.application.ShotChartDownloader
 import com.rrdinsights.russell.investigation.TeamMapper
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel.{ExpectedPoints, PlayByPlayEventMessageType, PlayByPlayWithLineup}
+import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, PlayByPlayWithLineup}
 import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.russell.utils.TimeUtils
 import com.rrdinsights.scalabrine.utils.CSVWriter

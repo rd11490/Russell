@@ -1,16 +1,17 @@
 package com.rrdinsights.russell.investigation.playbyplay
 
+import java.{lang => jl}
+
 import com.rrdinsights.russell.TestSpec
+import com.rrdinsights.russell.investigation.playbyplay.luckadjusted.LuckAdjustedUtils
 import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, PlayByPlayWithLineup}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
-import java.{lang => jl}
-
 @RunWith(classOf[JUnitRunner])
-final class LuckAdjustedStintsTest extends TestSpec {
+final class LuckAdjustedUtilsTest extends TestSpec {
 
-  import LuckAdjustedStintsTest._
+  import LuckAdjustedUtilsTest._
 
   test("isEndOfPossession") {
     val event1 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 14, homeDescription = "Shel. Williams Free Throw 2 of 3 (1 PTS)")
@@ -26,12 +27,12 @@ final class LuckAdjustedStintsTest extends TestSpec {
 
     val event8 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Make.toString, player1TeamId = 2, timeElapsed = 4)
 
-    assert(LuckAdjustedStints.isEndOfPossesion((event8, None), Seq((event1, None),(event2, None))))
-    assert(!LuckAdjustedStints.isEndOfPossesion((event8, None), Seq((event3, None), (event4, None))))
-    assert(LuckAdjustedStints.isEndOfPossesion((event8, None), Seq((event4, None),(event5, None))))
-    assert(!LuckAdjustedStints.isEndOfPossesion((event8, None),Seq((event4, None),(event6, None))))
-    assert(LuckAdjustedStints.isEndOfPossesion((event8, None), Seq((event6, None),(event7, None))))
-    assert(LuckAdjustedStints.isEndOfPossesion((event8, None), Seq((event7, None))))
+    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event1, None), (event2, None))))
+    assert(!LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event3, None), (event4, None))))
+    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event4, None), (event5, None))))
+    assert(!LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event4, None), (event6, None))))
+    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event6, None), (event7, None))))
+    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event7, None))))
   }
 
   test("isEndOfPossession - substitution during FT") {
@@ -57,84 +58,84 @@ final class LuckAdjustedStintsTest extends TestSpec {
     val eventsWithSubstitutionInFT2O = Seq(eventFT1, eventSub, eventFT2, eventFT3, eventORBD, eventOMake, eventEndOfPeriod)
       .map(v => (v, None))
 
-    val seperatedStints1 = LuckAdjustedStints.seperatePossessions(eventsWithSubstitutionInFT3D).map(_._1)
+    val seperatedStints1 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT3D).map(_._1)
     assert(seperatedStints1.size === 2)
     assert(seperatedStints1.head === eventsWithSubstitutionInFT3D.slice(0, 4))
-    assert(seperatedStints1.last === eventsWithSubstitutionInFT3D.slice(4, 6))
+    assert(seperatedStints1.last === eventsWithSubstitutionInFT3D.slice(4, 7))
 
-    val seperatedStints2 = LuckAdjustedStints.seperatePossessions(eventsWithSubstitutionInFT2D).map(_._1)
+    val seperatedStints2 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT2D).map(_._1)
     assert(seperatedStints2.size === 2)
     assert(seperatedStints2.head === eventsWithSubstitutionInFT2D.slice(0, 4))
-    assert(seperatedStints2.last === eventsWithSubstitutionInFT2D.slice(4, 6))
+    assert(seperatedStints2.last === eventsWithSubstitutionInFT2D.slice(4, 7))
 
-    val seperatedStints3 = LuckAdjustedStints.seperatePossessions(eventsWithSubstitutionInFT3O).map(_._1)
+    val seperatedStints3 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT3O).map(_._1)
     assert(seperatedStints3.size === 2)
     assert(seperatedStints3.head === eventsWithSubstitutionInFT3O.slice(0, 4))
-    assert(seperatedStints3.last === eventsWithSubstitutionInFT3O.slice(4, 6))
+    assert(seperatedStints3.last === eventsWithSubstitutionInFT3O.slice(4, 7))
 
-    val seperatedStints4 = LuckAdjustedStints.seperatePossessions(eventsWithSubstitutionInFT2O).map(_._1)
+    val seperatedStints4 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT2O).map(_._1)
     assert(seperatedStints4.size === 2)
     assert(seperatedStints4.head === eventsWithSubstitutionInFT2O.slice(0, 4))
-    assert(seperatedStints4.last === eventsWithSubstitutionInFT2O.slice(4, 6))
+    assert(seperatedStints4.last === eventsWithSubstitutionInFT2O.slice(4, 7))
 
   }
-  
+
   test("checkIfFTMade") {
     val event1 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 15, homeDescription = "Shel. Williams Free Throw 3 of 3 (1 PTS)")
     val event2 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 12, awayDescription = "Shel. Williams Free Throw 2 of 2 (1 PTS)")
     val event3 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 10, homeDescription = "MISS Shel. Williams Free Throw 1 of 1")
     val event4 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 12, awayDescription = "MISS Shel. Williams Free Throw 2 of 2")
 
-    assert(LuckAdjustedStints.checkIfFTMade((event1, None)))
-    assert(LuckAdjustedStints.checkIfFTMade((event2, None)))
-    assert(!LuckAdjustedStints.checkIfFTMade((event3, None)))
-    assert(!LuckAdjustedStints.checkIfFTMade((event4, None)))
+    assert(PlayByPlayUtils.isMadeFreeThrow((event1, None)))
+    assert(PlayByPlayUtils.isMadeFreeThrow((event2, None)))
+    assert(!PlayByPlayUtils.isMadeFreeThrow((event3, None)))
+    assert(!PlayByPlayUtils.isMadeFreeThrow((event4, None)))
   }
 }
 
-private object LuckAdjustedStintsTest {
+private object LuckAdjustedUtilsTest {
   def buildPlayByPlayWithLineup(
-                                eventNumber: jl.Integer = 1,
-                                playType: String = PlayByPlayEventMessageType.Make.toString,
-                                eventActionType: jl.Integer = 0,
-                                period: jl.Integer = 1,
-                                wcTimeString: String = null,
-                                pcTimeString: String = null,
-                                homeDescription: String = null,
-                                neutralDescription: String = null,
-                                awayDescription: String = null,
+                                 eventNumber: jl.Integer = 1,
+                                 playType: String = PlayByPlayEventMessageType.Make.toString,
+                                 eventActionType: jl.Integer = 0,
+                                 period: jl.Integer = 1,
+                                 wcTimeString: String = null,
+                                 pcTimeString: String = null,
+                                 homeDescription: String = null,
+                                 neutralDescription: String = null,
+                                 awayDescription: String = null,
 
-                                homeScore: jl.Integer = null,
-                                awayScore: jl.Integer = null,
+                                 homeScore: jl.Integer = null,
+                                 awayScore: jl.Integer = null,
 
-                                player1Type: jl.Integer = null,
-                                player1Id: jl.Integer = null,
-                                player1TeamId: jl.Integer = null,
+                                 player1Type: jl.Integer = null,
+                                 player1Id: jl.Integer = null,
+                                 player1TeamId: jl.Integer = null,
 
-                                player2Type: jl.Integer = null,
-                                player2Id: jl.Integer = null,
-                                player2TeamId: jl.Integer = null,
+                                 player2Type: jl.Integer = null,
+                                 player2Id: jl.Integer = null,
+                                 player2TeamId: jl.Integer = null,
 
-                                player3Type: jl.Integer = null,
-                                player3Id: jl.Integer = null,
-                                player3TeamId: jl.Integer = null,
+                                 player3Type: jl.Integer = null,
+                                 player3Id: jl.Integer = null,
+                                 player3TeamId: jl.Integer = null,
 
-                                teamId1: jl.Integer = null,
-                                team1player1Id: jl.Integer = null,
-                                team1player2Id: jl.Integer = null,
-                                team1player3Id: jl.Integer = null,
-                                team1player4Id: jl.Integer = null,
-                                team1player5Id: jl.Integer = null,
-                                teamId2: jl.Integer = null,
-                                team2player1Id: jl.Integer = null,
-                                team2player2Id: jl.Integer = null,
-                                team2player3Id: jl.Integer = null,
-                                team2player4Id: jl.Integer = null,
-                                team2player5Id: jl.Integer = null,
+                                 teamId1: jl.Integer = null,
+                                 team1player1Id: jl.Integer = null,
+                                 team1player2Id: jl.Integer = null,
+                                 team1player3Id: jl.Integer = null,
+                                 team1player4Id: jl.Integer = null,
+                                 team1player5Id: jl.Integer = null,
+                                 teamId2: jl.Integer = null,
+                                 team2player1Id: jl.Integer = null,
+                                 team2player2Id: jl.Integer = null,
+                                 team2player3Id: jl.Integer = null,
+                                 team2player4Id: jl.Integer = null,
+                                 team2player5Id: jl.Integer = null,
 
-                                timeElapsed: jl.Integer = null,
-                                season: String = null,
-                                dt: String = null): PlayByPlayWithLineup =
+                                 timeElapsed: jl.Integer = null,
+                                 season: String = null,
+                                 dt: String = null): PlayByPlayWithLineup =
     PlayByPlayWithLineup(
       null,
       null,

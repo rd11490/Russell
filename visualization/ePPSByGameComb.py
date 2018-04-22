@@ -2,7 +2,7 @@ import matplotlib.pyplot as plt
 import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
-season = "2016-17"
+season = "2017-18"
 
 o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_game where season = '{}' and bin = 'Total' ) a " \
           "left join  (select * from nba.team_info) b " \

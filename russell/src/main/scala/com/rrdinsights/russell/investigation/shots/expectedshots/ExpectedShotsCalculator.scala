@@ -75,6 +75,20 @@ object ExpectedShotsCalculator {
         v.shotAttempted,
         v.shotMade,
         v.shotValue,
+        v.expectedPoints),
+      ExpectedPointsForReduction(
+        0,
+        v.bin,
+        v.shotAttempted,
+        v.shotMade,
+        v.shotValue,
+        v.expectedPoints),
+      ExpectedPointsForReduction(
+        0,
+        "Total",
+        v.shotAttempted,
+        v.shotMade,
+        v.shotValue,
         v.expectedPoints)))
 
     val shots = reduceShots(shotsForReduction, dt, season)
@@ -94,6 +108,20 @@ object ExpectedShotsCalculator {
           v.expectedPoints),
         ExpectedPointsForReduction(
           v.defenseTeamId,
+          "Total",
+          v.shotAttempted,
+          v.shotMade,
+          v.shotValue,
+          v.expectedPoints),
+        ExpectedPointsForReduction(
+          0,
+          v.bin,
+          v.shotAttempted,
+          v.shotMade,
+          v.shotValue,
+          v.expectedPoints),
+        ExpectedPointsForReduction(
+          0,
           "Total",
           v.shotAttempted,
           v.shotMade,

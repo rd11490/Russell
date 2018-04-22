@@ -2,7 +2,8 @@ package com.rrdinsights.russell.storage.tables
 
 import com.rrdinsights.russell.etl.application.{GameDate, TeamInfo}
 import com.rrdinsights.russell.investigation.movement.{EventRow, PlayerWithBall}
-import com.rrdinsights.russell.investigation.playbyplay.{LuckAdjustedOneWayStint, LuckAdjustedStint, SecondsPlayedContainer}
+import com.rrdinsights.russell.investigation.playbyplay.UnitPlayerStats
+import com.rrdinsights.russell.investigation.playbyplay.luckadjusted.{LuckAdjustedOneWayStint, LuckAdjustedStint, LuckAdjustedUnit, SecondsPlayedContainer}
 import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotStintByZoneData}
 import com.rrdinsights.russell.investigation.shots.expectedshots.{ExpectedPointsByGame, ExpectedPointsPlayer, ExpectedPointsPlayerOnOff}
 import com.rrdinsights.russell.investigation.shots.shotmover.ShotsSeen
@@ -60,4 +61,9 @@ object NBATables {
   val luck_adjusted_stints: MySqlTable = MySqlTable[LuckAdjustedStint]("luck_adjusted_stints")
   val luck_adjusted_one_way_stints: MySqlTable = MySqlTable[LuckAdjustedOneWayStint]("luck_adjusted_one_way_stints")
   val seconds_played: MySqlTable = MySqlTable[SecondsPlayedContainer]("seconds_played")
+
+  val luck_adjusted_units: MySqlTable = MySqlTable[LuckAdjustedUnit]("luck_adjusted_units")
+
+  val player_stats_by_unit: MySqlTable = MySqlTable[UnitPlayerStats]("player_stats_by_unit")
+
 }

@@ -2,11 +2,10 @@ import numpy as np
 import pandas as pd
 from sklearn import metrics
 from sklearn.linear_model import RidgeCV
-from sklearn.linear_model import BayesianRidge
-
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import normalize
 from sklearn import preprocessing
+
 
 import MySQLConnector
 
@@ -14,16 +13,18 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 sql = MySQLConnector.MySQLConnector()
-season = "2017-18"
 
-secondsQuery = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}';".format(season)
-stintsQuery = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{}';".format(season)
-playerNamesQuery = "select playerId, playerName from nba.roster_player where season = '{}';".format(season)
+secondsQuery = "SELECT playerId, secondsPlayed FROM nba.seconds_played;"
+stintsQuery = "SELECT * FROM nba.luck_adjusted_one_way_stints;"
+playerNamesQuery = "select playerId, playerName from nba.roster_player;"
 
 stints = sql.runQuery(stintsQuery)
 playerNames = sql.runQuery(playerNamesQuery).drop_duplicates()
-secondsPlayed = sql.runQuery(secondsQuery)
-secondsPlayedMap = secondsPlayed.set_index("playerId").to_dict()["secondsPlayed"]
+secondsPlayed = sql.runQuery(secondsQuery)[["playerId", "secondsPlayed"]]
+print(secondsPlayed.head(10))
+print(secondsPlayed.columns)
+
+secondsPlayedMap = secondsPlayed.groupby(by="playerId").sum().to_dict()["secondsPlayed"]
 
 players = list(
     set(list(stints["offensePlayer1Id"]) + list(stints["offensePlayer2Id"]) + list(stints["offensePlayer3Id"]) + \
@@ -87,9 +88,10 @@ stintX = np.apply_along_axis(map_players, 1, stintXBase)
 stintYAdjusted = stintsForReg.as_matrix(["ExpectedPointsPerPossession"])
 stintYRaw = stintsForReg.as_matrix(["PointsPerPossession"])
 
+
 lambdas = [.01, .05, .1, .25, .5, .75]
 samples = stintX.shape[0]
-alphas = [l * samples / 2 for l in lambdas]
+alphas = [l * samples/2 for l in lambdas]
 print(lambdas)
 print(samples)
 print(alphas)
@@ -97,21 +99,25 @@ print(alphas)
 clfAdjusted = RidgeCV(alphas=alphas, cv=5, fit_intercept=True, normalize=False)
 clfRaw = RidgeCV(alphas=alphas, cv=5, fit_intercept=True, normalize=False)
 
-weights = [secondsPlayedMap[p] / 60 for p in filteredPlayers]
+
+weights = [secondsPlayedMap[p]/60/(82*3) for p in filteredPlayers]
 weights = np.array(weights)
 weights = np.concatenate((weights, weights))
 weights = weights - weights.mean()
 print(weights)
+
+
 
 clfAdjusted.coef_ = weights
 clfRaw.coef_ = weights
 
 sample_weights = stints["possessions"].values
 
-print(clfAdjusted.coef_)
+# print(clfAdjusted.coef_)
 
-modelAdjusted = clfAdjusted.fit(stintX, stintYAdjusted, sample_weight=sample_weights)
-modelRaw = clfRaw.fit(stintX, stintYRaw, sample_weight=sample_weights)
+modelAdjusted = clfAdjusted.fit(stintX, stintYAdjusted)#, sample_weight=sample_weights)
+modelRaw = clfRaw.fit(stintX, stintYRaw)#, sample_weight=sample_weights)
+
 
 playerArr = np.transpose(np.array(filteredPlayers).reshape(1, len(filteredPlayers)))
 coefOArrAdj = np.transpose(modelAdjusted.coef_[:, 0:len(filteredPlayers)])
@@ -131,7 +137,7 @@ merged = playersCoef.merge(playerNames, how="inner", on="playerId")[
 merged["Luck Adjusted RAPM"] = merged["Luck Adjusted ORAPM"] + merged["Luck Adjusted DRAPM"]
 merged["RAPM"] = merged["ORAPM"] + merged["DRAPM"]
 
-merged.to_csv("results/Luck Adjusted RAPM {}.csv".format(season))
+merged.to_csv("results/Luck Adjusted RAPM MultiYear.csv")
 
 mergedO = merged.sort_values(by="Luck Adjusted ORAPM", ascending=False)
 
@@ -188,7 +194,7 @@ print("mean absolute error: {}".format(abs_error))
 rms_error = metrics.mean_squared_error(stintYAdjusted, pred)
 print("mean squared error: {}".format(rms_error))
 
-log_error = metrics.mean_squared_error(stintYAdjusted, pred)
+log_error = metrics.mean_squared_log_error(stintYAdjusted, pred)
 print("log squared error: {}".format(log_error))
 
 
@@ -217,3 +223,35 @@ print("mean squared error: {}".format(rms_error))
 
 log_error = metrics.mean_squared_log_error(stintYRaw, pred)
 print("log squared error: {}".format(log_error))
+
+# r2 = metrics.r2_score(stintY, pred)
+# print("r2: {}".format(r2))
+
+# stints["Prediction"] = pred
+#
+# stints["Error"] = stints["Prediction"] - stints[shot_frequency]
+#
+#
+# def calculate_rmse(group):
+#     group["RMSE"] = ((group["Error"]) ** 2).mean() ** .5
+#     group["AvgError"] = abs(group["Error"]).mean()
+#     group["Count"] = len(group) / 6
+#
+#     return group
+#
+#
+# rmse = stints.groupby(by=true_attempts).apply(calculate_rmse)
+#
+# rmse_for_plot = rmse[[true_attempts, "Count", "RMSE", "AvgError"]].drop_duplicates().sort_values(by=true_attempts)
+#
+# print(rmse_for_plot)
+#
+# fig, ax = plt.subplots()
+# rmse_for_plot.plot.scatter(ax=ax, x=true_attempts, y="RMSE", color="Red", )
+# rmse_for_plot.plot.scatter(ax=ax, x=true_attempts, y="AvgError", color="Blue")
+# plt.legend(["RMSE", "AvgError"])
+# plt.xlabel("Attempts")
+# plt.ylabel("Error")
+# plt.title("In-Sample Error for Regularized 3Pt Frequency")
+# plt.ylim([0, 50])
+# plt.show()

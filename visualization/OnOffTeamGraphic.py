@@ -11,10 +11,6 @@ import drawCourt
 import os
 
 shotZones = ShotZones.buildShotZones()
-players = ["Nikola Jokic"]
-    #["Lonzo Ball", "Jayson Tatum", "Josh Jackson", "Dennis Smith Jr.", "DeAaron Fox", "Ben Simmons", "Donovan Mitchell"]
-    #["Rudy Gobert", "Al Horford", "Joel Embiid", "Kevin Durant", "Anthony Davis", "Paul George", "Andre Roberson"]
-    #["Stephen Curry", "James Harden", "LeBron James", "Anthony Davis", "Russell Westbrook", "Giannis Antetokounmpo"]
 season = "2017-18"
 
 sql = MySQLConnector.MySQLConnector()
@@ -25,11 +21,10 @@ pps = "pointsAvg"
 epps = "expectedPointsAvg"
 
 
-def extract_player_on_off(df, player_name):
-    player_df = df[df["playerName"] == player_name]
-    player_on_df = player_df[player_df["onOff"] == "On"]
-    player_off_df = player_df[player_df["onOff"] == "Off"]
-    return player_on_df, player_off_df
+def extract_team_and_league(df, team_name):
+    team_df = df[df["teamName"] == team_name]
+    league_df = df[df["teamName"] == "League"]
+    return team_df, league_df
 
 
 def calculate_shot_frequency(df):
@@ -71,27 +66,26 @@ def plot_on_off_shot_chart(ax, df, col, minVal, maxVal, type):
             yAvg -= 50
 
         if (bin == "RightCorner" or bin == "LeftCorner") and type != "%":
-            txt = "On: \n {0:.2f}\n{2} \n Off: \n {1:.2f}\n{2}".format(on, off, type)
+            txt = "Team: \n {0:.2f}\n{2} \n League: \n {1:.2f}\n{2}".format(on, off, type)
         else:
-            txt = "On: \n {0:.2f}{2} \n Off: \n {1:.2f}{2}".format(on, off, type)
+            txt = "Team: \n {0:.2f}{2} \n League: \n {1:.2f}{2}".format(on, off, type)
 
         ax.text(xAvg, yAvg, txt, fontdict=font)
         ax.scatter(x=zoneLocs["X"], y=zoneLocs["Y"], color=cls(norm(plotVal)), marker="h", s=3)
     clb = plt.colorbar(mappable=sm, ticks=[minVal, (maxVal + minVal) / 2, maxVal])
-    clb.ax.set_title("On - Off")
+    clb.ax.set_title("Team - League")
     return ax
 
 
-o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_player_on_off_zoned " \
+o_query = "SELECT * FROM (select * from nba.offense_expected_points " \
           "WHERE season = '{0}' and bin != 'Total') a " \
-          "left join  (SELECT playerId, playerName FROM nba.roster_player WHERE season = '{0}') b " \
-          "on (a.id = b.playerId)".format(season)
+          "left join  (select * from nba.team_info where season = '{0}') b " \
+          "on (a.teamId = b.teamId)".format(season)
 
-d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_player_on_off_zoned " \
+d_query = "SELECT * FROM (select * from nba.defense_expected_points " \
           "WHERE season = '{0}' and bin != 'Total') a " \
-          "left join  (SELECT playerId, playerName FROM nba.roster_player " \
-          "WHERE season = '{0}') b " \
-          "on (a.id = b.playerId)".format(season)
+          "left join  (select * from nba.team_info where season = '{0}') b " \
+          "on (a.teamId = b.teamId)".format(season)
 
 shot_zones_O = sql.runQuery(o_query)
 shot_zones_D = sql.runQuery(d_query)
@@ -103,21 +97,23 @@ font = {'family': 'serif',
         'ha': 'center',
         'va': 'center'}
 
-for player in players:
-    print(player)
-    shot_zones_d_on, shot_zones_d_off = extract_player_on_off(shot_zones_D, player)
-    shot_zones_o_on, shot_zones_o_off = extract_player_on_off(shot_zones_O, player)
+teams = set(shot_zones_O["teamName"])
 
-    shot_zones_d_on = calculate_shot_frequency(shot_zones_d_on)
-    shot_zones_d_off = calculate_shot_frequency(shot_zones_d_off)
-    shot_zones_o_on = calculate_shot_frequency(shot_zones_o_on)
-    shot_zones_o_off = calculate_shot_frequency(shot_zones_o_off)
+for team in teams:
+    print(team)
+    shot_zones_d_team, shot_zones_d_league = extract_team_and_league(shot_zones_D, team)
+    shot_zones_o_team, shot_zones_o_league = extract_team_and_league(shot_zones_O, team)
+
+    shot_zones_d_on = calculate_shot_frequency(shot_zones_d_team)
+    shot_zones_d_off = calculate_shot_frequency(shot_zones_d_league)
+    shot_zones_o_on = calculate_shot_frequency(shot_zones_o_team)
+    shot_zones_o_off = calculate_shot_frequency(shot_zones_o_league)
 
     shot_zones_d_comb = combine_on_off(shot_zones_d_on, shot_zones_d_off)
     shot_zones_o_comb = combine_on_off(shot_zones_o_on, shot_zones_o_off)
 
     fig = plt.figure(figsize=(16, 6))
-    fig.suptitle("{} \n On-Off Shot Frequency Charts".format(player), fontsize=12)
+    fig.suptitle("{} \n Shot Frequency Charts (vs League Avg)".format(team), fontsize=12)
     gs0 = gridspec.GridSpec(1, 2)
 
     ax1 = plt.Subplot(fig, gs0[0, 0])
@@ -154,12 +150,12 @@ for player in players:
 
     ax2 = plot_on_off_shot_chart(ax2, shot_zones_d_comb, shot_frequency, -4, 4, "%")
 
-    results_dir = "plots/PlayerShotFreqChart/{0}".format(season)
+    results_dir = "plots/TeamShotFreqChart/{0}".format(season)
     if not os.path.isdir(results_dir):
         os.makedirs(results_dir)
 
     fig.tight_layout(rect=[0, 0, 1, .925])
-    plt.savefig("{0}/{1}.png".format(results_dir,player), figsize=(16, 6), dpi=900)
+    plt.savefig("{0}/{1}.png".format(results_dir, team), figsize=(16, 6), dpi=900)
     plt.close()
 
     ####
@@ -167,7 +163,7 @@ for player in players:
     ####
 
     fig = plt.figure(figsize=(16, 6))
-    fig.suptitle("{} \n On-Off Points Per Shot Charts".format(player), fontsize=12)
+    fig.suptitle("{} \n Points Per Shot Charts (vs League Avg)".format(team), fontsize=12)
     gs0 = gridspec.GridSpec(1, 2)
 
     ax1 = plt.Subplot(fig, gs0[0, 0])
@@ -201,12 +197,12 @@ for player in players:
 
     ax2 = plot_on_off_shot_chart(ax2, shot_zones_d_comb, pps, -1, 1, " PPS")
 
-    results_dir = "plots/PlayerPPSChart/{0}".format(season)
+    results_dir = "plots/TeamPPSChart/{0}".format(season)
     if not os.path.isdir(results_dir):
         os.makedirs(results_dir)
 
     fig.tight_layout(rect=[0, 0, 1, .925])
-    plt.savefig("{0}/{1}.png".format(results_dir,player), figsize=(16, 6), dpi=900)
+    plt.savefig("{0}/{1}.png".format(results_dir, team), figsize=(16, 6), dpi=900)
     plt.close()
 
     ####
@@ -214,7 +210,7 @@ for player in players:
     ####
 
     fig = plt.figure(figsize=(16, 6))
-    fig.suptitle("{} \n On-Off Expected Points Per Shot Charts".format(player), fontsize=12)
+    fig.suptitle("{} \n Expected Points Per Shot Charts (vs League Avg)".format(team), fontsize=12)
     gs0 = gridspec.GridSpec(1, 2)
 
     ax1 = plt.Subplot(fig, gs0[0, 0])
@@ -247,11 +243,11 @@ for player in players:
 
     ax2 = plot_on_off_shot_chart(ax2, shot_zones_d_comb, epps, -1, 1, " ePPS")
 
-    results_dir = "plots/PlayerEPPSChart/{0}".format(season)
+    results_dir = "plots/TeamEPPSChart/{0}".format(season)
     if not os.path.isdir(results_dir):
         os.makedirs(results_dir)
 
     fig.tight_layout(rect=[0, 0, 1, .925])
-    plt.savefig("{0}/{1}.png".format(results_dir,player), figsize=(16, 6), dpi=900)
+    plt.savefig("{0}/{1}.png".format(results_dir, team), figsize=(16, 6), dpi=900)
     plt.close()
     # plt.show()

@@ -1,4 +1,4 @@
-package com.rrdinsights.russell.investigation.playbyplay
+package com.rrdinsights.russell.investigation.playbyplay.luckadjusted
 
 import java.{lang => jl}
 
@@ -8,9 +8,6 @@ import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel._
 import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.russell.utils.{MapJoin, TimeUtils}
-
-import scala.collection.mutable
-import scala.collection.mutable.ArrayBuffer
 
 object LuckAdjustedStints {
   /**
@@ -25,11 +22,11 @@ object LuckAdjustedStints {
 
     val whereSeason = s"season = '$season'"
 
-    val playByPlay = readPlayByPlay(whereSeason)
+    val playByPlay = LuckAdjustedUtils.readPlayByPlay(whereSeason)
 
     println(s"${playByPlay.size} PlayByPlay Events <<<<<<<<<<<<<<<<<<")
 
-    val freeThrowMap = buildPlayerCareerFreeThrowPercentMap()
+    val freeThrowMap = LuckAdjustedUtils.buildPlayerCareerFreeThrowPercentMap()
 
     val seasonShots = ShotUtils.readScoredShots(whereSeason)
 
@@ -41,11 +38,13 @@ object LuckAdjustedStints {
 
     val stints = playByPlayWithShotData
       .groupBy(v => (v._1.gameId, v._1.period))
-      .flatMap(v => seperatePossessions(v._2.sortBy(_._1)))
+      .flatMap(v => LuckAdjustedUtils.seperatePossessions(v._2.sortBy(_._1)))
       .map(v => parsePossesions(v, freeThrowMap, dt))
       .groupBy(_.primaryKey)
       .map(v => v._2.reduce(_ + _))
       .toSeq
+
+    println(s"${stints.length} <<<<<<<<< STINTS")
 
     writeStints(stints)
 
@@ -95,7 +94,7 @@ object LuckAdjustedStints {
 
     val events = eventsWithTime._1
     val time = eventsWithTime._2
-    val points = countPoints(events, freeThrowMap)
+    val points = LuckAdjustedUtils.countPoints(events, freeThrowMap)
 
     val first = events.head
     val team1Points = points.find(_.teamId == first._1.teamId1)
@@ -113,7 +112,7 @@ object LuckAdjustedStints {
       first._1.team2player5Id,
       first._1.season).mkString("_")
 
-    val possesion = determinePossession(events)
+    val possesion = LuckAdjustedUtils.determinePossession(events)
     val team1Possessions = if (possesion == first._1.teamId1) 1 else 0
     val team2Possessions = if (possesion == first._1.teamId2) 1 else 0
 
@@ -143,195 +142,6 @@ object LuckAdjustedStints {
       team2Possessions = team2Possessions,
       seconds = time)
   }
-
-  private def determinePossession(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Integer = {
-    val techFouls = Seq(11, 14, 15, 17)
-    events.flatMap(v => v._2).headOption.map(_.offenseTeamId).getOrElse(
-      events.find(v => {
-        v._1.playType == PlayByPlayEventMessageType.Make.toString ||
-          v._1.playType == PlayByPlayEventMessageType.Miss.toString ||
-          v._1.playType == PlayByPlayEventMessageType.FreeThrow.toString ||
-          v._1.playType == PlayByPlayEventMessageType.Turnover.toString
-      })
-        .map(_._1.player1TeamId)
-        .getOrElse(
-          if (PlayByPlayEventMessageType.valueOf(events.last._1.playType) == PlayByPlayEventMessageType.Foul &&
-            techFouls.contains(events.last._1.eventActionType)) {
-            if (events.last._1.player1TeamId == events.last._1.teamId1) {
-              events.last._1.teamId2
-            } else {
-              events.last._1.teamId1
-            }
-          } else {
-            events.last._1.player1TeamId
-          }))
-  }
-
-  private def countPoints(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])], freeThrowMap: Map[Integer, jl.Double]): Seq[TeamPoints] = {
-    events.filter(v => v._1.playType == PlayByPlayEventMessageType.Make.toString ||
-      (v._1.playType == PlayByPlayEventMessageType.FreeThrow.toString))
-      .map(v => PlayByPlayEventMessageType.valueOf(v._1.playType) match {
-        case PlayByPlayEventMessageType.FreeThrow => buildStintFromFreeThrow(v, freeThrowMap)
-        case PlayByPlayEventMessageType.Make => buildStingFromShot(v)
-        case PlayByPlayEventMessageType.Miss => buildStingFromShot(v)
-      })
-      .groupBy(_.teamId)
-      .map(v => v._2.reduce(_ + _))
-      .toSeq
-  }
-
-  private def buildStingFromShot(event: (PlayByPlayWithLineup, Option[ScoredShot])): TeamPoints = {
-    try {
-      val teamId = event._1.player1TeamId
-      val scoredShot = event._2.get
-      val points = scoredShot.shotValue.toDouble * scoredShot.shotMade
-      val expectedPoints = if (scoredShot.shotValue == 3) scoredShot.expectedPoints.doubleValue() else points
-      TeamPoints(teamId, points, expectedPoints)
-    } catch {
-      case e: Throwable =>
-        println(event)
-        throw e
-    }
-
-  }
-
-  private def buildStintFromFreeThrow(event: (PlayByPlayWithLineup, Option[ScoredShot]), freeThrowMap: Map[Integer, jl.Double]): TeamPoints = {
-    val teamId = event._1.player1TeamId
-    val expectedPoints = freeThrowMap(event._1.player1Id).doubleValue()
-    val points = if (checkIfFTMade(event)) 1.0 else 0.0
-    TeamPoints(teamId, points, expectedPoints)
-  }
-
-  //  private def countTurnovers(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): (Int, Int) = {
-  //    //    '0' No TO - P1 is player who "NO TOed it"
-  //    //    '1' Steal - P1 is player who lost ball, P2 is player who stole it
-  //    //    '2' Steal - P1 is player who lost ball, P2 is player who stole it
-  //    //    '4' Travel - P1 is player who traveled
-  //    //    '6' Double Dribble - P1 committed TO
-  //    //    '7' Discontinued Dribble - P1 committed TO
-  //    //    '8' 3 Second Violation - P1 committed TO
-  //    //    '9'
-  //    //    '10'
-  //    //    '11'
-  //    //    '12'
-  //    //    '13'
-  //    //    '15'
-  //    //    '17'
-  //    //    '18'
-  //    //    '19'
-  //    //    '20'
-  //    //    '21'
-  //    //    '33'
-  //    //    '35'
-  //    //    '36'
-  //    //    '37'
-  //    //    '39'
-  //    //    '40'
-  //    //    '44'
-  //    //    '45'
-  //
-  //  }
-
-  private[playbyplay] def seperatePossessions(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Seq[(Seq[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)] = {
-    val possessions: ArrayBuffer[(ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)] =
-      new ArrayBuffer[(ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)]()
-    var i: Int = 0
-    var time: Int = TimeUtils.timeFromStartOfGameAtPeriod(events.head._1.period)
-    var possession: mutable.ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])] = new ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])]()
-    while (i < events.size) {
-      val event = events(i)
-      if (isEndOfPossesion(event, possession)) {
-        possessions.append((possession, possession.last._1.timeElapsed - time))
-        time = possession.last._1.timeElapsed
-        possession = new ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])]()
-      }
-      possession.append(event)
-      i += 1
-    }
-    possessions
-  }
-
-  private[playbyplay] def isEndOfPossesion(event: (PlayByPlayWithLineup, Option[ScoredShot]),
-                                           lastEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Boolean = {
-    lastEvents.nonEmpty &&
-      (isTechnicalFT(event) ||
-        isEndOfPeriod(event) || (
-        hasTimeChanged(event, lastEvents) &&
-          (isMakeAndNotAndOne(event, lastEvents) ||
-            isDefensiveRebound(event, lastEvents) ||
-            isLastMadeFreeThrow(lastEvents) ||
-            isTurnover(lastEvents))))
-
-  }
-
-  private def isTimeout(event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean = {
-    PlayByPlayEventMessageType.valueOf(event._1.playType) == PlayByPlayEventMessageType.Timeout
-  }
-
-  private def isEndOfPeriod(event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean = {
-    PlayByPlayEventMessageType.valueOf(event._1.playType) == PlayByPlayEventMessageType.EndOfPeriod
-  }
-
-  private def hasTimeChanged(event: (PlayByPlayWithLineup, Option[ScoredShot]),
-                             lastEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Boolean = {
-    event._1.timeElapsed != lastEvents.last._1.timeElapsed
-  }
-
-  private def isMakeAndNotAndOne(event: (PlayByPlayWithLineup, Option[ScoredShot]),
-                                 lastEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Boolean = {
-    val lastEvent = lastEvents.last
-    PlayByPlayEventMessageType.valueOf(lastEvent._1.playType) == PlayByPlayEventMessageType.Make &&
-      !(PlayByPlayEventMessageType.valueOf(event._1.playType) == PlayByPlayEventMessageType.Foul &&
-        event._1.timeElapsed == lastEvent._1.timeElapsed)
-
-
-  }
-
-  private def isDefensiveRebound(event: (PlayByPlayWithLineup, Option[ScoredShot]),
-                                 lastEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Boolean = {
-    if (lastEvents.lengthCompare(1) > 0) {
-      val lastEvent = lastEvents.last
-      val secondToLastEvent = lastEvents.takeRight(2).head
-      PlayByPlayEventMessageType.valueOf(lastEvent._1.playType) == PlayByPlayEventMessageType.Rebound &&
-        (PlayByPlayEventMessageType.valueOf(secondToLastEvent._1.playType) == PlayByPlayEventMessageType.Miss ||
-          PlayByPlayEventMessageType.valueOf(secondToLastEvent._1.playType) == PlayByPlayEventMessageType.FreeThrow) &&
-        lastEvent._1.player1TeamId != secondToLastEvent._1.player1TeamId
-    } else {
-      false
-    }
-  }
-
-  private def isLastMadeFreeThrow(lastEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Boolean = {
-    val lastEvent = lastEvents.last
-
-    lastEvent._1.eventActionType == 16 ||
-      ((lastEvent._1.eventActionType == 15 ||
-        lastEvent._1.eventActionType == 12 ||
-        lastEvent._1.eventActionType == 10) &&
-        checkIfFTMade(lastEvent))
-  }
-
-  private def isTechnicalFT(event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean =
-    PlayByPlayEventMessageType.valueOf(event._1.playType) == PlayByPlayEventMessageType.FreeThrow &&
-      event._1.eventActionType == 16
-
-
-  private def isTurnover(lastEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Boolean = {
-    PlayByPlayEventMessageType.valueOf(lastEvents.last._1.playType) == PlayByPlayEventMessageType.Turnover
-  }
-
-  private[playbyplay] def checkIfFTMade(event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean =
-    !Option(event._1.awayDescription).exists(_.contains("MISS")) &&
-      !Option(event._1.homeDescription).exists(_.contains("MISS"))
-
-  private def readPlayByPlay(season: String): Seq[PlayByPlayWithLineup] =
-    MySqlClient.selectFrom(NBATables.play_by_play_with_lineup, PlayByPlayWithLineup.apply, season)
-
-  private def buildPlayerCareerFreeThrowPercentMap(/*IO*/): Map[Integer, jl.Double] =
-    MySqlClient.selectFrom(NBATables.raw_player_profile_career_totals, RawPlayerProfileCareer.apply)
-      .map(v => (v.playerId, v.freeThrowPercent))
-      .toMap
-
 }
 
 final case class LuckAdjustedStint(primaryKey: String,
@@ -477,11 +287,6 @@ final case class LuckAdjustedStint(primaryKey: String,
 
         possessions = team2Possessions,
         seconds = seconds))
-}
-
-private final case class TeamPoints(teamId: Integer, points: jl.Double, expectedPoints: jl.Double) {
-  def +(other: TeamPoints): TeamPoints =
-    TeamPoints(teamId, points + other.points, expectedPoints + other.expectedPoints)
 }
 
 final case class SecondsPlayedContainer(primaryKey: String, playerId: jl.Integer, secondsPlayed: jl.Integer, season: String) {

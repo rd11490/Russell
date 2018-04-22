@@ -77,7 +77,7 @@ private final class PlayerStatsArguments private(args: Array[String])
 
   lazy val delta: Boolean = has(PlayerStatsArguments.DeltaOption)
 
-  lazy val playerProfiles: Boolean = has(PlayerStatsArguments.PlayerProfileTotals)
+  lazy val playerProfiles: Boolean = has(PlayerStatsArguments.PlayerProfileTotals) || runAll
 
 }
 
