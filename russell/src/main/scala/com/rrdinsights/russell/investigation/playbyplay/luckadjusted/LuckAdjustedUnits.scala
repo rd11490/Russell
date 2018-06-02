@@ -16,15 +16,12 @@ object LuckAdjustedUnits {
     */
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
-//    val args = ExpectedPointsArguments(strings)
-//    val season = args.season
-    val season = "2017-18"
+    val args = ExpectedPointsArguments(strings)
+    val season = args.season
 
     val whereSeason = s"season = '$season'"
 
     val playByPlay = LuckAdjustedUtils.readPlayByPlay(whereSeason)
-      .filter(v => v.gameId == "0021700019" && v.period == 1)
-//      .filter(v => v.eventNumber > 57 && v.eventNumber < 80)
 
     println(s"${playByPlay.size} PlayByPlay Events <<<<<<<<<<<<<<<<<<")
 
@@ -37,6 +34,7 @@ object LuckAdjustedUnits {
 
 
     val playByPlayWithShotData = MapJoin.leftOuterJoin(keyedPbP, keyedShots)
+
 
     val units = playByPlayWithShotData
       .groupBy(v => (v._1.gameId, v._1.period))
@@ -59,6 +57,8 @@ object LuckAdjustedUnits {
 
 
   }
+
+  println()
 
   private def writeUnits(stints: Seq[LuckAdjustedUnit]): Unit = {
     MySqlClient.createTable(NBATables.luck_adjusted_units)

@@ -112,9 +112,9 @@ object LuckAdjustedStints {
       first._1.team2player5Id,
       first._1.season).mkString("_")
 
-    val possesion = LuckAdjustedUtils.determinePossession(events)
-    val team1Possessions = if (possesion == first._1.teamId1) 1 else 0
-    val team2Possessions = if (possesion == first._1.teamId2) 1 else 0
+    val possession = LuckAdjustedUtils.determinePossession(events)
+    val team1Possessions = if (possession == first._1.teamId1) 1 else 0
+    val team2Possessions = if (possession == first._1.teamId2) 1 else 0
 
     LuckAdjustedStint(
       primaryKey = primaryKey,

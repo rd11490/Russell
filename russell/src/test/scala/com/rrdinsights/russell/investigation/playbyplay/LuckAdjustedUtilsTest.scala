@@ -4,7 +4,7 @@ import java.{lang => jl}
 
 import com.rrdinsights.russell.TestSpec
 import com.rrdinsights.russell.investigation.playbyplay.luckadjusted.LuckAdjustedUtils
-import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, PlayByPlayWithLineup}
+import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, PlayByPlayWithLineup, ScoredShot}
 import org.junit.runner.RunWith
 import org.scalatest.junit.JUnitRunner
 
@@ -13,71 +13,61 @@ final class LuckAdjustedUtilsTest extends TestSpec {
 
   import LuckAdjustedUtilsTest._
 
-  test("isEndOfPossession") {
-    val event1 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 14, homeDescription = "Shel. Williams Free Throw 2 of 3 (1 PTS)")
-    val event2 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 15, homeDescription = "Shel. Williams Free Throw 3 of 3 (1 PTS)")
+  test("count possessions") {
 
-    val event3 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, eventActionType = 14, homeDescription = "Shel. Williams Free Throw 2 of 3 (1 PTS)")
-    val event4 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, player1TeamId = 1, eventActionType = 15, homeDescription = "MISS Shel. Williams Free Throw 3 of 3")
-    val event5 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Rebound.toString, player1TeamId = 2)
+    import PlayByPlayParserTestData._
+    val sortedData = TestData
+    val out = LuckAdjustedUtils.seperatePossessions(sortedData)
 
-    val event6 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Rebound.toString, player1TeamId = 1)
+//    out.foreach(v => {
+//      println("Possession:")
+//      v._1.foreach(c => {
+//        println(s"${c._1.timeElapsed} - ${c._1.eventNumber} - ${c._1.playType} - ${c._1.homeDescription} - ${c._1.neutralDescription} - ${c._1.awayDescription}")
+//      })
+//    })
 
-    val event7 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Turnover.toString, player1TeamId = 2)
-
-    val event8 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Make.toString, player1TeamId = 2, timeElapsed = 4)
-
-    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event1, None), (event2, None))))
-    assert(!LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event3, None), (event4, None))))
-    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event4, None), (event5, None))))
-    assert(!LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event4, None), (event6, None))))
-    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event6, None), (event7, None))))
-    assert(LuckAdjustedUtils.isEndOfPossesion((event8, None), Seq((event7, None))))
+    assert(out.size === 50)
   }
 
-  test("isEndOfPossession - substitution during FT") {
-    val eventFT1 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, player1TeamId = 1, eventActionType = 13, homeDescription = "Shel. Williams Free Throw 1 of 3 (1 PTS)", timeElapsed = 1)
-    val eventFT2 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, player1TeamId = 1, eventActionType = 14, homeDescription = "Shel. Williams Free Throw 2 of 3 (1 PTS)", timeElapsed = 1)
-    val eventFT3 = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.FreeThrow.toString, player1TeamId = 1, eventActionType = 15, homeDescription = "Shel. Williams Free Throw 3 of 3 (1 PTS)", timeElapsed = 1)
-    val eventSub = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Substitution.toString, player1TeamId = 2, timeElapsed = 1)
-    val eventDRBD = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Rebound.toString, player1TeamId = 2, timeElapsed = 2)
-    val eventORBD = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Rebound.toString, player1TeamId = 1, timeElapsed = 2)
-    val eventDMake = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Make.toString, player1TeamId = 2, timeElapsed = 2)
-    val eventOMake = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.Make.toString, player1TeamId = 1, timeElapsed = 2)
-    val eventEndOfPeriod = buildPlayByPlayWithLineup(playType = PlayByPlayEventMessageType.EndOfPeriod.toString, timeElapsed = 3)
+  test("count possessions2") {
 
-    val eventsWithSubstitutionInFT3D = Seq(eventFT1, eventFT2, eventSub, eventFT3, eventDRBD, eventDMake, eventEndOfPeriod)
-      .map(v => (v, None))
+    import PlayByPlayParserTestData2._
+    val sortedData = TestData
+    val out = LuckAdjustedUtils.seperatePossessions(sortedData)
 
-    val eventsWithSubstitutionInFT2D = Seq(eventFT1, eventSub, eventFT2, eventFT3, eventDRBD, eventDMake, eventEndOfPeriod)
-      .map(v => (v, None))
+    out.foreach(v => {
+      println("Possession:")
+      v._1.foreach(c => {
+        println(s"${c._1.timeElapsed} - ${c._1.eventNumber} - ${c._1.playType} - ${c._1.homeDescription} - ${c._1.neutralDescription} - ${c._1.awayDescription}")
+      })
+    })
 
-    val eventsWithSubstitutionInFT3O = Seq(eventFT1, eventFT2, eventSub, eventFT3, eventORBD, eventOMake, eventEndOfPeriod)
-      .map(v => (v, None))
+    assert(out.size === 49)
+  }
 
-    val eventsWithSubstitutionInFT2O = Seq(eventFT1, eventSub, eventFT2, eventFT3, eventORBD, eventOMake, eventEndOfPeriod)
-      .map(v => (v, None))
+  test("is And 1") {
 
-    val seperatedStints1 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT3D).map(_._1)
-    assert(seperatedStints1.size === 2)
-    assert(seperatedStints1.head === eventsWithSubstitutionInFT3D.slice(0, 4))
-    assert(seperatedStints1.last === eventsWithSubstitutionInFT3D.slice(4, 7))
+    import PlayByPlayParserTestData._
+    val sortedData = TestData.filter(_._1.timeElapsed == 454)
+    val out = LuckAdjustedUtils.seperatePossessions(sortedData)
 
-    val seperatedStints2 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT2D).map(_._1)
-    assert(seperatedStints2.size === 2)
-    assert(seperatedStints2.head === eventsWithSubstitutionInFT2D.slice(0, 4))
-    assert(seperatedStints2.last === eventsWithSubstitutionInFT2D.slice(4, 7))
+    assert(out.size === 1)
+  }
 
-    val seperatedStints3 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT3O).map(_._1)
-    assert(seperatedStints3.size === 2)
-    assert(seperatedStints3.head === eventsWithSubstitutionInFT3O.slice(0, 4))
-    assert(seperatedStints3.last === eventsWithSubstitutionInFT3O.slice(4, 7))
+  test("is And 1 - 2") {
 
-    val seperatedStints4 = LuckAdjustedUtils.seperatePossessions(eventsWithSubstitutionInFT2O).map(_._1)
-    assert(seperatedStints4.size === 2)
-    assert(seperatedStints4.head === eventsWithSubstitutionInFT2O.slice(0, 4))
-    assert(seperatedStints4.last === eventsWithSubstitutionInFT2O.slice(4, 7))
+    import PlayByPlayParserTestData2._
+    val sortedData = TestData.filter(v => v._1.timeElapsed < 125)
+    val out = LuckAdjustedUtils.seperatePossessions(sortedData)
 
+//        out.foreach(v => {
+//          println("Possession:")
+//          v._1.foreach(c => {
+//            println(s"${c._1.timeElapsed} - ${c._1.eventNumber} - ${c._1.playType} - ${c._1.homeDescription} - ${c._1.neutralDescription} - ${c._1.awayDescription}")
+//          })
+//        })
+
+    assert(out.size === 7)
   }
 
   test("checkIfFTMade") {

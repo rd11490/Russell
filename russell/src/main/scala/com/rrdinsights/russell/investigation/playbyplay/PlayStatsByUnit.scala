@@ -54,7 +54,8 @@ object PlayStatsByUnit {
       .flatMap(v => parseEvent(v))
       .groupBy(_.primaryKey)
       .map(v => v._2.reduce(_ + _))
-      .map(v => v.copy(seconds = possession._2, possessions = 1))
+      .map(v => v.copy(seconds = possession._2))
+      .map(_.determinePossession)
       .toSeq
   }
 
@@ -110,16 +111,14 @@ object PlayStatsByUnit {
 
   def parseMakeEvent(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     if (PlayByPlayUtils.isAssisted(event)) {
-      Seq(
-        parseMake(event),
-        parseAssist(event))
+      parseMake(event) ++ parseAssist(event)
     } else {
-      Seq(parseMake(event))
+      parseMake(event)
     }
 
   }
 
-  def parseMake(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseMake(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val assisted = PlayByPlayUtils.isAssisted(event)
 
     val players = extractPlayers(event)
@@ -146,7 +145,7 @@ object PlayStatsByUnit {
     val threePtMade = if (is3PTShot) 1 else 0
     val assisted3PtMade = if (is3PTShot && assisted) 1 else 0
 
-    UnitPlayerStats(
+    val makeStats = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -174,9 +173,18 @@ object PlayStatsByUnit {
       threePtAttempts = threePtAttempts,
       threePtMade = threePtMade,
       assisted3PtMade = assisted3PtMade)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+
+    val offensePlayers = participatedInPossession(players, teamId, season, true)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, false)
+
+    makeStats +: (offensePlayers ++ defensePlayers)
   }
 
-  def parseAssist(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseAssist(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val players = extractPlayers(event)
     val playerNames = getPlayerNames(players)
 
@@ -188,7 +196,7 @@ object PlayStatsByUnit {
 
     val primaryKey = buildPrimaryKey(playerId, players, season)
 
-    UnitPlayerStats(
+    val assistStats = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -210,20 +218,27 @@ object PlayStatsByUnit {
       player5Name = playerNames(4),
 
       assists = 1)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+
+    val offensePlayers = participatedInPossession(players, teamId, season, true)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, false)
+
+    assistStats +: (offensePlayers ++ defensePlayers)
   }
 
 
   def parseMissEvent(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     if (PlayByPlayUtils.isBlock(event)) {
-      Seq(
-        parseMiss(event),
-        parseBlock(event))
+      parseMiss(event) ++ parseBlock(event)
     } else {
-      Seq(parseMiss(event))
+      parseMiss(event)
     }
   }
 
-  def parseMiss(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseMiss(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val players = extractPlayers(event)
     val playerNames = getPlayerNames(players)
 
@@ -240,7 +255,7 @@ object PlayStatsByUnit {
     val fieldGoalAttempts = 1
     val threePtAttempts = if (is3PTShot) 1 else 0
 
-    UnitPlayerStats(
+    val missStats = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -263,9 +278,17 @@ object PlayStatsByUnit {
 
       fieldGoalAttempts = fieldGoalAttempts,
       threePtAttempts = threePtAttempts)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+    val offensePlayers = participatedInPossession(players, teamId, season, true)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, false)
+
+    missStats +: (offensePlayers ++ defensePlayers)
   }
 
-  def parseBlock(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseBlock(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val players = extractOppPlayers(event)
     val playerNames = getPlayerNames(players)
 
@@ -277,7 +300,7 @@ object PlayStatsByUnit {
 
     val primaryKey = buildPrimaryKey(playerId, players, season)
 
-    UnitPlayerStats(
+    val blockStats = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -299,15 +322,21 @@ object PlayStatsByUnit {
       player5Name = playerNames(4),
 
       blocks = 1)
+
+    val oppoPlayers = extractPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+    val offensePlayers = participatedInPossession(players, teamId, season, false)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, true)
+
+    blockStats +: (offensePlayers ++ defensePlayers)
   }
 
   def parseFoulEvent(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
-    Seq(
-      parseFoulCommited(event),
-      parseFoulDrawn(event))
+    parseFoulCommitted(event) ++ parseFoulDrawn(event)
   }
 
-  def parseFoulCommited(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseFoulCommitted(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val players = extractPlayers(event)
     val playerNames = getPlayerNames(players)
 
@@ -319,7 +348,7 @@ object PlayStatsByUnit {
 
     val primaryKey = buildPrimaryKey(playerId, players, season)
 
-    UnitPlayerStats(
+    val foulCommitedStats = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -341,9 +370,20 @@ object PlayStatsByUnit {
       player5Name = playerNames(4),
 
       fouls = 1)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+    //Offensive Fouls: 26, 4
+    val offesniveFoul = PlayByPlayUtils.isOffensiveFoul(event)
+
+    val offensePlayers = participatedInPossession(players, teamId, season, offesniveFoul)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, !offesniveFoul)
+
+    foulCommitedStats +: (offensePlayers ++ defensePlayers)
   }
 
-  def parseFoulDrawn(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseFoulDrawn(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val players = extractOppPlayers(event)
     val playerNames = getPlayerNames(players)
 
@@ -355,7 +395,7 @@ object PlayStatsByUnit {
 
     val primaryKey = buildPrimaryKey(playerId, players, season)
 
-    UnitPlayerStats(
+    val foulCommitedStats = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -377,6 +417,17 @@ object PlayStatsByUnit {
       player5Name = playerNames(4),
 
       foulsDrawn = 1)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+    //Offensive Fouls: 26, 4
+    val offesniveFoul = PlayByPlayUtils.isOffensiveFoul(event)
+
+    val offensePlayers = participatedInPossession(players, teamId, season, !offesniveFoul)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, offesniveFoul)
+
+    foulCommitedStats +: (offensePlayers ++ defensePlayers)
   }
 
   def parseFreeThrow(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
@@ -398,7 +449,7 @@ object PlayStatsByUnit {
     val freeThrowsMade = if (madeFT) 1 else 0
 
 
-    Seq(UnitPlayerStats(
+    val makeStats = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -422,20 +473,27 @@ object PlayStatsByUnit {
       points = points,
       freeThrowAttempts = freeThrowAttempts,
       freeThrowsMade = freeThrowsMade
-    ))
+    )
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+
+    val offensePlayers = participatedInPossession(players, teamId, season, true)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, false)
+
+    makeStats +: (offensePlayers ++ defensePlayers)
   }
 
   def parseTurnoverEvent(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     if (PlayByPlayUtils.isSteal(event)) {
-      Seq(
-        parseTurnover(event),
-        parseSteal(event))
+      parseTurnover(event) ++ parseSteal(event)
     } else {
-      Seq(parseTurnover(event))
+      parseTurnover(event)
     }
   }
 
-  def parseTurnover(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseTurnover(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val players = extractPlayers(event)
     val playerNames = getPlayerNames(players)
 
@@ -447,7 +505,7 @@ object PlayStatsByUnit {
 
     val primaryKey = buildPrimaryKey(playerId, players, season)
 
-    UnitPlayerStats(
+    val stat = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -469,9 +527,18 @@ object PlayStatsByUnit {
       player5Name = playerNames(4),
 
       turnovers = 1)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+
+    val offensePlayers = participatedInPossession(players, teamId, season, true)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, false)
+
+    stat +: (offensePlayers ++ defensePlayers)
   }
 
-  def parseSteal(event: (PlayByPlayWithLineup, Option[ScoredShot])): UnitPlayerStats = {
+  def parseSteal(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
     val players = extractOppPlayers(event)
     val playerNames = getPlayerNames(players)
 
@@ -483,7 +550,7 @@ object PlayStatsByUnit {
 
     val primaryKey = buildPrimaryKey(playerId, players, season)
 
-    UnitPlayerStats(
+    val stat = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -505,6 +572,15 @@ object PlayStatsByUnit {
       player5Name = playerNames(4),
 
       steals = 1)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+
+    val offensePlayers = participatedInPossession(players, teamId, season, false)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, true)
+
+    stat +: (offensePlayers ++ defensePlayers)
   }
 
   def parseRebound(event: (PlayByPlayWithLineup, Option[ScoredShot])): Seq[UnitPlayerStats] = {
@@ -519,7 +595,7 @@ object PlayStatsByUnit {
 
     val primaryKey = buildPrimaryKey(playerId, players, season)
 
-    Seq(UnitPlayerStats(
+    val stat = UnitPlayerStats(
       primaryKey = primaryKey,
       season = season,
       dt = "",
@@ -540,7 +616,48 @@ object PlayStatsByUnit {
       player4Name = playerNames(3),
       player5Name = playerNames(4),
 
-      rebounds = 1))
+      rebounds = 1)
+
+    val oppoPlayers = extractOppPlayers(event)
+    val oppoTeam =  if (event._1.teamId1 == teamId) event._1.teamId2 else event._1.teamId1
+
+
+    val offensePlayers = participatedInPossession(players, teamId, season, false)
+    val defensePlayers = participatedInPossession(oppoPlayers, oppoTeam, season, true)
+
+    stat +: (offensePlayers ++ defensePlayers)
+  }
+
+  //Need to figure out possessions and seconds for players who didn't participate
+
+  def participatedInPossession(players: Seq[Integer], team: Integer, season: String, offense: Boolean): Seq[UnitPlayerStats] = {
+    val names = getPlayerNames(players)
+    players.map(p => {
+      val playerName = PlayerMapper.lookup(p)
+      val primaryKey = buildPrimaryKey(p, players, season)
+      UnitPlayerStats(
+        primaryKey = primaryKey,
+        season = season,
+        dt = "",
+
+        playerId = p,
+        playerName = playerName,
+
+        teamId = team,
+        player1Id = players.head,
+        player2Id = players(1),
+        player3Id = players(2),
+        player4Id = players(3),
+        player5Id = players(4),
+
+        player1Name = names.head,
+        player2Name = names(1),
+        player3Name = names(2),
+        player4Name = names(3),
+        player5Name = names(4),
+        offensivePossessions = if (offense) 1 else 0,
+        defensivePossessions = if (offense) 0 else 1)
+    })
   }
 
   def buildPrimaryKey(playerId: Integer, players: Seq[Integer], season: String): String = {
@@ -594,7 +711,9 @@ case class UnitPlayerStats(primaryKey: String,
                            freeThrowAttempts: jl.Integer = 0,
                            freeThrowsMade: jl.Integer = 0,
 
-                           possessions: jl.Integer = 0,
+                           offensivePossessions: jl.Integer = 0,
+                           defensivePossessions: jl.Integer = 0,
+
                            seconds: jl.Integer = 0) {
 
   def +(other: UnitPlayerStats): UnitPlayerStats =
@@ -645,6 +764,70 @@ case class UnitPlayerStats(primaryKey: String,
       freeThrowAttempts = freeThrowAttempts + other.freeThrowAttempts,
       freeThrowsMade = freeThrowsMade + other.freeThrowsMade,
 
-      possessions = possessions + other.possessions,
+      offensivePossessions = offensivePossessions + other.offensivePossessions,
+      defensivePossessions = defensivePossessions + other.defensivePossessions,
+
       seconds = seconds + other.seconds)
+
+  def +~(other: UnitPlayerStats): UnitPlayerStats =
+    UnitPlayerStats(
+      primaryKey = primaryKey,
+      season = season,
+      dt = dt,
+
+      playerId = playerId,
+      playerName = playerName,
+
+      teamId = teamId,
+      player1Id = player1Id,
+      player2Id = player2Id,
+      player3Id = player3Id,
+      player4Id = player4Id,
+      player5Id = player5Id,
+
+      player1Name = player1Name,
+      player2Name = player2Name,
+      player3Name = player3Name,
+      player4Name = player4Name,
+      player5Name = player5Name,
+
+      points = points + other.points,
+
+      assists = assists + other.assists,
+
+      rebounds = rebounds + other.rebounds,
+
+      fouls = fouls + other.fouls,
+      foulsDrawn = foulsDrawn + other.foulsDrawn,
+
+      turnovers = turnovers + other.turnovers,
+
+      steals = steals + other.steals,
+
+      blocks = blocks + other.blocks,
+
+      fieldGoalAttempts = fieldGoalAttempts + other.fieldGoalAttempts,
+      fieldGoals = fieldGoals + other.fieldGoals,
+      assistedFieldGoals = assistedFieldGoals + other.assistedFieldGoals,
+
+      threePtAttempts = threePtAttempts + other.threePtAttempts,
+      threePtMade = threePtMade + other.threePtMade,
+      assisted3PtMade = assisted3PtMade + other.assisted3PtMade,
+
+      freeThrowAttempts = freeThrowAttempts + other.freeThrowAttempts,
+      freeThrowsMade = freeThrowsMade + other.freeThrowsMade,
+
+      offensivePossessions = (offensivePossessions + other.offensivePossessions) min 1,
+      defensivePossessions = (defensivePossessions + other.defensivePossessions) min 1,
+
+      seconds = seconds + other.seconds)
+
+  def determinePossession: UnitPlayerStats =
+    if (this.offensivePossessions > this.defensivePossessions) {
+      this.copy(offensivePossessions = 1, defensivePossessions = 0)
+    } else if (this.offensivePossessions < this.defensivePossessions) {
+      this.copy(offensivePossessions = 0, defensivePossessions = 1)
+    } else {
+      this.copy(offensivePossessions = 0, defensivePossessions = 0)
+    }
 }

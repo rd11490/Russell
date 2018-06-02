@@ -34,6 +34,8 @@ object MySqlUtils {
     typeOf[T].members.sorted.filter(!_.isMethod).map(convertTypeToSqlType).toIndexedSeq
   }
 
+  def getFieldName[T: TypeTag]: Seq[String] = getFields[T].map(_.fieldName)
+
   private def convertTypeToSqlType(sym: Symbol): SqlTypeHolder = {
     val typeName = sym.typeSignature.dealias match {
       case t if t <:< JI || t <:< I  => "INT"
