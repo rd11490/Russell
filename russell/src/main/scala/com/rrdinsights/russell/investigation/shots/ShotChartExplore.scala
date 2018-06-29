@@ -1,6 +1,5 @@
 package com.rrdinsights.russell.investigation.shots
 
-import com.rrdinsights.russell.etl.application.ShotChartDownloader
 import com.rrdinsights.russell.investigation.TeamMapper
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.ExpectedPoints

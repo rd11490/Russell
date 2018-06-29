@@ -11,7 +11,7 @@ import drawCourt
 import os
 
 shotZones = ShotZones.buildShotZones()
-players = ["Nikola Jokic"]
+players = ["Stephen Curry", "Kevin Durant"]
     #["Lonzo Ball", "Jayson Tatum", "Josh Jackson", "Dennis Smith Jr.", "DeAaron Fox", "Ben Simmons", "Donovan Mitchell"]
     #["Rudy Gobert", "Al Horford", "Joel Embiid", "Kevin Durant", "Anthony Davis", "Paul George", "Andre Roberson"]
     #["Stephen Curry", "James Harden", "LeBron James", "Anthony Davis", "Russell Westbrook", "Giannis Antetokounmpo"]

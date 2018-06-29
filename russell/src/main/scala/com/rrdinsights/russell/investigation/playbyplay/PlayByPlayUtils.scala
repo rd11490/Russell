@@ -81,6 +81,11 @@ object PlayByPlayUtils {
   def isMiss(event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean =
     PlayByPlayEventMessageType.valueOf(event._1.playType) == PlayByPlayEventMessageType.Miss
 
+  def isMissedFT(event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean =
+    PlayByPlayEventMessageType.valueOf(event._1.playType) == PlayByPlayEventMessageType.FreeThrow &&
+      (Option(event._1.homeDescription).exists(_.contains("MISS")) ||
+      Option(event._1.awayDescription).exists(_.contains("MISS")))
+
   def is3PtShot(event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean =
     try {
       event._2.exists(v => v.shotValue == 3) ||
@@ -118,14 +123,13 @@ object PlayByPlayUtils {
 
   def extractMissedShotFromRebound(
       event: (PlayByPlayWithLineup, Option[ScoredShot]),
-      events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])])
-    : (PlayByPlayWithLineup, Option[ScoredShot]) = {
+      events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): (PlayByPlayWithLineup, Option[ScoredShot]) = {
 
     try {
       events
         .take(events.indexOf(event))
         .reverse
-        .find(isMiss)
+        .find(v => isMiss(v) || isMissedFT(v))
         .get
     } catch {
       case e: Exception =>
@@ -318,8 +322,7 @@ object PlayByPlayUtils {
       event._1.eventActionType == 16
 
   def isTurnover(
-      event: (PlayByPlayWithLineup, Option[ScoredShot]),
-      allEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Boolean = {
+      event: (PlayByPlayWithLineup, Option[ScoredShot])): Boolean = {
     PlayByPlayEventMessageType.valueOf(event._1.playType) == PlayByPlayEventMessageType.Turnover
   }
 

@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import normalize
 from sklearn import preprocessing
 
+import MySqlDatabases.NBADatabase
+
+
 import MySQLConnector
 
 pd.set_option('display.max_columns', 500)
@@ -126,7 +129,7 @@ playersCoef = pd.DataFrame(playerIdWithCoef)
 playersCoef.columns = ["playerId", "Luck Adjusted ORAPM", "Luck Adjusted DRAPM", "ORAPM", "DRAPM"]
 
 merged = playersCoef.merge(playerNames, how="inner", on="playerId")[
-    ["playerName", "Luck Adjusted ORAPM", "Luck Adjusted DRAPM", "ORAPM", "DRAPM"]]
+    ["playerId", "playerName",  "Luck Adjusted ORAPM", "Luck Adjusted DRAPM", "ORAPM", "DRAPM"]]
 
 merged["Luck Adjusted RAPM"] = merged["Luck Adjusted ORAPM"] + merged["Luck Adjusted DRAPM"]
 merged["RAPM"] = merged["ORAPM"] + merged["DRAPM"]
@@ -217,3 +220,4 @@ print("mean squared error: {}".format(rms_error))
 
 log_error = metrics.mean_squared_log_error(stintYRaw, pred)
 print("log squared error: {}".format(log_error))
+

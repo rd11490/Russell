@@ -4,12 +4,7 @@ import java.{lang => jl}
 
 import com.rrdinsights.russell.investigation.playbyplay.PlayByPlayUtils
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel.{
-  PlayByPlayEventMessageType,
-  PlayByPlayWithLineup,
-  RawPlayerProfileCareer,
-  ScoredShot
-}
+import com.rrdinsights.russell.storage.datamodel.{PlayByPlayEventMessageType, PlayByPlayWithLineup, RawPlayerProfileCareer, ScoredShot}
 import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.russell.utils.TimeUtils
 
@@ -57,6 +52,28 @@ object LuckAdjustedUtils {
           case PlayByPlayEventMessageType.Make => buildStintFromShot(v)
           case PlayByPlayEventMessageType.Miss => buildStintFromShot(v)
         })
+      .groupBy(_.teamId)
+      .map(v => v._2.reduce(_ + _))
+      .toSeq
+  }
+
+  def countTurnovers(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Seq[TeamTurnovers] = {
+    events
+      .filter(v => PlayByPlayUtils.isTurnover(v))
+      .map(v => TeamTurnovers(v._1.player1TeamId, 1))
+      .groupBy(_.teamId)
+      .map(v => v._2.reduce(_ + _))
+      .toSeq
+  }
+
+  def countRebounds(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])],
+                    allEvents: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Seq[TeamRebounds] = {
+    events
+      .filter(v => PlayByPlayUtils.isRebound(v))
+      .map(v => TeamRebounds(
+        v._1.player1TeamId,
+        if (PlayByPlayUtils.isDefensiveRebound(v, allEvents)) 1 else 0,
+        if (PlayByPlayUtils.isOffensiveRebound(v, allEvents)) 1 else 0))
       .groupBy(_.teamId)
       .map(v => v._2.reduce(_ + _))
       .toSeq
@@ -144,39 +161,8 @@ object LuckAdjustedUtils {
       freeThrowsMade = points.intValue())
   }
 
-  //  def countTurnovers(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): (Int, Int) = {
-  //    //    '0' No TO - P1 is player who "NO TOed it"
-  //    //    '1' Steal - P1 is player who lost ball, P2 is player who stole it
-  //    //    '2' Steal - P1 is player who lost ball, P2 is player who stole it
-  //    //    '4' Travel - P1 is player who traveled
-  //    //    '6' Double Dribble - P1 committed TO
-  //    //    '7' Discontinued Dribble - P1 committed TO
-  //    //    '8' 3 Second Violation - P1 committed TO
-  //    //    '9'
-  //    //    '10'
-  //    //    '11'
-  //    //    '12'
-  //    //    '13'
-  //    //    '15'
-  //    //    '17'
-  //    //    '18'
-  //    //    '19'
-  //    //    '20'
-  //    //    '21'
-  //    //    '33'
-  //    //    '35'
-  //    //    '36'
-  //    //    '37'
-  //    //    '39'
-  //    //    '40'
-  //    //    '44'
-  //    //    '45'
-  //
-  //  }
-
-  def seperatePossessions(
-                           events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])])
-  : Seq[(Seq[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)] = {
+  def seperatePossessions(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]):
+  Seq[(Seq[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)] = {
     val sortedEvents = events.sortBy(v => (v._1.timeElapsed, v._1.eventNumber))
     val possessions: ArrayBuffer[
       (ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)] =
@@ -218,7 +204,7 @@ object LuckAdjustedUtils {
     PlayByPlayUtils.isMakeAndNotAndOne(event, allEvents) ||
       PlayByPlayUtils.isDefensiveRebound(event, allEvents) ||
       PlayByPlayUtils.isLastMadeFreeAndEndOfPoss(event, allEvents) ||
-      PlayByPlayUtils.isTurnover(event, allEvents) ||
+      PlayByPlayUtils.isTurnover(event) ||
       (PlayByPlayUtils.isJumpBall(event, allEvents) && possessionSize > 1)
 
   }
@@ -234,6 +220,17 @@ object LuckAdjustedUtils {
         RawPlayerProfileCareer.apply)
       .map(v => (v.playerId, v.freeThrowPercent))
       .toMap
+}
+
+final case class TeamRebounds(teamId: Integer, defensiveRebounds: Integer, offensiveRebounds: Integer) {
+  def +(other: TeamRebounds): TeamRebounds =
+    TeamRebounds(teamId,
+      defensiveRebounds + other.defensiveRebounds,
+      other.offensiveRebounds + offensiveRebounds)
+}
+
+final case class TeamTurnovers(teamId: Integer, turnovers: Integer) {
+  def +(other: TeamTurnovers): TeamTurnovers = TeamTurnovers(teamId, other.turnovers + turnovers)
 }
 
 final case class TeamPoints(teamId: Integer,
