@@ -175,14 +175,17 @@ results_efg = calculate_rapm(stintY_efg, stintX_efg, "EFG")
 results_orbd = calculate_rapm(stintY_orbd, stintX_orbd, "Offensive Rebound Rate")
 results_ftr = calculate_rapm(stintY_ftr, stintX_ftr, "Free Throw Rate")
 
+merged = results_adjusted\
+    .merge(results_turnover, how="inner", on="playerId")\
+    .merge(results_efg, how="inner", on="playerId")\
+    .merge(results_orbd, how="inner", on="playerId")\
+    .merge(results_ftr, how="inner", on="playerId")\
+    .merge(player_names, how="inner", on="playerId")
+
+print(merged.head(20))
 
 
-
-# merged = results_adjusted.merge(player_names, how="inner", on="playerId")[
-#     ["playerId", "playerName",  "Luck Adjusted ORAPM", "Luck Adjusted DRAPM"]]
-#
-#
-# merged.to_csv("results/Luck Adjusted RAPM {}.csv".format(season))
+merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))
 
 
 
