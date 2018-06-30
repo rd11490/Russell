@@ -2,14 +2,6 @@ import numpy as np
 import pandas as pd
 from sklearn import metrics
 from sklearn.linear_model import RidgeCV
-from sklearn.linear_model import BayesianRidge
-
-import matplotlib.pyplot as plt
-from sklearn.preprocessing import normalize
-from sklearn import preprocessing
-
-import MySqlDatabases.NBADatabase
-
 
 import MySQLConnector
 
@@ -129,7 +121,7 @@ playersCoef = pd.DataFrame(playerIdWithCoef)
 playersCoef.columns = ["playerId", "Luck Adjusted ORAPM", "Luck Adjusted DRAPM", "ORAPM", "DRAPM"]
 
 merged = playersCoef.merge(playerNames, how="inner", on="playerId")[
-    ["playerId", "playerName",  "Luck Adjusted ORAPM", "Luck Adjusted DRAPM", "ORAPM", "DRAPM"]]
+    ["playerId", "playerName", "Luck Adjusted ORAPM", "Luck Adjusted DRAPM", "ORAPM", "DRAPM"]]
 
 merged["Luck Adjusted RAPM"] = merged["Luck Adjusted ORAPM"] + merged["Luck Adjusted DRAPM"]
 merged["RAPM"] = merged["ORAPM"] + merged["DRAPM"]
@@ -194,7 +186,6 @@ print("mean squared error: {}".format(rms_error))
 log_error = metrics.mean_squared_error(stintYAdjusted, pred)
 print("log squared error: {}".format(log_error))
 
-
 print("r^2 value: {}".format(modelRaw.score(stintX, stintYRaw)))
 print(modelRaw.alpha_)
 print(modelRaw.intercept_)
@@ -220,4 +211,3 @@ print("mean squared error: {}".format(rms_error))
 
 log_error = metrics.mean_squared_log_error(stintYRaw, pred)
 print("log squared error: {}".format(log_error))
-
