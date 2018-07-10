@@ -132,7 +132,6 @@ object LuckAdjustedUtils {
     * This is only for handling issues of back input from playbyplay
     */
   def countPointsFromEvent(event: PlayByPlayWithLineup): TeamPoints = {
-    println(event)
     val make = isMake(event)
     val points = if (make) 2.0 else 0.0
     val expectedPoints = if (make) 2.0 else 0.0
@@ -163,7 +162,7 @@ object LuckAdjustedUtils {
 
   def seperatePossessions(events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]):
   Seq[(Seq[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)] = {
-    val sortedEvents = events.sortBy(v => (v._1.timeElapsed, v._1.eventNumber))
+    val sortedEvents = events.sortBy(v => v._1)
     val possessions: ArrayBuffer[
       (ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])], Integer)] =
       new ArrayBuffer[(ArrayBuffer[(PlayByPlayWithLineup, Option[ScoredShot])],

@@ -133,7 +133,20 @@ object PlayByPlayUtils {
         .get
     } catch {
       case e: Exception =>
+        println("Event:")
         println(event)
+        println("All Events")
+        events.foreach(v => println(s"${v._1.gameId} - ${v._1.eventNumber} - ${v._1.timeElapsed} - ${v._1.playType} - ${v._1.awayDescription} - ${v._1.homeDescription}"))
+        println("Index of event:")
+        println(events.indexOf(event))
+        println("Size of events: ")
+        println(events.size)
+        println("All Events Before: ")
+        events
+          .take(events.indexOf(event))
+          .reverse
+          .foreach(println)
+
         throw e
     }
 
