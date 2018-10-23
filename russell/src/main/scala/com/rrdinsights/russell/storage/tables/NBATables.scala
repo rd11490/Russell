@@ -1,12 +1,12 @@
 package com.rrdinsights.russell.storage.tables
 
-import com.rrdinsights.russell.etl.application.{GameDate, TeamInfo}
+import com.rrdinsights.russell.etl.application.{GameDate, PlayerInfo, TeamInfo}
 import com.rrdinsights.russell.investigation.movement.{EventRow, PlayerWithBall}
 import com.rrdinsights.russell.investigation.playbyplay.UnitPlayerStats
 import com.rrdinsights.russell.investigation.playbyplay.luckadjusted.{LuckAdjustedOneWayStint, LuckAdjustedStint, LuckAdjustedUnit, SecondsPlayedContainer}
-import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotStintByZoneData}
 import com.rrdinsights.russell.investigation.shots.expectedshots.{ExpectedPointsByGame, ExpectedPointsPlayer, ExpectedPointsPlayerOnOff}
 import com.rrdinsights.russell.investigation.shots.shotmover.ShotsSeen
+import com.rrdinsights.russell.investigation.shots.{PlayerShotChartSection, ShotStintByZoneData}
 import com.rrdinsights.russell.storage.datamodel._
 
 object NBATables {
@@ -34,6 +34,7 @@ object NBATables {
   val team_info: MySqlTable = MySqlTable[TeamInfo]("team_info")
   val game_dates: MySqlTable = MySqlTable[GameDate]("game_date")
   val shots_seen: MySqlTable = MySqlTable[ShotsSeen]("shots_seen")
+  val player_info: MySqlTable = MySqlTable[PlayerInfo]("player_info")
 
   val play_by_play_with_lineup: MySqlTable = MySqlTable[PlayByPlayWithLineup]("play_by_play_with_lineup")
 
@@ -65,5 +66,14 @@ object NBATables {
   val luck_adjusted_units: MySqlTable = MySqlTable[LuckAdjustedUnit]("luck_adjusted_units")
 
   val player_stats_by_unit: MySqlTable = MySqlTable[UnitPlayerStats]("player_stats_by_unit")
+
+  val real_adjusted_four_factors: MySqlTable = MySqlTable[RealAdjustedFourFactors]("real_adjusted_four_factors")
+  val real_adjusted_four_factors_multi: MySqlTable = MySqlTable[RealAdjustedFourFactors]("real_adjusted_four_factors_multi")
+
+
+  val minute_projection_2018_19: MySqlTable = MySqlTable[MinuteProjection]("2018_19_minute_projections")
+
+  val league_results: MySqlTable = MySqlTable[LeagueSchedule]("league_results")
+
 
 }

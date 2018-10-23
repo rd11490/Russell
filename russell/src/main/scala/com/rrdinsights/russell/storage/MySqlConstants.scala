@@ -41,7 +41,7 @@ object MySqlUtils {
       case t if t <:< JI || t <:< I  => "INT"
       case t if t <:< S => "VARCHAR(255)"
       case t if t <:< D || t <:< JD => "DOUBLE"
-      case t if t <:< L || JL <:< JD => "BIGINT"
+      case t if t <:< L || t <:< JL => "BIGINT"
       case t if t <:< JB || t <:< B => "BOOLEAN"
     }
     SqlTypeHolder(sym.name.toString.trim(), typeName)

@@ -40,10 +40,11 @@ final case class GameRecord(
                              personalFouls: jl.Integer,
                              points: jl.Integer,
                              season: String,
+                             seasonType: String,
                              dt: String)
 
 object GameRecord extends ResultSetMapper {
-  def apply(gameLog: GameLog, season: String, dt: String): GameRecord =
+  def apply(gameLog: GameLog, season: String, dt: String, seasonType: String): GameRecord =
     GameRecord(
       s"${gameLog.teamId}_${gameLog.gameId}",
       gameLog.teamId,
@@ -79,6 +80,7 @@ object GameRecord extends ResultSetMapper {
       gameLog.personalFouls,
       gameLog.points,
       season,
+      seasonType,
       dt)
 
   def apply(resultSet: ResultSet): GameRecord = {
@@ -112,7 +114,8 @@ object GameRecord extends ResultSetMapper {
       getInt(resultSet, 26),
       getInt(resultSet, 27),
       getString(resultSet, 28),
-      getString(resultSet, 29))
+      getString(resultSet, 29),
+      getString(resultSet, 30))
   }
 }
 

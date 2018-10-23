@@ -45,6 +45,7 @@ final case class PlayByPlayWithLineup(primaryKey: String,
 
                                       timeElapsed: jl.Integer,
                                       season: String,
+                                      seasonType: String,
                                       dt: String) extends Ordered[PlayByPlayWithLineup]{
   override def compare(that: PlayByPlayWithLineup): Int =
     sortByTimeLeft(that) match {
@@ -106,6 +107,7 @@ object PlayByPlayWithLineup extends ResultSetMapper {
 
       playByPlay.timeElapsed,
       playByPlay.season,
+      playByPlay.seasonType,
       dt)
 
   def apply(resultSet: ResultSet): PlayByPlayWithLineup =
@@ -147,5 +149,6 @@ object PlayByPlayWithLineup extends ResultSetMapper {
       getInt(resultSet, 34),
 
       getString(resultSet, 35),
+      getString(resultSet, 36),
       getString(resultSet, 36))
 }

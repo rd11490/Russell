@@ -35,3 +35,7 @@ shot_stint_data = "shot_stint_data"
 team_info = "team_info"
 team_scored_shots = "team_scored_shots"
 real_adjusted_four_factors = "real_adjusted_four_factors"
+real_adjusted_four_factors_multi = "real_adjusted_four_factors_multi"
+
+league_results = "league_results"
+league_net_rtg = "league_net_rtg"

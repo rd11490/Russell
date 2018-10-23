@@ -34,8 +34,9 @@ object PlayerStats {
 
   private def downloadAndWritePlayerStats(args: PlayerStatsArguments, dt: String, playerIds: (String, String)*): Unit = {
     val season = args.seasonOpt
+    val seasonType = args.seasonType
     if (args.downloadShotData) {
-      ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, season)
+      ShotChartDownloader.downloadAndWritePlayersShotData(playerIds, dt, seasonType, season)
     }
     if (args.playerProfiles) {
       PlayerProfileDownloader.downloadAndWriteAllPlayerProfiles(playerIds.map(_._1), dt)

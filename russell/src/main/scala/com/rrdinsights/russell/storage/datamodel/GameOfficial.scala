@@ -12,11 +12,12 @@ final case class GameOfficial(
                                lastName: String,
                                number: String,
                                dt: String,
-                               season: String)
+                               season: String,
+                               seasonType: String)
 
 object GameOfficial extends ResultSetMapper {
 
-  def apply(official: Officials, gameId: String, dt: String, season: Option[String]): GameOfficial =
+  def apply(official: Officials, gameId: String, dt: String, season: Option[String], seasonType: String): GameOfficial =
     GameOfficial(
       s"${gameId}_${official.officialId}",
       gameId,
@@ -25,5 +26,6 @@ object GameOfficial extends ResultSetMapper {
       official.lastName,
       official.number,
       dt,
-      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)))
+      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)),
+      seasonType)
 }

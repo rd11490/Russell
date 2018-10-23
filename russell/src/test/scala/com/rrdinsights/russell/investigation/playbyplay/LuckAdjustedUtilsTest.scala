@@ -125,6 +125,7 @@ private object LuckAdjustedUtilsTest {
 
                                  timeElapsed: jl.Integer = null,
                                  season: String = null,
+                                 seasonType: String = null,
                                  dt: String = null): PlayByPlayWithLineup =
     PlayByPlayWithLineup(
       null,
@@ -169,5 +170,6 @@ private object LuckAdjustedUtilsTest {
 
       timeElapsed,
       season,
+      seasonType,
       dt)
 }

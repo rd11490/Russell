@@ -7,7 +7,7 @@ import com.rrdinsights.russell.utils.TimeUtils
 import com.rrdinsights.scalabrine.ScalabrineClient
 import com.rrdinsights.scalabrine.endpoints.AdvancedBoxScoreEndpoint
 import com.rrdinsights.scalabrine.models.PlayerStats
-import com.rrdinsights.scalabrine.parameters.{EndRangeParameter, GameIdParameter, RangeTypeParameter, StartRangeParameter}
+import com.rrdinsights.scalabrine.parameters._
 
 object PlayersOnCourtDownloader {
 
@@ -15,7 +15,7 @@ object PlayersOnCourtDownloader {
     val time = TimeUtils.convertTimeStringToTime(playByPlay.period.intValue, playByPlay.pcTimeString) * 10
     val start = if (time < 700) 0 else time - 9
     val end = time + 9
-    val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(playByPlay.gameId, start, end)
+    val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(playByPlay.gameId, playByPlay.season, playByPlay.seasonType, start, end)
 
     val timePlayed = players
       .map(v => v._3.minutes)
@@ -46,7 +46,8 @@ object PlayersOnCourtDownloader {
         players(8)._1,
         players(9)._1,
         dt,
-        DataModelUtils.gameIdToSeason(playByPlay.gameId)))
+        DataModelUtils.gameIdToSeason(playByPlay.gameId),
+        playByPlay.seasonType))
 
     }
     else {
@@ -59,14 +60,87 @@ object PlayersOnCourtDownloader {
     }
   }
 
-  def downloadPlayersOnCourt(gameId: String, timeStart: Int, timeEnd: Int): Seq[(Integer, Integer, PlayerStats)] = {
+  def downloadPlayersOnCourtAtEvent2(playByPlay: (RawPlayByPlayEvent, Seq[RawPlayByPlayEvent]), dt: String): Option[PlayersOnCourt] = {
+    val referencePlay = playByPlay._1
+    val period = referencePlay.period
+
+    val time = TimeUtils.timeFromStartOfGameAtPeriod(period) * 10
+    val start = time + 10
+    val end = time + 120 * 10
+    val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(referencePlay.gameId, referencePlay.season, referencePlay.seasonType, start, end)
+    if (players.length > 10) {
+      println(s"Substitution in first minutes: ${referencePlay.gameId}")
+    }
+
+    val subs = playByPlay._2.map(v => (v.eventNumber, v.player1Id, v.player2Id)).sortBy(_._1)
+
+    val subIn = playByPlay._2.map(v => v.player2Id)
+    val subOut = playByPlay._2.map(v => v.player1Id)
+
+    val subedInAndOut = subIn.filter(v => subOut.contains(v))
+
+    val fixedSubIn = subIn.filterNot(v => subedInAndOut.contains(v))
+    val fixedSubOut = subOut.filterNot(v => subedInAndOut.contains(v))
+
+
+    val startingPlayers = players.filterNot(v => fixedSubIn.contains(v._1))
+      .sortBy(v => (v._2, v._1))
+
+    if (players.length > 10) {
+      println(s"Substitution in first minutes Players: ")
+      println("All Players")
+      players.foreach(println)
+      println("Starting Players")
+      startingPlayers.foreach(println)
+    }
+
+    if (startingPlayers.size == 10 && startingPlayers.slice(0, 4).map(_._2).distinct.size == 1 && startingPlayers.slice(5, 9).map(_._2).distinct.size == 1) {
+      val primaryKey = s"${referencePlay.gameId}_${referencePlay.period}"
+      Some(PlayersOnCourt(
+        primaryKey,
+        referencePlay.gameId,
+        null,
+        referencePlay.period,
+        startingPlayers.head._2,
+        startingPlayers.head._1,
+        startingPlayers(1)._1,
+        startingPlayers(2)._1,
+        startingPlayers(3)._1,
+        startingPlayers(4)._1,
+        startingPlayers(5)._2,
+        startingPlayers(5)._1,
+        startingPlayers(6)._1,
+        startingPlayers(7)._1,
+        startingPlayers(8)._1,
+        startingPlayers(9)._1,
+        dt,
+        referencePlay.season,
+        referencePlay.seasonType))
+
+    }
+    else {
+      println(s"FAILURE")
+      println(s"${referencePlay.gameId}-${referencePlay.period}")
+      println(s"$time")
+      println(s"${players.size}")
+      println(s"${players.groupBy(_._2).map(v => s"${v._1} - ${v._2.size}").mkString(" | ")}")
+      None
+    }
+  }
+
+  def downloadPlayersOnCourt(gameId: String, season: String, seasonType: String, timeStart: Int, timeEnd: Int): Seq[(Integer, Integer, PlayerStats)] = {
     val gameIdParameter = GameIdParameter.newParameterValue(gameId)
     val rangeType = RangeTypeParameter.newParameterValue("2")
     val startRange = StartRangeParameter.newParameterValue(timeStart.toString)
     val endRange = EndRangeParameter.newParameterValue(timeEnd.toString)
+    val seasonParam = SeasonParameter.newParameterValue(season)
+    val seasonTypeParam = SeasonTypeParameter.newParameterValue(seasonType)
+
 
     val endpoint = AdvancedBoxScoreEndpoint(
       gameId = gameIdParameter,
+      season = seasonParam,
+      seasonType = seasonTypeParam,
       rangeType = rangeType,
       startRange = startRange,
       endRange = endRange)

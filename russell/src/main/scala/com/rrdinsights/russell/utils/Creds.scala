@@ -22,6 +22,7 @@ object Creds {
   def getCreds: Creds = creds
 }
 
-final case class Creds(MySQL: MySQLCred)
+final case class Creds(MySQL: MySQLCred, ShotSite: ShotSiteCred)
 
 final case class MySQLCred(Username: String, Password: String)
+final case class ShotSiteCred(Auth: String, Href: String)

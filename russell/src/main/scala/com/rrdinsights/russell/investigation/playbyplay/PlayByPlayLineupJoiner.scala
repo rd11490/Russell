@@ -15,13 +15,14 @@ object PlayByPlayLineupJoiner {
   def main(strings: Array[String]): Unit = {
 
     val args = PlayByPlayLineupArguments(strings)
-    val seasonWhere = args.seasonOpt.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+    val seasonWhere: Seq[String] = args.seasonOpt.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+    val where = seasonWhere ++ Seq(s"seasonType = '${args.seasonType}'")
     val dt = TimeUtils.dtNow
 
     val playByPlay = PlayByPlayDownloader
-      .readPlayByPlay(seasonWhere:_*)
+      .readPlayByPlay(where:_*)
 
-    val playersOnCourt = PlayersOnCourtDownloader.readPlayersOnCourt(seasonWhere:_*)
+    val playersOnCourt = PlayersOnCourtDownloader.readPlayersOnCourt(where:_*)
 
 
     val playByPlayWithLineups = joinEventWithLineup(playByPlay, playersOnCourt)

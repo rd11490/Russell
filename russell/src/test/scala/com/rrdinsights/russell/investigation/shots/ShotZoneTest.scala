@@ -59,6 +59,6 @@ final class ShotZoneTest extends TestSpec {
 
   private def buildRawShot(x: Int, y: Int, value: Int): RawShotData = RawShotData(
     null, null, null, null, null, null, null, null, null, null, null, null,
-    null, s"${value}PT Shot", null, null, null, null, x, y, null, null, null, null, null, null, null)
+    null, s"${value}PT Shot", null, null, null, null, x, y, null, null, null, null, null, null, null, null)
 
 }

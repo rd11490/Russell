@@ -14,6 +14,15 @@ trait ResultSetMapper {
     }
   }
 
+  protected def getLong(resultSet: ResultSet, col: Int): jl.Long = {
+    val value = resultSet.getLong(col + 1)
+    if (resultSet.wasNull) {
+      null
+    } else {
+      jl.Long.valueOf(value)
+    }
+  }
+
   protected def getString(resultSet: ResultSet, col: Int): String =
     resultSet.getString(col + 1)
 

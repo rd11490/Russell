@@ -10,9 +10,9 @@ import com.rrdinsights.scalabrine.parameters.{GameIdParameter, ParameterValue}
 
 object PlayByPlayDownloader {
 
-  def downloadAndWriteAllPlayByPlay(gameLogs: Seq[GameRecord], season: String, dt: String): Unit = {
+  def downloadAndWriteAllPlayByPlay(gameLogs: Seq[GameRecord], season: String, dt: String, seasonType: String): Unit = {
     val playByPlay = downloadAllPlayByPlay(gameLogs)
-    writePlayByPlay(playByPlay, season, dt)
+    writePlayByPlay(playByPlay, season, dt, seasonType)
   }
 
   private def downloadAllPlayByPlay(gameLogs: Seq[GameRecord]): Seq[PlayByPlayEvent] = {
@@ -27,7 +27,7 @@ object PlayByPlayDownloader {
   }
 
   private def downloadGamePlayByPlay(gameIdParamter: ParameterValue): Seq[PlayByPlayEvent] = {
-    val endpoint = PlayByPlayEndpoint(gameIdParamter)
+    val endpoint = PlayByPlayEndpoint(gameId = gameIdParamter)
     try {
       ScalabrineClient.getPlayByPlay(endpoint).playByPlay.events
     } catch {
@@ -39,9 +39,9 @@ object PlayByPlayDownloader {
     }
   }
 
-  private def writePlayByPlay(events: Seq[PlayByPlayEvent], season: String, dt: String): Unit = {
+  private def writePlayByPlay(events: Seq[PlayByPlayEvent], season: String, dt: String, seasonType: String): Unit = {
     MySqlClient.createTable(NBATables.raw_play_by_play)
-    val gameRecords = events.map(RawPlayByPlayEvent.apply(_, season, dt))
+    val gameRecords = events.map(RawPlayByPlayEvent.apply(_, season, dt, seasonType))
     MySqlClient.insertInto(NBATables.raw_play_by_play, gameRecords)
   }
 

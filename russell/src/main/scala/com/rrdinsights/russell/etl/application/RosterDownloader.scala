@@ -17,7 +17,7 @@ object RosterDownloader {
   }
 
   private def downloadTeamRoster(seasonParameter: ParameterValue, teamId: ParameterValue): CommonTeamRoster = {
-    val teamRosterEndpoint = CommonTeamRosterEndpoint(teamId, seasonParameter)
+    val teamRosterEndpoint = CommonTeamRosterEndpoint(teamId = teamId, season = seasonParameter)
     ScalabrineClient.getCommonTeamRoster(teamRosterEndpoint).commonTeamRoster
   }
 

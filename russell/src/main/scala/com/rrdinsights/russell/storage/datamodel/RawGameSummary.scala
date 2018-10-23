@@ -22,10 +22,11 @@ final case class RawGameSummary(
                                  livePeriodTimeBroadcast: String,
                                  whStatus: jl.Integer,
                                  dt: String,
-                                 season: String)
+                                 season: String,
+                                 seasonType: String)
 
 object RawGameSummary extends ResultSetMapper {
-  def apply(gameSummary: GameSummary, dt: String, season: Option[String]): RawGameSummary =
+  def apply(gameSummary: GameSummary, dt: String, season: Option[String], seasonType: String): RawGameSummary =
     RawGameSummary(
       gameSummary.gameId,
       gameSummary.gameDate,
@@ -43,7 +44,8 @@ object RawGameSummary extends ResultSetMapper {
       gameSummary.livePeriodTimeBroadcast,
       gameSummary.whStatus,
       dt,
-      season.getOrElse(DataModelUtils.gameIdToSeason(gameSummary.gameId)))
+      season.getOrElse(DataModelUtils.gameIdToSeason(gameSummary.gameId)),
+      seasonType)
 
   def apply(resultSet: ResultSet): RawGameSummary =
     RawGameSummary(
@@ -63,6 +65,7 @@ object RawGameSummary extends ResultSetMapper {
       getString(resultSet, 13),
       getInt(resultSet, 14),
       getString(resultSet, 15),
-      getString(resultSet, 16))
+      getString(resultSet, 16),
+      getString(resultSet, 17))
 
 }

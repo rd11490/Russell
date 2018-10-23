@@ -33,13 +33,14 @@ final case class RawPlayerBoxScoreAdvanced(
                                             pace: jl.Double,
                                             playerEstimatedImpact: jl.Double,
                                             season: String,
+                                            seasonType: String,
                                             dt: String) {
 
 }
 
 object RawPlayerBoxScoreAdvanced extends ResultSetMapper {
 
-  def apply(playerStats: PlayerStats, season: String, dt: String): RawPlayerBoxScoreAdvanced = {
+  def apply(playerStats: PlayerStats, season: String, dt: String, seasonType: String): RawPlayerBoxScoreAdvanced = {
     val seasonStr = if (season != "") season else DataModelUtils.gameIdToSeason(playerStats.gameId)
     RawPlayerBoxScoreAdvanced(
       s"${playerStats.gameId}_${playerStats.teamId}_${playerStats.playerId}",
@@ -68,6 +69,7 @@ object RawPlayerBoxScoreAdvanced extends ResultSetMapper {
       playerStats.pace,
       playerStats.playerEstimatedImpact,
       seasonStr,
+      seasonType,
       dt)
   }
 
@@ -99,6 +101,7 @@ object RawPlayerBoxScoreAdvanced extends ResultSetMapper {
       getDouble(resultSet, 23),
       getDouble(resultSet, 24),
       getString(resultSet, 25),
-      getString(resultSet, 26))
+      getString(resultSet, 26),
+      getString(resultSet, 27))
 
 }

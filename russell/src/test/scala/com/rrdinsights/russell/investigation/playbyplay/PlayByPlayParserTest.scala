@@ -214,6 +214,7 @@ final class PlayByPlayParserTest extends TestSpec {
       team2Player4,
       team2Player5,
       null,
+      null,
       null)
 
   private def buildRawPlayByPlayEvent(eventNumber: jl.Integer,
@@ -265,6 +266,7 @@ final class PlayByPlayParserTest extends TestSpec {
       null,
 
       timeLeft,
+      null,
       null,
       null)
 }

@@ -12,15 +12,16 @@ object SeasonStats {
     val args = SeasonStatsArguments(strings)
     val season = args.seasonOpt.getOrElse(throw new IllegalArgumentException("A Season must be specified"))
     val dt = TimeUtils.dtNow
+    val seasonType = args.seasonType
 
     if (args.downloadGameLog) {
-      GameLogDownloader.downloadAndWriteAllGameLogs(season, dt)
+      GameLogDownloader.downloadAndWriteAllGameLogs(season, dt, seasonType)
     }
 
-    val gameLogs = GameLogDownloader.readGameLogs(season)
+    val gameLogs = GameLogDownloader.readGameLogs(season, seasonType)
 
     if (args.downloadPlayByPlay) {
-      PlayByPlayDownloader.downloadAndWriteAllPlayByPlay(gameLogs, season, dt)
+      PlayByPlayDownloader.downloadAndWriteAllPlayByPlay(gameLogs, season, dt, seasonType)
     }
 
     if (args.downloadRosters) {
@@ -28,11 +29,11 @@ object SeasonStats {
     }
 
     if (args.downloadAdvancedBoxscore) {
-      AdvancedBoxScoreDownloader.downloadAndWriteAllAdvancedBoxScores(gameLogs, season, dt)
+      AdvancedBoxScoreDownloader.downloadAndWriteAllAdvancedBoxScores(gameLogs, season, dt, seasonType)
     }
 
     if (args.downloadGameSummaries) {
-      BoxScoreSummaryDownloader.downloadAndWriteAllBoxScoreSummaries(gameLogs, dt, args.seasonOpt)
+      BoxScoreSummaryDownloader.downloadAndWriteAllBoxScoreSummaries(gameLogs, dt, args.seasonOpt, seasonType)
     }
 
   }

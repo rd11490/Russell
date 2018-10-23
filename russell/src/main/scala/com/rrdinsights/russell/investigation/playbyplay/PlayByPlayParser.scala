@@ -59,7 +59,8 @@ final class PlayByPlayParser(playByPlay: Seq[RawPlayByPlayEvent], playersOnCourt
       sortedTeam2Players(3),
       sortedTeam2Players(4),
       dt,
-      playByPlay.season)
+      playByPlay.season,
+      playByPlay.seasonType)
 
   }
 

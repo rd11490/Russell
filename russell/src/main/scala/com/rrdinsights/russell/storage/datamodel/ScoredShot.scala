@@ -27,6 +27,7 @@ final case class ScoredShot(primaryKey: String,
                             playerShotAttempted: jl.Integer,
                             playerShotMade: jl.Integer,
                             season: String,
+                            seasonType: String,
                             dt: String)
 
 object ScoredShot extends ResultSetMapper {
@@ -61,5 +62,6 @@ object ScoredShot extends ResultSetMapper {
       getInt(resultSet, 22),
 
       getString(resultSet, 23),
-      getString(resultSet, 24))
+      getString(resultSet, 24),
+      getString(resultSet, 25))
 }

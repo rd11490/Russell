@@ -6,19 +6,18 @@ import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"
-shotCutOff = 250
+shotCutOff = 0
 
 shotsSeenQuery = "SELECT playerId, shots FROM nba.shots_seen where season = '{}';".format(season)
 stintsQuery = "SELECT * FROM nba.shot_stint_data where season = '{}' and bin = 'Total';".format(season)
 playerNamesQuery = "select playerId, playerName from nba.roster_player where season = '{}';".format(season)
 
 stints = sql.runQuery(stintsQuery)
-playerNames = sql.runQuery(playerNamesQuery)
+playerNames = sql.runQuery(playerNamesQuery).drop_duplicates()
 shotsSeen = sql.runQuery(shotsSeenQuery)
 shotSeenMap = shotsSeen.set_index("playerId").to_dict()["shots"]
 
 
-stints["shotExpectedPointsPer100"] = stints["shotExpectedPoints"] * 100
 stints["shotExpectedPointsPer100"] = stints["shotExpectedPoints"] * 100
 
 stints["playerExpectedPointsPer100"] = stints["playerExpectedPoints"] * 100
@@ -103,7 +102,7 @@ stintX = np.apply_along_axis(map_players, 1, stintX)
 stintY = stintsForReg.as_matrix(["difference100"])
 
 alphas = np.array([0.01, 0.05, 0.1, 0.5, 1.0, 5, 10, 50, 100, 500, 1000, 2000, 5000])
-clf = RidgeCV(alphas=alphas, cv=5, fit_intercept=False)
+clf = RidgeCV(alphas=alphas, cv=5, fit_intercept=True)
 model = clf.fit(stintX, stintY)
 
 playerArr = np.transpose(np.array(filteredPlayers).reshape(1,len(filteredPlayers)))

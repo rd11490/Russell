@@ -16,10 +16,11 @@ final case class RawInactivePlayers(
                                      teamName: String,
                                      teamAbbreviation: String,
                                      dt: String,
-                                     season: String)
+                                     season: String,
+                                     seasonType: String)
 
 object RawInactivePlayers extends ResultSetMapper {
-  def apply(inactivePlayers: InactivePlayers, gameId: String, dt: String, season: Option[String]): RawInactivePlayers =
+  def apply(inactivePlayers: InactivePlayers, gameId: String, dt: String, season: Option[String], seasonType: String): RawInactivePlayers =
     RawInactivePlayers(
       s"${gameId}_${inactivePlayers.playerId}",
       gameId,
@@ -32,5 +33,6 @@ object RawInactivePlayers extends ResultSetMapper {
       inactivePlayers.teamName,
       inactivePlayers.teamAbbreviation,
       dt,
-      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)))
+      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)),
+      seasonType)
 }

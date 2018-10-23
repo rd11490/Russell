@@ -21,7 +21,8 @@ final case class PlayersOnCourt(
                                  team2player4Id: jl.Integer,
                                  team2player5Id: jl.Integer,
                                  dt: String,
-                                 season: String)
+                                 season: String,
+                                 seasonType: String)
 
 object PlayersOnCourt extends ResultSetMapper {
   def apply(resultSet: ResultSet): PlayersOnCourt =
@@ -43,5 +44,6 @@ object PlayersOnCourt extends ResultSetMapper {
       getInt(resultSet, 14),
       getInt(resultSet, 15),
       getString(resultSet, 16),
-      getString(resultSet, 17))
+      getString(resultSet, 17),
+      getString(resultSet, 18))
 }

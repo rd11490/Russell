@@ -3,8 +3,13 @@ package com.rrdinsights.russell.etl.application
 import java.sql.ResultSet
 
 import com.rrdinsights.russell.storage.MySqlClient
-import com.rrdinsights.russell.storage.datamodel.{RawTeamBoxScoreAdvanced, ResultSetMapper}
+import com.rrdinsights.russell.storage.datamodel.{
+  RawTeamBoxScoreAdvanced,
+  ResultSetMapper
+}
 import com.rrdinsights.russell.storage.tables.NBATables
+import org.json4s.jackson.Serialization.write
+import org.json4s.{DefaultFormats, Formats}
 
 object TeamIdMapBuilder {
 
@@ -16,10 +21,18 @@ object TeamIdMapBuilder {
     writeTeamMap(teams ++ league)
   }
 
-
-  private def buildTeamMap(/*IO*/): Seq[TeamInfo] = {
-    MySqlClient.selectFrom(NBATables.raw_team_box_score_advanced, RawTeamBoxScoreAdvanced.apply)
-      .map(v => TeamInfo(s"${v.teamId}_${v.season}", v.teamId, v.teamName, v.teamAbbreviation, v.teamCity, v.season))
+  private def buildTeamMap( /*IO*/ ): Seq[TeamInfo] = {
+    MySqlClient
+      .selectFrom(NBATables.raw_team_box_score_advanced,
+                  RawTeamBoxScoreAdvanced.apply)
+      .map(
+        v =>
+          TeamInfo(s"${v.teamId}_${v.season}",
+                   v.teamId,
+                   v.teamName,
+                   v.teamAbbreviation,
+                   v.teamCity,
+                   v.season))
       .distinct
   }
 
@@ -44,12 +57,14 @@ final case class TeamInfo(primaryKey: String,
                           season: String)
 
 object TeamInfo extends ResultSetMapper {
+  private implicit val formats: Formats = DefaultFormats
+
+  def toJson(teamInfo: Seq[TeamInfo]): String = write(teamInfo)
   def apply(resultSet: ResultSet): TeamInfo =
-    TeamInfo(
-      getString(resultSet, 0),
-      getInt(resultSet, 1),
-      getString(resultSet, 2),
-      getString(resultSet, 3),
-      getString(resultSet, 4),
-      getString(resultSet, 5))
+    TeamInfo(getString(resultSet, 0),
+             getInt(resultSet, 1),
+             getString(resultSet, 2),
+             getString(resultSet, 3),
+             getString(resultSet, 4),
+             getString(resultSet, 5))
 }

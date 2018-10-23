@@ -48,6 +48,7 @@ final case class RawPlayByPlayEvent(
 
                                      timeElapsed: jl.Integer,
                                      season: String,
+                                     seasonType: String,
                                      dt: String) extends Ordered[RawPlayByPlayEvent] {
 
   override def compare(that: RawPlayByPlayEvent): Int =
@@ -65,7 +66,7 @@ final case class RawPlayByPlayEvent(
 
 object RawPlayByPlayEvent extends ResultSetMapper {
 
-  def apply(playByPlayEvent: PlayByPlayEvent, season: String, dt: String): RawPlayByPlayEvent =
+  def apply(playByPlayEvent: PlayByPlayEvent, season: String, dt: String, seasonType: String): RawPlayByPlayEvent =
     RawPlayByPlayEvent(
       s"${playByPlayEvent.gameId}_${playByPlayEvent.eventNumber}",
       playByPlayEvent.gameId,
@@ -103,6 +104,7 @@ object RawPlayByPlayEvent extends ResultSetMapper {
       playByPlayEvent.player3TeamAbbreviation,
       TimeUtils.convertTimeStringToTime(playByPlayEvent.period, playByPlayEvent.pcTimeString),
       season,
+      seasonType,
       dt)
 
   def apply(resultSet: ResultSet): RawPlayByPlayEvent =
@@ -148,7 +150,9 @@ object RawPlayByPlayEvent extends ResultSetMapper {
 
       getInt(resultSet, 34),
       getString(resultSet, 35),
-      getString(resultSet, 36))
+      getString(resultSet, 36),
+
+      getString(resultSet, 37))
 }
 
 sealed trait PlayByPlayEventMessageType {

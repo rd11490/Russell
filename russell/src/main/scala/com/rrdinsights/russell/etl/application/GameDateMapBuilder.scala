@@ -5,6 +5,7 @@ import java.sql.ResultSet
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.{RawGameInfo, ResultSetMapper}
 import com.rrdinsights.russell.storage.tables.NBATables
+import com.rrdinsights.russell.utils.TimeUtils
 
 object GameDateMapBuilder {
 
@@ -30,7 +31,10 @@ object GameDateMapBuilder {
 final case class GameDate(primaryKey: String,
                           gameId: String,
                           gameDate: String,
-                          season: String)
+                          season: String) {
+  lazy val gameDateInMillis: Long = TimeUtils.parseGameDate(gameDate)
+
+}
 
 object GameDate extends ResultSetMapper {
   def apply(resultSet: ResultSet): GameDate =

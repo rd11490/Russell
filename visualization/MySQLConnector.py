@@ -8,7 +8,7 @@ from sqlalchemy import create_engine
 
 class MySQLConnector:
     def __init__(self):
-        creds_file = open("cred/MySqlCred.json", "r")
+        creds_file = open("./cred/MySqlCred.json", "r")
         self.__creds = json.loads(creds_file.read())
 
     def __username(self):

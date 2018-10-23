@@ -30,11 +30,12 @@ final case class RawGameScoreLine(
                                    ot10Points: jl.Integer,
                                    points: jl.Integer,
                                    dt: String,
-                                   season: String)
+                                   season: String,
+                                   seasonType: String)
 
 object RawGameScoreLine {
 
-  def apply(scoreLine: ScoreLine, dt: String, season: Option[String]): RawGameScoreLine =
+  def apply(scoreLine: ScoreLine, dt: String, season: Option[String], seasonType: String): RawGameScoreLine =
   RawGameScoreLine(
     s"${scoreLine.gameId}_${scoreLine.teamId}",
     scoreLine.gameDateTimeEST,
@@ -61,5 +62,6 @@ object RawGameScoreLine {
     scoreLine.ot10Points,
     scoreLine.points,
     dt,
-    season.getOrElse(DataModelUtils.gameIdToSeason(scoreLine.gameId)))
+    season.getOrElse(DataModelUtils.gameIdToSeason(scoreLine.gameId)),
+    seasonType)
 }

@@ -16,7 +16,7 @@ d = sql.runQuery(d_query)
 def diffAndSort(df, ascending=True):
     df["ePPS-PPS"] = df["expectedPointsAvg"] - df["pointsAvg"]
     df = df[["teamName", "ePPS-PPS", "pointsAvg", "expectedPointsAvg"]]
-    df = df.sort_values(by='ePPS-PPS', ascending=ascending)
+    df = df.sort_values(by='expectedPointsAvg', ascending=ascending)
     df.columns = ["teamName", "ePPS-PPS", "PPS", "expectedPPS"]
     print(df)
 

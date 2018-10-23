@@ -22,11 +22,12 @@ final case class RawOtherStats(
                                 teamRebounds: jl.Integer,
                                 pointsOffTurnOvers: jl.Integer,
                                 dt: String,
-                                season: String)
+                                season: String,
+                                seasonType: String)
 
 object RawOtherStats {
 
-  def apply(otherStats: OtherStats, gameId: String, dt: String, season: Option[String]): RawOtherStats =
+  def apply(otherStats: OtherStats, gameId: String, dt: String, season: Option[String], seasonType: String): RawOtherStats =
     RawOtherStats(
       s"${gameId}_${otherStats.teamId}",
       gameId,
@@ -45,5 +46,6 @@ object RawOtherStats {
       otherStats.teamRebounds,
       otherStats.pointsOffTurnOvers,
       dt,
-      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)))
+      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)),
+      seasonType)
 }

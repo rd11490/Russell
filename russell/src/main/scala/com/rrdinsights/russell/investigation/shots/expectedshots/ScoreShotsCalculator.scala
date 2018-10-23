@@ -85,6 +85,7 @@ object ScoreShotsCalculator {
       shotChart.made,
 
       DataModelUtils.gameIdToSeason(shotWithPlayers.gameId),
+      shotWithPlayers.seasonType,
       dt)
   }
 

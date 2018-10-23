@@ -3,8 +3,10 @@ package com.rrdinsights.russell.storage.datamodel
 import java.sql.ResultSet
 import java.{lang => jl}
 
-final case class ShotWithPlayers(
-                                 primaryKey: String,
+import org.json4s.{DefaultFormats, Formats}
+import org.json4s.jackson.Serialization.write
+
+final case class ShotWithPlayers(primaryKey: String,
                                  gameId: String,
                                  eventNumber: jl.Integer,
                                  shooter: jl.Integer,
@@ -23,52 +25,55 @@ final case class ShotWithPlayers(
                                  shotDistance: jl.Integer,
                                  xCoordinate: jl.Integer,
                                  yCoordinate: jl.Integer,
+                                 shotZone: String,
                                  shotAttemptedFlag: jl.Integer,
                                  shotMadeFlag: jl.Integer,
                                  shotValue: jl.Integer,
                                  period: jl.Integer,
                                  minutesRemaining: jl.Integer,
                                  secondsRemaining: jl.Integer,
+                                 gameDate: jl.Long,
                                  season: String,
+                                 seasonType: String,
                                  dt: String)
 
 object ShotWithPlayers extends ResultSetMapper {
 
+  private implicit val formats: Formats = DefaultFormats
+
+  def shotsToJson(shots: Seq[ShotWithPlayers]): String = write(shots)
+
   def apply(resultSet: ResultSet): ShotWithPlayers =
     ShotWithPlayers(
-      getString(resultSet, 0),
-      getString(resultSet, 1),
-      getInt(resultSet, 2),
-
-      getInt(resultSet, 3),
-
-      getInt(resultSet, 4),
-
-      getInt(resultSet, 5),
-      getInt(resultSet, 6),
-      getInt(resultSet, 7),
-      getInt(resultSet, 8),
-      getInt(resultSet, 9),
-
-      getInt(resultSet, 10),
-
-      getInt(resultSet, 11),
-      getInt(resultSet, 12),
-      getInt(resultSet, 13),
-      getInt(resultSet, 14),
-      getInt(resultSet, 15),
-
-      getInt(resultSet, 16),
-      getInt(resultSet, 17),
-      getInt(resultSet, 18),
-      getInt(resultSet, 19),
-      getInt(resultSet, 20),
-      getInt(resultSet, 21),
-
-      getInt(resultSet, 22),
-      getInt(resultSet, 23),
-      getInt(resultSet, 24),
-
-      getString(resultSet, 25),
-      getString(resultSet, 26))
+      primaryKey = getString(resultSet, 0),
+      gameId = getString(resultSet, 1),
+      eventNumber = getInt(resultSet, 2),
+      shooter = getInt(resultSet, 3),
+      offenseTeamId = getInt(resultSet, 4),
+      offensePlayer1Id = getInt(resultSet, 5),
+      offensePlayer2Id = getInt(resultSet, 6),
+      offensePlayer3Id = getInt(resultSet, 7),
+      offensePlayer4Id = getInt(resultSet, 8),
+      offensePlayer5Id = getInt(resultSet, 9),
+      defenseTeamId = getInt(resultSet, 10),
+      defensePlayer1Id = getInt(resultSet, 11),
+      defensePlayer2Id = getInt(resultSet, 12),
+      defensePlayer3Id = getInt(resultSet, 13),
+      defensePlayer4Id = getInt(resultSet, 14),
+      defensePlayer5Id = getInt(resultSet, 15),
+      shotDistance = getInt(resultSet, 16),
+      xCoordinate = getInt(resultSet, 17),
+      yCoordinate = getInt(resultSet, 18),
+      shotZone = getString(resultSet, 19),
+      shotAttemptedFlag = getInt(resultSet, 20),
+      shotMadeFlag = getInt(resultSet, 21),
+      shotValue = getInt(resultSet, 22),
+      period = getInt(resultSet, 23),
+      minutesRemaining = getInt(resultSet, 24),
+      secondsRemaining = getInt(resultSet, 25),
+      gameDate = getLong(resultSet, 26),
+      season = getString(resultSet, 27),
+      seasonType = getString(resultSet, 28),
+      dt = getString(resultSet, 29)
+    )
 }

@@ -12,11 +12,12 @@ final case class RawGameInfo(
                               attendance: jl.Integer,
                               gameTime: String,
                               dt: String,
-                              season: String)
+                              season: String,
+                              seasonType: String)
 
 object RawGameInfo extends ResultSetMapper {
 
-  def apply(gameInfo: GameInfo, gameId: String, dt: String, season: Option[String]): RawGameInfo = {
+  def apply(gameInfo: GameInfo, gameId: String, dt: String, season: Option[String], seasonType: String): RawGameInfo = {
     RawGameInfo(
       gameId,
       gameId,
@@ -24,7 +25,8 @@ object RawGameInfo extends ResultSetMapper {
       gameInfo.attendance,
       gameInfo.gameTime,
       dt,
-      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)))
+      season.getOrElse(DataModelUtils.gameIdToSeason(gameId)),
+      seasonType)
   }
 
   def apply(resultSet: ResultSet): RawGameInfo =
@@ -35,5 +37,6 @@ object RawGameInfo extends ResultSetMapper {
       getInt(resultSet, 3),
       getString(resultSet, 4),
       getString(resultSet, 5),
-      getString(resultSet, 6))
+      getString(resultSet, 6),
+      getString(resultSet, 7))
 }
