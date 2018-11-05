@@ -14,21 +14,23 @@ object ExpectedShotsCalculator {
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
     val args = ExpectedPointsArguments(strings)
-    val season = args.seasonOpt.getOrElse(throw new IllegalArgumentException("Must provide a season"))
-    val where = Seq(s"season = '$season'")
+    val season = args.season
+    val seasonType = args.seasonType
+
+    val where = Seq(s"season = '$season'", s"seasonType = '$seasonType'")
     val scoredShots = readScoredShots(where)
 
     if (args.offense) {
-      offenseZoned(scoredShots, dt, season)
+      offenseZoned(scoredShots, dt, season, seasonType)
     }
 
     if (args.defense) {
-      defenseZoned(scoredShots, dt, season)
+      defenseZoned(scoredShots, dt, season, seasonType)
     }
 
   }
 
-  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
+  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String, seasonType: String): ExpectedPoints = {
     val attempted = shots.map(v => v.shotAttempts.intValue()).sum
     val made = shots.map(v => v.shotMade.intValue()).sum
     val expectedPoints = shots.map(v => v.expectedPoints.doubleValue())
@@ -51,16 +53,17 @@ object ExpectedShotsCalculator {
       expectedPointsAvg,
       expectedPointsStDev,
       season,
+      seasonType,
       dt)
   }
 
-  private def reduceShots(shots: Seq[ExpectedPointsForReduction], dt: String, season: String): Seq[ExpectedPoints] =
+  private def reduceShots(shots: Seq[ExpectedPointsForReduction], dt: String, season: String, seasonType: String): Seq[ExpectedPoints] =
     shots
       .groupBy(v => (v.teamId, v.bin))
-      .map(v => reduceShotGroup(v._1, v._2, dt, season))
+      .map(v => reduceShotGroup(v._1, v._2, dt, season, seasonType))
       .toSeq
 
-  private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
+  private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String, seasonType: String): Unit = {
     val shotsForReduction = scoredShot.flatMap(v => Seq(
       ExpectedPointsForReduction(
         v.offenseTeamId,
@@ -91,12 +94,12 @@ object ExpectedShotsCalculator {
         v.shotValue,
         v.expectedPoints)))
 
-    val shots = reduceShots(shotsForReduction, dt, season)
+    val shots = reduceShots(shotsForReduction, dt, season, seasonType)
 
     writeShots(NBATables.offense_expected_points, shots)
   }
 
-  private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
+  private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String, seasonType: String): Unit = {
     val shotsForReduction = scoredShot.flatMap(v =>
       Seq(
         ExpectedPointsForReduction(
@@ -128,7 +131,7 @@ object ExpectedShotsCalculator {
           v.shotValue,
           v.expectedPoints)))
 
-    val shots = reduceShots(shotsForReduction, dt, season)
+    val shots = reduceShots(shotsForReduction, dt, season, seasonType)
 
     writeShots(NBATables.defense_expected_points, shots)
   }

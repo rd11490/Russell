@@ -4,18 +4,11 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.{lang => jl}
 
-import com.rrdinsights.russell.commandline.{
-  CommandLineBase,
-  ForceOption,
-  RunAllOption,
-  SeasonOption
-}
-import com.rrdinsights.russell.etl.application.{
-  PlayByPlayDownloader,
-  PlayersOnCourtDownloader
-}
+import com.rrdinsights.russell.commandline.{CommandLineBase, ForceOption, RunAllOption, SeasonOption}
+import com.rrdinsights.russell.etl.application.{PlayByPlayDownloader, PlayersOnCourtDownloader}
 import com.rrdinsights.russell.investigation.playbyplay.PlayByPlayParser
 import com.rrdinsights.russell.storage.datamodel._
+import com.rrdinsights.russell.utils.TimeUtils
 import org.apache.commons.cli
 import org.apache.commons.cli.Options
 
@@ -156,14 +149,11 @@ object PlayerOnCourtDriver {
                                                       playByPlay: Seq[RawPlayByPlayEvent])
   : (RawPlayByPlayEvent, Seq[RawPlayByPlayEvent]) = {
     val first = playByPlay.head
+    val lower = TimeUtils.timeFromStartOfGameAtPeriod(first.period)
 
     val subs = playByPlay
       .filter(v => {
-        if (v.period > 4) {
-          v.pcTimeString < "5:00" && v.pcTimeString >= "3:00"
-        } else {
-          v.pcTimeString < "12:00" && v.pcTimeString >= "10:00"
-        }
+        v.timeElapsed > lower  && v.timeElapsed <= lower+180
       })
       .filter(v =>
         PlayByPlayEventMessageType

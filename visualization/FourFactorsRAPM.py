@@ -12,12 +12,13 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 sql = MySQLConnector.MySQLConnector()
-seasons = ["2017-18", "2016-17", "2015-16", "2014-15", "2013-14", "2012-13", "2011-12", "2010-11"]
+seasons = ["2018-19"]
+seasonType = "Regular Season"
 
 for season in seasons:
 
-    seconds_query = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}';".format(season)
-    stints_query = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{}';".format(season)
+    seconds_query = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}' and seasonType ='{}';".format(season, seasonType)
+    stints_query = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{}' and seasonType ='{}';".format(season, seasonType)
     player_names_query = "select playerId, playerName from nba.roster_player where season = '{}';".format(season)
 
     stints = sql.runQuery(stints_query)

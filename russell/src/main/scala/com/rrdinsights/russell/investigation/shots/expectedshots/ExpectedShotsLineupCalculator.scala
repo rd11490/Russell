@@ -14,27 +14,29 @@ object ExpectedShotsLineupCalculator {
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
     val args = ExpectedPointsArguments(strings)
-    val season = args.seasonOpt.getOrElse(throw new IllegalArgumentException("Must provide a season"))
-    val where = Seq(s"season = '$season'")
+    val season = args.season
+    val seasonType = args.seasonType
+
+    val where = Seq(s"season = '$season'", s"seasonType = '$seasonType'")
     val scoredShots = readScoredShots(where)
 
     if (args.offense) {
-      offenseTotal(scoredShots, dt, season)
+      offenseTotal(scoredShots, dt, season, seasonType)
       if (args.zoned) {
-        offenseZoned(scoredShots, dt, season)
+        offenseZoned(scoredShots, dt, season, seasonType)
       }
     }
 
     if (args.defense) {
-      defenseTotal(scoredShots, dt, season)
+      defenseTotal(scoredShots, dt, season, seasonType)
       if (args.zoned) {
-        defenseZoned(scoredShots, dt, season)
+        defenseZoned(scoredShots, dt, season, seasonType)
       }
     }
 
   }
 
-  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String): ExpectedPoints = {
+  private def reduceShotGroup(key: (Integer, String), shots: Seq[ExpectedPointsForReduction], dt: String, season: String, seasonType: String): ExpectedPoints = {
     val attempted = shots.map(v => v.shotAttempts.intValue()).sum
     val made = shots.map(v => v.shotMade.intValue()).sum
     val expectedPoints = shots.map(v => v.expectedPoints.doubleValue())
@@ -57,17 +59,18 @@ object ExpectedShotsLineupCalculator {
       expectedPointsAvg,
       expectedPointsStDev,
       season,
+      seasonType,
       dt)
   }
 
-  private def reduceShots(shots: Seq[ExpectedPointsForReduction], dt: String, season: String): Seq[ExpectedPoints] =
+  private def reduceShots(shots: Seq[ExpectedPointsForReduction], dt: String, season: String, seasonType: String): Seq[ExpectedPoints] =
     shots
       .groupBy(v => (v.teamId, v.bin))
-      .map(v => reduceShotGroup(v._1, v._2, dt, season))
+      .map(v => reduceShotGroup(v._1, v._2, dt, season, seasonType))
       .toSeq
 
 
-  private def offenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
+  private def offenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String, seasonType: String): Unit = {
     val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
       v.offenseTeamId,
       "Total",
@@ -76,12 +79,12 @@ object ExpectedShotsLineupCalculator {
       v.shotValue,
       v.expectedPoints))
 
-    val shots = reduceShots(shotsForReduction, dt, season)
+    val shots = reduceShots(shotsForReduction, dt, season, seasonType)
 
     //writeShots(NBATables.offense_expected_points_total, shots)
   }
 
-  private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
+  private def offenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String, seasonType: String): Unit = {
     val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
       v.offenseTeamId,
       v.bin,
@@ -90,12 +93,12 @@ object ExpectedShotsLineupCalculator {
       v.shotValue,
       v.expectedPoints))
 
-    val shots = reduceShots(shotsForReduction, dt, season)
+    val shots = reduceShots(shotsForReduction, dt, season, seasonType)
 
     //writeShots(NBATables.offense_expected_points_zoned, shots)
   }
 
-  private def defenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
+  private def defenseTotal(scoredShot: Seq[ScoredShot], dt: String, season: String, seasonType: String): Unit = {
     val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
       v.defenseTeamId,
       "Total",
@@ -104,12 +107,12 @@ object ExpectedShotsLineupCalculator {
       v.shotValue,
       v.expectedPoints))
 
-    val shots = reduceShots(shotsForReduction, dt, season)
+    val shots = reduceShots(shotsForReduction, dt, season, seasonType)
 
     //writeShots(NBATables.defense_expected_points_total, shots)
   }
 
-  private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String): Unit = {
+  private def defenseZoned(scoredShot: Seq[ScoredShot], dt: String, season: String, seasonType: String): Unit = {
     val shotsForReduction = scoredShot.map(v => ExpectedPointsForReduction(
       v.defenseTeamId,
       v.bin,
@@ -118,7 +121,7 @@ object ExpectedShotsLineupCalculator {
       v.shotValue,
       v.expectedPoints))
 
-    val shots = reduceShots(shotsForReduction, dt, season)
+    val shots = reduceShots(shotsForReduction, dt, season, seasonType)
 
     //writeShots(NBATables.defense_expected_points_zoned, shots)
   }

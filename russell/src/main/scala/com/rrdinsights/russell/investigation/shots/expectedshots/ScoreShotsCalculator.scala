@@ -12,7 +12,11 @@ object ScoreShotsCalculator {
   def main(strings: Array[String]): Unit = {
     val dt = TimeUtils.dtNow
     val args = ScoredShotsArguments(strings)
-    val where = args.seasonOpt.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+
+    val season = args.season
+    val seasonType = args.seasonType
+
+    val where = Seq(s"season = '$season'", s"seasontype = '$seasonType'")
 
     val shotsWithPlayers = readShotsWithPlayers(where: _*)
       .map(v => ((v.shooter, ShotZone.findShotZone(v.xCoordinate, v.yCoordinate, v.shotValue).toString), v))

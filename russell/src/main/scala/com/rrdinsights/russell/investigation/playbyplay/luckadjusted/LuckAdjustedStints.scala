@@ -19,13 +19,15 @@ object LuckAdjustedStints {
     val dt = TimeUtils.dtNow
     val args = ExpectedPointsArguments(strings)
     val season = args.season
+    val seasonType = args.seasonType
     //    val season = "2017-18"
     //
     val whereSeason = s"season = '$season'"
+    val whereSeasonType = s"seasontype = '$seasonType'"
     //    val whereGameId = s"gameId = '0021701017'"
     //    val wherePeriod = s"period = '1'"
 
-    val playByPlay = LuckAdjustedUtils.readPlayByPlay(whereSeason)
+    val playByPlay = LuckAdjustedUtils.readPlayByPlay(whereSeason, whereSeasonType)
 
     println(s"${playByPlay.size} PlayByPlay Events <<<<<<<<<<<<<<<<<<")
 
@@ -76,7 +78,7 @@ object LuckAdjustedStints {
           v.team2player4Id,
           v.team2player5Id
         ).map(i =>
-          SecondsPlayedContainer(s"${i}_${v.season}", i, v.seconds, v.season))
+          SecondsPlayedContainer(s"${i}_${v.season}", i, v.seconds, v.season, v.seasonType))
       })
       .groupBy(_.primaryKey)
       .map(v => v._2.reduce(_ + _))
@@ -146,6 +148,7 @@ object LuckAdjustedStints {
     LuckAdjustedStint(
       primaryKey = primaryKey,
       season = first._1.season,
+      seasonType = first._1.seasonType,
       dt = dt,
       teamId1 = first._1.teamId1,
       team1player1Id = first._1.team1player1Id,
@@ -197,6 +200,7 @@ object LuckAdjustedStints {
 
 final case class LuckAdjustedStint(primaryKey: String,
                                    season: String,
+                                   seasonType: String,
                                    dt: String,
                                    teamId1: jl.Integer,
                                    team1player1Id: jl.Integer,
@@ -243,6 +247,7 @@ final case class LuckAdjustedStint(primaryKey: String,
     LuckAdjustedStint(
       primaryKey = primaryKey,
       season = season,
+      seasonType = seasonType,
       dt = dt,
       teamId1 = teamId1,
       team1player1Id = team1player1Id,
@@ -304,6 +309,7 @@ final case class LuckAdjustedStint(primaryKey: String,
           season
         ).mkString("_"),
         season = season,
+        seasonType = seasonType,
         dt = dt,
         offenseTeamId1 = teamId1,
         offensePlayer1Id = team1player1Id,
@@ -353,6 +359,7 @@ final case class LuckAdjustedStint(primaryKey: String,
           season
         ).mkString("_"),
         season = season,
+        seasonType = seasonType,
         dt = dt,
         offenseTeamId1 = teamId2,
         offensePlayer1Id = team2player1Id,
@@ -391,16 +398,19 @@ final case class LuckAdjustedStint(primaryKey: String,
 final case class SecondsPlayedContainer(primaryKey: String,
                                         playerId: jl.Integer,
                                         secondsPlayed: jl.Integer,
-                                        season: String) {
+                                        season: String,
+                                        seasonType: String) {
   def +(other: SecondsPlayedContainer): SecondsPlayedContainer =
     SecondsPlayedContainer(primaryKey,
       playerId,
       secondsPlayed + other.secondsPlayed,
-      season)
+      season,
+      seasonType)
 }
 
 final case class LuckAdjustedOneWayStint(primaryKey: String,
                                          season: String,
+                                         seasonType: String,
                                          dt: String,
                                          offenseTeamId1: jl.Integer,
                                          offensePlayer1Id: jl.Integer,
@@ -436,6 +446,7 @@ final case class LuckAdjustedOneWayStint(primaryKey: String,
     LuckAdjustedOneWayStint(
       primaryKey = primaryKey,
       season = season,
+      seasonType = seasonType,
       dt = dt,
       offenseTeamId1 = offenseTeamId1,
       offensePlayer1Id = offensePlayer1Id,

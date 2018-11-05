@@ -12,5 +12,5 @@ trait ForceOption extends CommandLineBase {
 
 object ForceOption {
   val Force: cli.Option =
-    new cli.Option(null, "force", true, "force an operation")
+    new cli.Option(null, "force", false, "force an operation")
 }

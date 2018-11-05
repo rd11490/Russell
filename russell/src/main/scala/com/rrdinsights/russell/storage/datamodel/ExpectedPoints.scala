@@ -15,6 +15,7 @@ final case class ExpectedPoints(
                                  expectedPointsAvg: jl.Double,
                                  expectedPointsStDev: jl.Double,
                                  season: String,
+                                 seasonType: String,
                                  dt: String)
 
 object ExpectedPoints extends ResultSetMapper {
@@ -31,5 +32,6 @@ object ExpectedPoints extends ResultSetMapper {
       getDouble(resultSet, 8),
       getDouble(resultSet, 9),
       getString(resultSet, 10),
-      getString(resultSet, 11))
+      getString(resultSet, 11),
+      getString(resultSet, 12))
 }
