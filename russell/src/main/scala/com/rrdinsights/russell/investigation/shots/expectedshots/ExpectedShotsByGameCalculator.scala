@@ -17,7 +17,7 @@ object ExpectedShotsByGameCalculator {
     val args = ExpectedPointsArguments(strings)
     val season = args.seasonOpt.getOrElse(throw new IllegalArgumentException("Must provide a season"))
     val seasonType = args.seasonType
-    val where = Seq(s"season = '$season'", s"seasonType = '$seasonType")
+    val where = Seq(s"season = '$season'", s"seasonType = '$seasonType'")
     val scoredShots = readScoredShots(where)
     val games = GameLogDownloader.readGameLogs(season, seasonType)
     val gameMap = buildGameMap(games)

@@ -9,6 +9,7 @@ sql_path = "{0}/{1}".format(root_path, "sql/Individual Tables")
 def zip_all(path):
     path = os.path.abspath(os.path.normpath(os.path.expanduser(path)))
     for folder in os.listdir(path):
+        print(folder)
         if ".zip" not in folder and ".DS_Store" not in folder:
             out_file_name = "{0}/{1}".format(path, folder)
             item_to_zip_name = "{0}/{1}".format(path, folder)

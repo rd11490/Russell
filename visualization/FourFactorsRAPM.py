@@ -4,9 +4,8 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.linear_model import RidgeCV
 
-import MySQLConnector
 import MySqlDatabases.NBADatabase
-
+from cred import MySQLConnector
 
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
@@ -17,14 +16,14 @@ seasonType = "Regular Season"
 
 for season in seasons:
 
-    seconds_query = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}' and seasonType ='{}';".format(season, seasonType)
+    # seconds_query = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}' and seasonType ='{}';".format(season, seasonType)
     stints_query = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{}' and seasonType ='{}';".format(season, seasonType)
-    player_names_query = "select playerId, playerName from nba.roster_player where season = '{}';".format(season)
+    player_names_query = "select playerId, playerName from nba.player_info;".format(season)
 
     stints = sql.runQuery(stints_query)
     player_names = sql.runQuery(player_names_query).drop_duplicates()
-    secondsPlayed = sql.runQuery(seconds_query)
-    secondsPlayedMap = secondsPlayed.set_index("playerId").to_dict()["secondsPlayed"]
+    # secondsPlayed = sql.runQuery(seconds_query)
+    # secondsPlayedMap = secondsPlayed.set_index("playerId").to_dict()["secondsPlayed"]
 
     players = list(
         set(list(stints["offensePlayer1Id"]) + list(stints["offensePlayer2Id"]) + list(stints["offensePlayer3Id"]) + \
@@ -147,12 +146,12 @@ for season in seasons:
         alphas = [lambda_to_alpha(l, stintX.shape[0]) for l in lambdas]
 
         clf = RidgeCV(alphas=alphas, cv=5, fit_intercept=True, normalize=False)
-        weights = [secondsPlayedMap[p] / 60 for p in filtered_players]
-        weights = np.array(weights)
-        weights = np.concatenate((weights, weights))
-        weights = weights - weights.mean()
-
-        clf.coef_ = weights
+        # weights = [secondsPlayedMap[p] / 60 for p in filtered_players]
+        # weights = np.array(weights)
+        # weights = np.concatenate((weights, weights))
+        # weights = weights - weights.mean()
+        #
+        # clf.coef_ = weights
 
         model = clf.fit(stintX, stintY, sample_weight=possessions)
 
@@ -183,20 +182,20 @@ for season in seasons:
         print("Model Intercept: {0}".format(model.intercept_))
 
         pred = model.predict(stintX)
-        err = pred - stintY
-        # print("METRICS:")
-        #
-        # print("max: {}".format(max(err)))
-        # print("min: {}".format(min(err)))
-        #
-        # abs_error = metrics.mean_absolute_error(stintY, pred)
-        # print("mean absolute error: {}".format(abs_error))
-        #
-        # rms_error = metrics.mean_squared_error(stintY, pred)
-        # print("mean squared error: {}".format(rms_error))
-        #
-        # log_error = metrics.mean_squared_error(stintY, pred)
-        # print("log squared error: {}".format(log_error))
+        err = stintY - pred
+        print("METRICS:")
+
+        print("max: {}".format(max(err)))
+        print("min: {}".format(min(err)))
+
+        abs_error = metrics.mean_absolute_error(stintY, pred)
+        print("mean absolute error: {}".format(abs_error))
+
+        rms_error = metrics.mean_squared_error(stintY, pred)
+        print("mean squared error: {}".format(rms_error))
+
+        log_error = metrics.mean_squared_error(stintY, pred)
+        print("log squared error: {}".format(log_error))
 
         full_stint["Prediction"] = pred
 
@@ -260,8 +259,11 @@ for season in seasons:
 
     merged["season"] = season
 
+    merged["primaryKey"] = merged["playerId"].astype(str) + "_" + merged["season"]
+
     print(merged.head(20))
 
+    sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season='{}'".format(season))
     sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
 
     merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))

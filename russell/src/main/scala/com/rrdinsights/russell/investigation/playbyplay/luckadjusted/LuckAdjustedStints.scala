@@ -20,16 +20,9 @@ object LuckAdjustedStints {
     val args = ExpectedPointsArguments(strings)
     val season = args.season
     val seasonType = args.seasonType
-    //    val season = "2017-18"
-    //
     val whereSeason = s"season = '$season'"
     val whereSeasonType = s"seasontype = '$seasonType'"
-    //    val whereGameId = s"gameId = '0021701017'"
-    //    val wherePeriod = s"period = '1'"
-
     val playByPlay = LuckAdjustedUtils.readPlayByPlay(whereSeason, whereSeasonType)
-
-    println(s"${playByPlay.size} PlayByPlay Events <<<<<<<<<<<<<<<<<<")
 
     val freeThrowMap = LuckAdjustedUtils.buildPlayerCareerFreeThrowPercentMap()
 
@@ -40,7 +33,7 @@ object LuckAdjustedStints {
 
     val playByPlayWithShotData = MapJoin.leftOuterJoin(keyedPbP, keyedShots)
 
-    val stints = playByPlayWithShotData
+    val possessions = playByPlayWithShotData
       .groupBy(v => (v._1.gameId, v._1.period))
       .flatMap(v => {
         val sorted = v._2.sortBy(_._1)
@@ -48,11 +41,13 @@ object LuckAdjustedStints {
           .seperatePossessions(sorted)
           .map(c => parsePossesions(c, sorted, freeThrowMap, dt))
       })
-      .groupBy(_.primaryKey)
+        .toSeq
+
+
+    val stints = possessions.groupBy(_.primaryKey)
       .map(v => v._2.reduce(_ + _))
       .toSeq
 
-    println(s"${stints.length} <<<<<<<<< STINTS")
 
     writeStints(stints)
 
@@ -71,14 +66,16 @@ object LuckAdjustedStints {
           v.team1player2Id,
           v.team1player3Id,
           v.team1player4Id,
-          v.team1player5Id,
+          v.team1player5Id
+        ).map(i =>
+          SecondsPlayedContainer(s"${i}_${v.season}", i, v.seconds, v.team1Possessions, v.team2Possessions, v.season, v.seasonType)) ++
+        Seq(
           v.team2player1Id,
           v.team2player2Id,
           v.team2player3Id,
           v.team2player4Id,
-          v.team2player5Id
-        ).map(i =>
-          SecondsPlayedContainer(s"${i}_${v.season}", i, v.seconds, v.season, v.seasonType))
+          v.team2player5Id).map(i =>
+          SecondsPlayedContainer(s"${i}_${v.season}", i, v.seconds, v.team2Possessions, v.team1Possessions, v.season, v.seasonType))
       })
       .groupBy(_.primaryKey)
       .map(v => v._2.reduce(_ + _))
@@ -398,12 +395,16 @@ final case class LuckAdjustedStint(primaryKey: String,
 final case class SecondsPlayedContainer(primaryKey: String,
                                         playerId: jl.Integer,
                                         secondsPlayed: jl.Integer,
+                                        offensivePossessions: jl.Integer,
+                                        defensivePossessions: jl.Integer,
                                         season: String,
                                         seasonType: String) {
   def +(other: SecondsPlayedContainer): SecondsPlayedContainer =
     SecondsPlayedContainer(primaryKey,
       playerId,
       secondsPlayed + other.secondsPlayed,
+      offensivePossessions + other.offensivePossessions,
+      defensivePossessions + other.defensivePossessions,
       season,
       seasonType)
 }

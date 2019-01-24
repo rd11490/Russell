@@ -1,10 +1,9 @@
 import matplotlib.colors as colors
-import drawCourt
 import matplotlib.pyplot as plt
+
 import ShotZones
-
-
-import MySQLConnector
+import drawCourt
+from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"

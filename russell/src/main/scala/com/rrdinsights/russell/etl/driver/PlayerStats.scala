@@ -20,7 +20,7 @@ object PlayerStats {
     if (playerId.isDefined && teamId.isDefined) {
       downloadAndWritePlayerStats(args, dt, (playerId.get, teamId.get))
     } else {
-      val playersFromRosters = readPlayersFromRosters(season)
+      val playersFromRosters = readPlayersFromRosters(season, args.seasonType)
 
       val players = if (args.delta) {
         playersFromRosters.diff(readPlayersFromShotCharts())
@@ -43,8 +43,8 @@ object PlayerStats {
     }
   }
 
-  private def readPlayersFromRosters(season: Option[String]): Seq[(String, String)] = {
-    val where = season.map(v => Seq(s"season = '$v'")).getOrElse(Seq.empty)
+  private def readPlayersFromRosters(season: Option[String], seasonType: String): Seq[(String, String)] = {
+    val where = season.map(v =>  Seq(s"season = '$v'", s"seasonType = '$seasonType'")).getOrElse(Seq.empty)
     val boxScores = AdvancedBoxScoreDownloader.readPlayerStats(where:_*)
     boxScores
       .map(v => (v.playerId.toString, v.teamId.toString))

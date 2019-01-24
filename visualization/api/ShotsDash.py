@@ -3,12 +3,10 @@ import json
 import pandas as pd
 import urllib3
 
-import MySqlDatabases.NBADatabase
-from cred import MySQLConnector
+players = [1628369, 1627759,202954,202681,1626179,202694,202330,1628464,1627824,203935,1628400,201143,203382]
 
-season = "2016-17"
-
-url = "https://stats.nba.com/stats/leaguedashteamstats?Conference=&DateFrom=&DateTo=&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season={0}&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=".format(season)
+def build_ulr(player):
+    return "https://stats.nba.com/stats/playerdashptshots?DateFrom=&DateTo=&GameSegment=&LastNGames=0&LeagueID=00&Location=&Month=0&OpponentTeamID=0&Outcome=&PerMode=Totals&Period=0&PlayerID={0}&Season=2018-19&SeasonSegment=&SeasonType=Regular+Season&TeamID=0&VsConference=&VsDivision=".format(player)
 
 
 header_data = {
@@ -23,25 +21,31 @@ header_data = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
 }
 
-sql = MySQLConnector.MySQLConnector()
 http = urllib3.PoolManager()
 
-def extract_data(url, season):
+def extract_data(url, player):
     print(url)
     r = http.request('GET', url, headers=header_data)
     resp = json.loads(r.data)
-    results = resp['resultSets'][0]
+    results = resp['resultSets'][4]
     headers = results['headers']
-    headers.append("season")
+    headers.append("player")
     rows = results['rowSet']
     frame = pd.DataFrame(rows)
-    frame["season"] = season
+    frame["player"] = player
     frame.columns = headers
     return frame
 
-data = extract_data(url, season)
+frames = []
 
-sql.write(data, MySqlDatabases.NBADatabase.league_net_rtg, MySqlDatabases.NBADatabase.NAME)
+for player in players:
+    url = build_ulr(player)
+    data = extract_data(url, player)
+    frames.append(data)
+
+out = pd.concat(frames)
+out.to_csv("CsDefenderDist.csv")
+
 
 
 

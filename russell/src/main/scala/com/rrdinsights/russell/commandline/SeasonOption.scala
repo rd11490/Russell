@@ -7,6 +7,8 @@ trait SeasonOption extends CommandLineBase {
   override protected def options: cli.Options = super.options
     .addOption(SeasonOption.SeasonOption)
     .addOption(SeasonOption.SeasonTypeOption)
+    .addOption(SeasonOption.SeasonsOption)
+
 
   def seasonOpt: Option[String] = valueOf(SeasonOption.SeasonOption)
 
@@ -18,6 +20,8 @@ trait SeasonOption extends CommandLineBase {
 
   def seasonType: String = seasonTypeOpt.getOrElse("Regular Season")
 
+  def seasons: Seq[String] = valuesOf(SeasonOption.SeasonsOption)
+
 }
 
 object SeasonOption {
@@ -26,4 +30,10 @@ object SeasonOption {
 
   val SeasonTypeOption: cli.Option =
     new cli.Option(null, "seasonType", true, "The season type (Regular Season, Playoffs)")
+
+  val SeasonsOption: cli.Option = {
+    val option = new cli.Option(null, "seasons", true, "The season you want to extract games from in the form of yyyy-yy (2016-17)")
+    option.setArgs(cli.Option.UNLIMITED_VALUES)
+    option
+  }
 }

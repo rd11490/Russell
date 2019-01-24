@@ -1,9 +1,9 @@
 import matplotlib.colors as colors
-
-import MySQLConnector
-import drawCourt
 import matplotlib.pyplot as plt
+
 import ShotZones
+import drawCourt
+from cred import MySQLConnector
 
 shotZones = ShotZones.buildShotZones()
 valueForPlotting = "Diff"

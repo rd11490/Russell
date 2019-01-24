@@ -1,14 +1,15 @@
 import matplotlib.pyplot as plt
-import MySQLConnector
+
+from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"
 
-o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_game where season = '{}' and bin = 'Total' ) a " \
-          "left join  (select * from nba.team_info) b " \
+o_query = "SELECT * FROM (select * from nba.offense_expected_points_by_game where season = '{0}' and bin = 'Total' ) a " \
+          "left join  (select * from nba.team_info where season = '{0}') b " \
           "on (a.teamId = b.teamId)".format(season)
-d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_game where season = '{}' and bin = 'Total' ) a " \
-          "left join  (select * from nba.team_info) b " \
+d_query = "SELECT * FROM (select * from nba.defense_expected_points_by_game where season = '{0}' and bin = 'Total' ) a " \
+          "left join  (select * from nba.team_info where season = '{0}') b " \
           "on (a.teamId = b.teamId)".format(season)
 
 o = sql.runQuery(o_query)

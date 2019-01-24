@@ -1,11 +1,11 @@
 import bs4
 import pandas as pd
-import urllib3
 import sqlalchemy
+import urllib3
 from sqlalchemy.dialects.mysql import *
 
-import MySQLConnector
 import MySqlDatabases.ACBDatabase
+from cred import MySQLConnector
 
 link_string_lit = "partido.php?c="
 

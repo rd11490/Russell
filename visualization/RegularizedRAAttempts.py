@@ -4,7 +4,7 @@ import pandas as pd
 from sklearn import metrics
 from sklearn.linear_model import RidgeCV
 
-import MySQLConnector
+from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"

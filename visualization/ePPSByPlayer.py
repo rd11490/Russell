@@ -1,4 +1,4 @@
-import MySQLConnector
+from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"

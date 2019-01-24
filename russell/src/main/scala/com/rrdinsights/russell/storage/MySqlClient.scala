@@ -94,19 +94,20 @@ object MySqlClient {
   def selectResultSetFromAndWrite(table: MySqlTable, fullPath: String, whereClauses: String*): Unit = {
     using(MySqlConnection.getConnection(Database.nba)) { connection =>
       using(connection.createStatement) { stmt =>
-        val results = stmt.executeQuery(selectTableStatement(table, whereClauses: _*))
-        val file = new File(fullPath)
+        using(stmt.executeQuery(selectTableStatement(table, whereClauses: _*))) { results =>
+          val file = new File(fullPath)
 
-        if (!file.isFile) {
-          val dir = file.getParentFile
-          if (!dir.isDirectory) {
-            dir.mkdirs()
+          if (!file.isFile) {
+            val dir = file.getParentFile
+            if (!dir.isDirectory) {
+              dir.mkdirs()
+            }
+            file.createNewFile()
           }
-          file.createNewFile()
-        }
 
-        val writer = new CSVWriter(new FileWriter(fullPath), ',')
-        writer.writeAll(results, true)
+          val writer = new CSVWriter(new FileWriter(fullPath))
+          writer.writeAll(results, true)
+        }
       }
     }
   }
@@ -115,6 +116,7 @@ object MySqlClient {
     val resultsList = mutable.ListBuffer.empty[String]
     using(MySqlConnection.getConnection(Database.nba)) { connection =>
       using(connection.createStatement) { stmt =>
+        println(table.name)
         val results: ResultSet = stmt.executeQuery(selectSeasonStatement(table))
         while (results.next()) {
           resultsList += results.getString(1)

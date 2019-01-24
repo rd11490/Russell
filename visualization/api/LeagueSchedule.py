@@ -3,8 +3,8 @@ import json
 import pandas as pd
 import urllib3
 
-import MySQLConnector
 import MySqlDatabases.NBADatabase
+from cred import MySQLConnector
 
 season = "2018"
 def url(season):

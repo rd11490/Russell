@@ -3,6 +3,9 @@ package com.rrdinsights.russell.storage.datamodel
 import java.sql.ResultSet
 import java.{lang => jl}
 
+import org.json4s.jackson.Serialization.write
+import org.json4s.{DefaultFormats, Formats}
+
 final case class RealAdjustedFourFactors(playerId: Integer,
                                          playerName: String,
                                          LA_RAPM: jl.Double,
@@ -47,7 +50,57 @@ final case class RealAdjustedFourFactors(playerId: Integer,
                                          RAPM__Off: jl.Double,
                                          RAPM__Off_Rank: jl.Double,
                                          RAPM__intercept: jl.Double,
-                                         season: String)
+                                         season: String) {
+
+  def toRealAdjustedFourFactorsForSite(teamInfo: (Integer, String)): RealAdjustedFourFactorsForSite =
+    RealAdjustedFourFactorsForSite(
+      playerId = playerId,
+      playerName = playerName,
+      LA_RAPM = fixZero(LA_RAPM),
+      LA_RAPM_Rank = LA_RAPM_Rank,
+      LA_RAPM__Def = fixZero(LA_RAPM__Def),
+      LA_RAPM__Def_Rank = LA_RAPM__Def_Rank,
+      LA_RAPM__Off = fixZero(LA_RAPM__Off),
+      LA_RAPM__Off_Rank = LA_RAPM__Off_Rank,
+      RA_EFG = fixZero(RA_EFG),
+      RA_EFG_Rank = RA_EFG_Rank,
+      RA_EFG__Def = fixZero(RA_EFG__Def),
+      RA_EFG__Def_Rank = RA_EFG__Def_Rank,
+      RA_EFG__Off = fixZero(RA_EFG__Off),
+      RA_EFG__Off_Rank = RA_EFG__Off_Rank,
+      RA_FTR = fixZero(RA_FTR),
+      RA_FTR_Rank = RA_FTR_Rank,
+      RA_FTR__Def = fixZero(RA_FTR__Def),
+      RA_FTR__Def_Rank = RA_FTR__Def_Rank,
+      RA_FTR__Off = fixZero(RA_FTR__Off),
+      RA_FTR__Off_Rank = RA_FTR__Off_Rank,
+      RA_ORBD = fixZero(RA_ORBD),
+      RA_ORBD_Rank = RA_ORBD_Rank,
+      RA_ORBD__Def = fixZero(RA_ORBD__Def),
+      RA_ORBD__Def_Rank = RA_ORBD__Def_Rank,
+      RA_ORBD__Off = fixZero(RA_ORBD__Off),
+      RA_ORBD__Off_Rank = RA_ORBD__Off_Rank,
+      RA_TOV = fixZero(RA_TOV),
+      RA_TOV_Rank = RA_TOV_Rank,
+      RA_TOV__Def =fixZero( RA_TOV__Def),
+      RA_TOV__Def_Rank = RA_TOV__Def_Rank,
+      RA_TOV__Off = fixZero(RA_TOV__Off),
+      RA_TOV__Off_Rank = RA_TOV__Off_Rank,
+      RAPM =fixZero(RAPM),
+      RAPM_Rank = RAPM_Rank,
+      RAPM__Def = fixZero(RAPM__Def),
+      RAPM__Def_Rank = RAPM__Def_Rank,
+      RAPM__Off = fixZero(RAPM__Off),
+      RAPM__Off_Rank = RAPM__Off_Rank,
+      season = season,
+      teamId = teamInfo._1,
+      teamName = teamInfo._2,
+      primaryKey = s"${playerId}_$season"
+    )
+
+  private def fixZero(double: Double): Double =
+    if(Math.abs(double) > 0.01) double else 0.01
+}
 
 object RealAdjustedFourFactors extends ResultSetMapper {
 
@@ -99,4 +152,53 @@ object RealAdjustedFourFactors extends ResultSetMapper {
       RAPM__intercept = getDouble(resultSet, 43),
       season = getString(resultSet, 44)
     )
+}
+
+final case class RealAdjustedFourFactorsForSite(playerId: Integer,
+                                                playerName: String,
+                                                LA_RAPM: jl.Double,
+                                                LA_RAPM_Rank: jl.Double,
+                                                LA_RAPM__Def: jl.Double,
+                                                LA_RAPM__Def_Rank: jl.Double,
+                                                LA_RAPM__Off: jl.Double,
+                                                LA_RAPM__Off_Rank: jl.Double,
+                                                RA_EFG: jl.Double,
+                                                RA_EFG_Rank: jl.Double,
+                                                RA_EFG__Def: jl.Double,
+                                                RA_EFG__Def_Rank: jl.Double,
+                                                RA_EFG__Off: jl.Double,
+                                                RA_EFG__Off_Rank: jl.Double,
+                                                RA_FTR: jl.Double,
+                                                RA_FTR_Rank: jl.Double,
+                                                RA_FTR__Def: jl.Double,
+                                                RA_FTR__Def_Rank: jl.Double,
+                                                RA_FTR__Off: jl.Double,
+                                                RA_FTR__Off_Rank: jl.Double,
+                                                RA_ORBD: jl.Double,
+                                                RA_ORBD_Rank: jl.Double,
+                                                RA_ORBD__Def: jl.Double,
+                                                RA_ORBD__Def_Rank: jl.Double,
+                                                RA_ORBD__Off: jl.Double,
+                                                RA_ORBD__Off_Rank: jl.Double,
+                                                RA_TOV: jl.Double,
+                                                RA_TOV_Rank: jl.Double,
+                                                RA_TOV__Def: jl.Double,
+                                                RA_TOV__Def_Rank: jl.Double,
+                                                RA_TOV__Off: jl.Double,
+                                                RA_TOV__Off_Rank: jl.Double,
+                                                RAPM: jl.Double,
+                                                RAPM_Rank: jl.Double,
+                                                RAPM__Def: jl.Double,
+                                                RAPM__Def_Rank: jl.Double,
+                                                RAPM__Off: jl.Double,
+                                                RAPM__Off_Rank: jl.Double,
+                                                season: String,
+                                                teamId: jl.Integer,
+                                                teamName: String,
+                                                primaryKey: String)
+
+object RealAdjustedFourFactorsForSite {
+  private implicit val formats: Formats = DefaultFormats
+
+  def toJson(fourFactors: Seq[RealAdjustedFourFactorsForSite]): String = write(fourFactors)
 }

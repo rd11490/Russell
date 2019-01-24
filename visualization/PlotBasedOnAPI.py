@@ -1,11 +1,6 @@
-import matplotlib.colors as colors
-import drawCourt
 import matplotlib.pyplot as plt
-import ShotZones
 
-
-import MySQLConnector
-
+import drawCourt
 
 params = {
 

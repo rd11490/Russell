@@ -1,12 +1,9 @@
 import pandas as pd
-from sklearn import metrics
-from sklearn import tree
-from sklearn import ensemble
 from sklearn import linear_model
+from sklearn import metrics
 
-
-import MySQLConnector
 import MySqlDatabases.NBADatabase
+from cred import MySQLConnector
 
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)

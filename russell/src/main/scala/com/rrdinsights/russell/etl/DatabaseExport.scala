@@ -38,10 +38,16 @@ object DatabaseExport {
     defense_expected_points_by_player_on_off,
     offense_expected_points_by_game,
     defense_expected_points_by_game,
-    shot_stint_data
+    shot_stint_data,
+    luck_adjusted_stints,
+    luck_adjusted_one_way_stints,
+    luck_adjusted_units,
+    real_adjusted_four_factors,
+    real_adjusted_four_factors_multi
   )
 
   private val SeasonlessTables: Seq[MySqlTable] = Seq(
+    player_info,
     player_shot_charts,
     raw_player_profile_career_totals)
 

@@ -1,14 +1,13 @@
 import math
+import os
 
 import matplotlib.colors as colors
 import matplotlib.gridspec as gridspec
 import matplotlib.pyplot as plt
 
-import MySQLConnector
 import ShotZones
 import drawCourt
-
-import os
+from cred import MySQLConnector
 
 shotZones = ShotZones.buildShotZones()
 season = "2017-18"

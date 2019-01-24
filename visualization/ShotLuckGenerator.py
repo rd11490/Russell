@@ -1,8 +1,8 @@
-from sklearn.linear_model import RidgeCV
-import pandas as pd
 import numpy as np
+import pandas as pd
+from sklearn.linear_model import RidgeCV
 
-import MySQLConnector
+from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"

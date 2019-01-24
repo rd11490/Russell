@@ -12,14 +12,14 @@ object ShotChartExplore {
     *
     */
   def main(strings: Array[String]): Unit = {
-    val shotData = MySqlClient.selectFrom(NBATables.defense_expected_points, ExpectedPoints.apply, "season = '2017-18'", "bin != 'Total'")
+    val shotData = MySqlClient.selectFrom(NBATables.defense_expected_points, ExpectedPoints.apply, "season = '2018-19'", "bin != 'Total'")
 
     shotData.filter(_.value == 3).foreach(println)
 
     CSVWriter.CSVWriter(
     shotData
       .filter(_.value == 3)
-      .map(v => (TeamMapper.teamInfo(v.teamId, "2017-18").get.teamName, mapBin(v.bin), v.attempts.intValue()))
+      .map(v => (TeamMapper.teamInfo(v.teamId, "2018-19").get.teamName, mapBin(v.bin), v.attempts.intValue()))
       .groupBy(v => (v._1, v._2))
       .map(v => (v._1, v._2.map(_._3).sum))
       .groupBy(_._1._1)

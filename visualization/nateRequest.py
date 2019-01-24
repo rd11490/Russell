@@ -1,6 +1,6 @@
-import numpy as np
 import pandas as pd
-import MySQLConnector
+
+from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 

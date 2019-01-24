@@ -4,11 +4,13 @@ import mysql.connector
 import pandas as pd
 import MySqlDatabases.NBADatabase
 from sqlalchemy import create_engine
+import os
 
 
 class MySQLConnector:
     def __init__(self):
-        creds_file = open("./cred/MySqlCred.json", "r")
+
+        creds_file = open(os.path.join(os.path.dirname(__file__), './MySqlCred.json'), "r")
         self.__creds = json.loads(creds_file.read())
 
     def __username(self):
@@ -44,3 +46,9 @@ class MySQLConnector:
         engine = create_engine(
             'mysql+mysqlconnector://{0}:{1}@localhost:3306/{2}'.format(self.__username(), self.__password(), database))
         engine.execute("DROP TABLE IF EXISTS {}".format(table))
+
+
+    def truncate_table(self, table, database, where):
+        engine = create_engine(
+            'mysql+mysqlconnector://{0}:{1}@localhost:3306/{2}'.format(self.__username(), self.__password(), database))
+        engine.execute("DELETE FROM {0} WHERE {1}".format(table, where))

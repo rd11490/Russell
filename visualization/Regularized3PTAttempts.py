@@ -1,10 +1,10 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn import metrics
 from sklearn.linear_model import RidgeCV
-import matplotlib.pyplot as plt
 
-import MySQLConnector
+from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2017-18"

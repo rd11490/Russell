@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from sklearn import metrics
-from sklearn.linear_model import RidgeCV
+import statsmodels.api as sm
 
 import MySqlDatabases.NBADatabase
 from cred import MySQLConnector
@@ -11,11 +10,10 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 sql = MySQLConnector.MySQLConnector()
-seasons = ["2013-18","2012-17"] #"2012-15", "2013-16", "2014-17", "2015-18", "2014-19",
+seasons = ["2018-19"]
 seasonType = "Regular Season"
 
 for season in seasons:
-    print(season)
 
     # seconds_query = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}' and seasonType ='{}';".format(season, seasonType)
     stints_query = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{}' and seasonType ='{}';".format(season, seasonType)
@@ -146,7 +144,8 @@ for season in seasons:
     def calculate_rapm(stintY, stintX, possessions, lambdas, name, raw_name, full_stint):
         alphas = [lambda_to_alpha(l, stintX.shape[0]) for l in lambdas]
 
-        clf = RidgeCV(alphas=alphas, cv=5, fit_intercept=True, normalize=False)
+        clf = sm.OLS(stintY, stintX)
+        # clf = RidgeCV(alphas=alphas, cv=5, fit_intercept=True, normalize=False)
         # weights = [secondsPlayedMap[p] / 60 for p in filtered_players]
         # weights = np.array(weights)
         # weights = np.concatenate((weights, weights))
@@ -154,7 +153,12 @@ for season in seasons:
         #
         # clf.coef_ = weights
 
-        model = clf.fit(stintX, stintY, sample_weight=possessions)
+        model = clf.fit_regularized(L1_wt=0, alpha = 0.05)
+
+        print(model.params)
+
+        print(model.summary())
+
 
         player_arr = np.transpose(np.array(filtered_players).reshape(1, len(filtered_players)))
         coef_offensive_array = np.transpose(model.coef_[:, 0:len(filtered_players)])
@@ -183,7 +187,7 @@ for season in seasons:
         print("Model Intercept: {0}".format(model.intercept_))
 
         pred = model.predict(stintX)
-        err = pred - stintY
+        err = stintY - pred
         print("METRICS:")
 
         print("max: {}".format(max(err)))
@@ -263,9 +267,5 @@ for season in seasons:
     print(merged.head(20))
 
     sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
-
-    merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))
-
-    sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors_multi, MySqlDatabases.NBADatabase.NAME)
 
     merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))
