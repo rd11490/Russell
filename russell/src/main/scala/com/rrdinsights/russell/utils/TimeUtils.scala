@@ -20,7 +20,7 @@ object TimeUtils {
     LocalDate.parse(date, DateFormatter).atStartOfDay(ZoneId.systemDefault()).toInstant
   }
 
-  def parseGameDate(date: String): Long =
+  def parseGameDate(date: String): Long = 
     GameDateFormat.parse(date).toInstant.toEpochMilli
 
   def timeFromStartOfGame(period: Int, minutesRemaining: Int, secondsRemaining: Int): Int = {

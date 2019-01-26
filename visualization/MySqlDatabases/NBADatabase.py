@@ -36,6 +36,8 @@ shot_stint_data = "shot_stint_data"
 team_info = "team_info"
 team_scored_shots = "team_scored_shots"
 real_adjusted_four_factors = "real_adjusted_four_factors"
+real_adjusted_four_factors_test = "real_adjusted_four_factors_test"
+
 real_adjusted_four_factors_multi = "real_adjusted_four_factors_multi"
 
 offense_expected_points_by_player_on_off = "offense_expected_points_by_player_on_off"

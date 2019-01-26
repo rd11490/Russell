@@ -223,11 +223,11 @@ for season in seasons:
         return players_coef, intercept
 
 
-    lambdas = [.01, .025, .05, .075, .1]
+    lambdas = [.01, .02, .03, .04, .05]
     lambdas_turnover = [.01, .02, .03, .04, .05]
     lambdas_efg = [.01, .02, .03, .04, .05]
-    lambdas_ftr = lambdas * 2
-    lambdas_rapm = [.01, .05, .1, .25, .5, .75]
+    lambdas_ftr = [.01, .02, .03, .04, .05]
+    lambdas_rapm = [.01, .02, .03, .04, .05]
 
     results_adjusted, adjusted_intercept = calculate_rapm(stintY_adjusted, stintX_adjusted, possessions_adjusted, lambdas_rapm,
                                       "LA_RAPM", "PointsPerPossession", stints.copy(True))
@@ -263,7 +263,7 @@ for season in seasons:
 
     print(merged.head(20))
 
-    sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season={}")
-    sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
+    # sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors_test, MySqlDatabases.NBADatabase.NAME, "season='{}'".format(season))
+    sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors_test, MySqlDatabases.NBADatabase.NAME)
 
     merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))
