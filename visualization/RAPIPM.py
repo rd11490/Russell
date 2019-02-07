@@ -15,9 +15,9 @@ seasons = ["2018-19"]
 seasonType = "Regular Season"
 
 for season in seasons:
-
     # seconds_query = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}' and seasonType ='{}';".format(season, seasonType)
-    stints_query = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{0}' and seasonType ='{1}';".format(season, seasonType)
+    stints_query = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{0}' and seasonType ='{1}';".format(
+        season, seasonType)
     player_names_query = "select playerId, playerName from nba.player_info;".format(season)
 
     stints = sql.runQuery(stints_query)
@@ -64,42 +64,21 @@ for season in seasons:
         return rowOut
 
 
-    def calc_ftr(row):
-        fga = row["fieldGoalAttempts"]
-        fta = row["freeThrowAttempts"]
-
-        if fta == 0.0:
-            row["FreeThrowAttemptRate"] = 0.0
-        elif fga == 0.0:
-            row["FreeThrowAttemptRate"] = 100.0
-        else:
-            row["FreeThrowAttemptRate"] = 100.0 * fta / fga
-        return row
-
-
     stints = stints[stints["possessions"] > 0]
 
-    stints["PointsPerPossession"] = 100 * stints["points"] / stints["possessions"]
+    stints["TSA"] = stints["fieldGoalAttempts"] + 0.44 * stints["freeThrowAttempts"]
+    stints["intercept"] = 30.657
+    stints["3PtFactor"] = 212.73 * (stints["threePtMade"] / stints["threePtAttempts"]) * (stints["threePtAttempts"] / stints["TSA"])
+    stints["2pt%"] = 106 * (stints["fieldGoals"] - stints["threePtMade"]) / (stints["fieldGoalAttempts"] - stints["threePtAttempts"])
+    stints["2PtRate"] = 64.3975 * (stints["fieldGoalAttempts"] - stints["threePtAttempts"]) / stints["TSA"]
+    stints["FTFactor"] = 151.856 * (stints["freeThrowsMade"]/stints["freeThrowAttempts"]) * (stints["freeThrowAttempts"] / stints["TSA"])
+    stints["ORBDFactor"] = 0.815 * (1 - (stints["fieldGoals"]/stints["fieldGoalAttempts"])) * (stints["offensiveRebounds"]/(stints["offensiveRebounds"]+stints["opponentDefensiveRebounds"]))
+    stints["TO%"] = -1.177 * stints["turnovers"]/stints["possessions"]
 
-    stints["ExpectedPointsPerPossession"] = 100 * stints["expectedPoints"] / stints["possessions"]
 
-    stints["TurnoverPercent"] = -100 * stints["turnovers"] / stints["possessions"]
+    stints["L_ORTG"] =  stints["intercept"] + stints["3PtFactor"] + stints["2pt%"]  + stints["2PtRate"] + stints["FTFactor"] +  stints["ORBDFactor"] + stints["TO%"]
 
-    stints = stints.apply(calc_ftr, axis=1)
-
-    stints = stints.drop_duplicates()
-
-    stints_ORB = stints.copy(deep=True)
-    stints_EFG = stints.copy(deep=True)
-
-    stints_ORB["OffensiveReboundPercent"] = 100 * stints_ORB["offensiveRebounds"] / (
-        stints_ORB["offensiveRebounds"] + stints_ORB["opponentDefensiveRebounds"])
-
-    stints_EFG["EffectiveFieldGoalPercent"] = 100 * (stints_EFG["fieldGoals"] + 0.5 * stints_EFG["threePtMade"]) / \
-                                              stints_EFG["fieldGoalAttempts"]
-
-    stints_ORB = stints_ORB.dropna()
-    stints_EFG = stints_EFG.dropna()
+    stints = stints.dropna()
 
 
     def extract_stints(stints_for_extraction, name):
@@ -117,14 +96,7 @@ for season in seasons:
         return stint_X_rows, stint_Y_rows, possessions
 
 
-    stintX_adjusted, stintY_adjusted, possessions_adjusted = extract_stints(stints.copy(True),
-                                                                            "ExpectedPointsPerPossession")
-    stintX_raw, stintY_raw, possessions_raw = extract_stints(stints.copy(True), "PointsPerPossession")
-
-    stintX_turnover, stintY_turnover, possessions_turnover = extract_stints(stints.copy(True), "TurnoverPercent")
-    stintX_ftr, stintY_ftr, possessions_ftr = extract_stints(stints.copy(True), "FreeThrowAttemptRate")
-    stintX_orbd, stintY_orbd, possessions_orbd = extract_stints(stints_ORB.copy(True), "OffensiveReboundPercent")
-    stintX_efg, stintY_efg, possessions_efg = extract_stints(stints_EFG.copy(True), "EffectiveFieldGoalPercent")
+    stintX_lehigh, stintY_leigh, possessions_raw = extract_stints(stints.copy(True), "L_ORTG")
 
 
     def lambda_to_alpha(lambda_value, samples):
@@ -205,7 +177,8 @@ for season in seasons:
 
         rmse = full_stint.groupby(by="possessions").apply(calculate_rmse)
 
-        rmse_for_plot = rmse[["possessions", "Count", "RMSE", "AvgError"]].drop_duplicates().sort_values(by="possessions")
+        rmse_for_plot = rmse[["possessions", "Count", "RMSE", "AvgError"]].drop_duplicates().sort_values(
+            by="possessions")
 
         # print(rmse_for_plot)
 
@@ -217,7 +190,7 @@ for season in seasons:
         plt.ylabel("Error")
         plt.title("In-Sample Error for Regularized {0}".format(name))
         plt.ylim([0, 50])
-        plt.savefig("results/Real Adjusted Four Factors - {0} Error - {1}.png".format(name,season))
+        plt.savefig("results/Real Adjusted Four Factors - {0} Error - {1}.png".format(name, season))
         plt.close()
 
         return players_coef, intercept
@@ -229,27 +202,11 @@ for season in seasons:
     lambdas_ftr = lambdas * 2
     lambdas_rapm = [.01, .05, .1, .25, .5, .75]
 
-    results_adjusted, adjusted_intercept = calculate_rapm(stintY_adjusted, stintX_adjusted, possessions_adjusted, lambdas_rapm,
-                                      "LA_RAPM", "PointsPerPossession", stints.copy(True))
-    results_raw, raw_intercept = calculate_rapm(stintY_raw, stintX_raw, possessions_raw, lambdas_rapm, "RAPM",
-                                 "ExpectedPointsPerPossession",
-                                 stints.copy(True))
-    results_turnover, tov_intercept = calculate_rapm(stintY_turnover, stintX_turnover, possessions_turnover, lambdas_turnover,
-                                      "RA_TOV", "TurnoverPercent", stints.copy(True))
-    results_efg, efg_intercept = calculate_rapm(stintY_efg, stintX_efg, possessions_efg, lambdas_efg,
-                                 "RA_EFG", "EffectiveFieldGoalPercent",
-                                 stints_EFG.copy(True))
-    results_orbd, orbd_intercept = calculate_rapm(stintY_orbd, stintX_orbd, possessions_orbd, lambdas,
-                                  "RA_ORBD", "OffensiveReboundPercent", stints_ORB.copy(True))
-    results_ftr, ftr_intercept = calculate_rapm(stintY_ftr, stintX_ftr, possessions_ftr, lambdas_ftr, "RA_FTR",
-                                 "FreeThrowAttemptRate", stints.copy(True))
+    results_adjusted, adjusted_intercept = calculate_rapm(stintX_lehigh, stintY_leigh, possessions_raw,
+                                                          lambdas_rapm,
+                                                          "Lehigh_RAPM", "L_ORTG", stints.copy(True))
 
-    merged = results_adjusted \
-        .merge(results_raw, how="inner", on="playerId") \
-        .merge(results_turnover, how="inner", on="playerId") \
-        .merge(results_efg, how="inner", on="playerId") \
-        .merge(results_orbd, how="inner", on="playerId") \
-        .merge(results_ftr, how="inner", on="playerId")
+    merged = results_adjusted
 
     merged = np.round(merged, decimals=2)
 
@@ -261,9 +218,10 @@ for season in seasons:
 
     merged["primaryKey"] = merged["playerId"].astype(str) + "_" + merged["season"]
 
-    print(merged)
+    print(merged.head(20))
 
-    sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
-    sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
+    # sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME,
+    #                    "season={0}".format(season))
+    # sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
 
-    merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))
+    merged.to_csv("results/Lehigh RAPM {}.csv".format(season))

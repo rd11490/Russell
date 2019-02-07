@@ -298,7 +298,7 @@ final case class LuckAdjustedPossession(primaryKey: String,
         possessions = team2Possessions,
         seconds = seconds
       )
-    ).filter(_.possessions > 0)
+    )
 }
 
 final case class OneWayPossession(primaryKey: String,

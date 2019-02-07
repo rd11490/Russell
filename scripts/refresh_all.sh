@@ -31,5 +31,5 @@ cd ../visualization/
 python3 FourFactorsRAPM.py
 cd ../scripts
 
-sh run.sh com.rrdinsights.russell.etl.driver.ShotSitePutter "$@" --run-all
+sh run.sh com.rrdinsights.russell.etl.driver.ShotSitePutter --run-all "$@"
 
