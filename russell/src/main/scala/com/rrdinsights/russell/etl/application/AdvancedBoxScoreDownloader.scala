@@ -1,5 +1,6 @@
 package com.rrdinsights.russell.etl.application
 
+import com.rrdinsights.russell.investigation.GameDateMapper
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel._
 import com.rrdinsights.russell.storage.tables.NBATables
@@ -10,17 +11,18 @@ import com.rrdinsights.scalabrine.parameters.{GameIdParameter, ParameterValue, S
 
 object AdvancedBoxScoreDownloader {
 
-  def downloadAndWriteAllAdvancedBoxScores(gameLogs: Seq[GameRecord], season: String, dt: String, seasonType: String): Unit = {
-    val advancedBoxScore = downloadAllAdvancedBoxScores(gameLogs)
+  def downloadAndWriteAllAdvancedBoxScores(gameLogs: Seq[GameRecord], season: String, dt: String, seasonType: String, force: Boolean = false): Unit = {
+    val advancedBoxScore = downloadAllAdvancedBoxScores(gameLogs, force)
     writePlayerStats(advancedBoxScore.flatMap(_.playerStats), season, dt, seasonType)
     writeTeamStats(advancedBoxScore.flatMap(_.teamStats), season, dt, seasonType)
   }
 
 
-  private def downloadAllAdvancedBoxScores(gameLogs: Seq[GameRecord]): Seq[BoxScoreAdvanced] = {
+  private def downloadAllAdvancedBoxScores(gameLogs: Seq[GameRecord], force: Boolean): Seq[BoxScoreAdvanced] = {
     gameLogs
       .map(v => (v.gameId, v.season, v.seasonType))
       .distinct
+      .filter(v => force || GameDateMapper.gameDate(v._1).isEmpty)
       .map(v => (GameIdParameter.newParameterValue(v._1), SeasonParameter.newParameterValue(v._2), SeasonTypeParameter.newParameterValue(v._3)))
       .flatMap(v => {
         println(v)

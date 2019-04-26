@@ -25,6 +25,7 @@ object RosterDownloader {
     val seasonParameter = SeasonParameter.newParameterValue(season)
     TeamIdParameter.TeamIds
       .map(v => {
+        println(v)
         Thread.sleep(1000)
         downloadTeamRoster(seasonParameter, v)
       })

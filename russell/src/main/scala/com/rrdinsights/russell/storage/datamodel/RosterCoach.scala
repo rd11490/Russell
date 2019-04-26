@@ -22,7 +22,7 @@ final case class RosterCoach(
 object RosterCoach {
   def apply(coach: Coach, season: String, dt: String): RosterCoach =
     RosterCoach(
-      coach.coachId,
+      s"${coach.coachId}_$season",
       coach.teamId,
       coach.season,
       coach.coachId,

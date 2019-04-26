@@ -4,8 +4,8 @@
 
 echo $JAR
 
-sh seasonStats.sh "$@" --run-all
-sh playerStats.sh "$@" --run-all
+sh seasonStats.sh "$@" --run-all --force
+sh playerStats.sh "$@" --run-all --force
 sh playersOnCourt.sh "$@" --run-all
 sh run.sh com.rrdinsights.russell.etl.application.GameDateMapBuilder
 sh run.sh com.rrdinsights.russell.etl.application.PlayerIdMapBuilder
@@ -27,9 +27,3 @@ sh run.sh com.rrdinsights.russell.investigation.playbyplay.PlayByPlayLineupJoine
 sh run.sh com.rrdinsights.russell.investigation.playbyplay.luckadjusted.LuckAdjustedStints "$@"
 sh run.sh com.rrdinsights.russell.investigation.playbyplay.luckadjusted.LuckAdjustedPossessions "$@"
 
-cd ../visualization/
-conda activate Visulation
-python3 FourFactorsRAPM.py
-cd ../scripts
-
-sh run.sh com.rrdinsights.russell.etl.driver.ShotSitePutter --run-all "$@"

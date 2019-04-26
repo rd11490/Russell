@@ -25,7 +25,7 @@ def percentage_of_minutes(group):
 def calculate_nets(group, base):
     intercept = group.iloc[0]["{}__intercept".format(base)]
     o_value = (group["{}__Off".format(base)] * group["share"]).sum()*5 + intercept
-    d_value = (group["{}__Def".format(base)] * group["share"]).sum()*5 + intercept
+    d_value = intercept - (group["{}__Def".format(base)] * group["share"]).sum()*5
     full_value = (group[base] * group["share"]).sum()*5
     return o_value, d_value, full_value
 
@@ -62,10 +62,12 @@ boxscores = sql.runQuery("SELECT * FROM nba.raw_player_box_score_advanced where 
 minutes = boxscores[["teamId", "playerId", "minutes"]].groupby(by=["teamId", "playerId"], as_index=False).sum().groupby(by="teamId").apply(percentage_of_minutes).reset_index()
 
 merged = minutes.merge(rapm, on="playerId", how="left").dropna()
+
+merged.to_csv("players_projected_rapm.csv")
 teams = merged.groupby(by="teamId").apply(calculate_net_rating)
 teams.columns = ["LA_RAPM_O", "LA_RAPM_D", "LA_RAPM", "RAPM_O", "RAPM_D", "RAPM", "RA_EFG_O", "RA_EFG_D", "RA_TOV_O", "RA_TOV_D", "RA_ORBD_O", "RA_ORBD_D", "RA_FTR_O", "RA_FTR_D"]
 
-
+teams = teams.reset_index()
 ##
 # Select Team Stats
 ##
@@ -89,40 +91,39 @@ def calculate_defensive_team_stats(group):
 
 
 
-stats = sql.runQuery("SELECT * FROM nba.league_net_rtg where season = '{}'".format(season))
+#stats = sql.runQuery("SELECT * FROM nba.league_net_rtg where season = '{}'".format(season))
 
 stints = sql.runQuery("SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{}' and seasonType ='{}';".format(season, seasonType))
-# teams = sql.runQuery("select * from nba.team_info where season = '{0}'".format(season))
+team_names = sql.runQuery("select * from nba.team_info where season = '{0}'".format(season))
 
 
 offensive_stats = stints.groupby(by="offenseTeamId1").apply(calculate_offensive_team_stats).reset_index()
-offensive_stats.columns = ["teamId", "points", "possessions", "seconds", "ORTG"]
-
-print(offensive_stats.sort_values(by="ORTG").head(30))
+offensive_stats.columns = ["teamId", "points", "possessions", "seconds", "RTG"]
 
 
 defensive_stats = stints.groupby(by="defenseTeamId2").apply(calculate_defensive_team_stats).reset_index()
-defensive_stats.columns = ["teamId", "points", "possessions", "seconds", "DRTG"]
+defensive_stats.columns = ["teamId", "points", "possessions", "seconds", "RTG"]
 
-print(defensive_stats.sort_values(by="DRTG").head(30))
-joined = teams.merge(stats, left_on="teamId", right_on="TEAM_ID")
 
-joined["LARAPM_ERROR"] = abs(joined["LA_RAPM"] - joined["NET_RATING"])
-joined["LRAPM_O_ERROR"] = abs(joined["LA_RAPM_O"] - joined["OFF_RATING"])
-joined["LRAPM_D_ERROR"] = abs(joined["LA_RAPM_D"] - joined["DEF_RATING"])
+rtg = offensive_stats.merge(defensive_stats, on="teamId", suffixes=("_O", "_D"))
 
-joined["RAPM_ERROR"] = abs(joined["RAPM"] - joined["NET_RATING"])
-joined["RAPM_O_ERROR"] = abs(joined["RAPM_O"] - joined["OFF_RATING"])
-joined["RAPM_D_ERROR"] = abs(joined["RAPM_D"] - joined["DEF_RATING"])
+rtg["Net"] = rtg["RTG_O"] - rtg["RTG_D"]
 
-joined["EFG_O_ERROR"] = abs(joined["RA_EFG_O"] - joined["EFG_PCT"]*100.0)
+joined = rtg.merge(teams, left_on="teamId", right_on="teamId").merge(team_names, on="teamId")
 
-joined["RA_TOV_O_ERROR"] = abs(joined["RA_TOV_O"] - joined["TM_TOV_PCT"]*100.0)
+joined["LARAPM_ERROR"] = abs(joined["LA_RAPM"] - joined["Net"])
+joined["LRAPM_O_ERROR"] = abs(joined["LA_RAPM_O"] - joined["RTG_O"])
+joined["LRAPM_D_ERROR"] = abs(joined["LA_RAPM_D"] - joined["RTG_D"])
 
-joined["OREB_PCT_ERROR"] = abs(joined["RA_ORBD_O"] - joined["OREB_PCT"]*100.0)
-joined["DREB_PCT_ERROR"] = abs(joined["RA_ORBD_D"] - joined["DREB_PCT"]*100.0)
+joined["RAPM_ERROR"] = abs(joined["RAPM"] - joined["Net"])
+joined["RAPM_O_ERROR"] = abs(joined["RAPM_O"] - joined["RTG_O"])
+joined["RAPM_D_ERROR"] = abs(joined["RAPM_D"] - joined["RTG_D"])
 
-errors = joined[["TEAM_NAME", "LARAPM_ERROR", "LRAPM_O_ERROR", "LRAPM_D_ERROR", "RAPM_ERROR", "RAPM_O_ERROR", "RAPM_D_ERROR", "EFG_O_ERROR", "RA_TOV_O_ERROR", "OREB_PCT_ERROR", "DREB_PCT_ERROR"]]
-print(joined)
 
+errors = joined[["teamName", "LARAPM_ERROR", "LRAPM_O_ERROR", "LRAPM_D_ERROR", "RAPM_ERROR", "RAPM_O_ERROR", "RAPM_D_ERROR"]]
+
+print(rtg)
+print(teams)
+
+print(errors)
 print(errors.describe())

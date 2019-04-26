@@ -2,12 +2,11 @@ import json
 
 import pandas as pd
 import urllib3
-
 import MySqlDatabases.NBADatabase
 from cred import MySQLConnector
 
-
-
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 
 header_data = {
     'Host': 'stats.nba.com',
@@ -21,35 +20,31 @@ header_data = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
 }
 
-sql = MySQLConnector.MySQLConnector()
 http = urllib3.PoolManager()
+sql = MySQLConnector.MySQLConnector()
 
-seasons = ["2012-13", "2013-14", "2014-15", "2015-16", "2016-17", "2017-18", "2018-19"]
 
 def build_url(season):
-    return "https://stats.nba.com/stats/leaguedashteamstats?Conference=&DateFrom=&DateTo=&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season={0}&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=".format(
-        season)
+    return "https://stats.nba.com/stats/drafthistory?College=&LeagueID=00&OverallPick=&RoundNum=&RoundPick=&Season={}&TeamID=0&TopX=".format(season)
 
-def extract_data(url, season):
+def extract_data(url):
     print(url)
     r = http.request('GET', url, headers=header_data)
     resp = json.loads(r.data)
     results = resp['resultSets'][0]
     headers = results['headers']
-    headers.append("season")
     rows = results['rowSet']
     frame = pd.DataFrame(rows)
-    frame["season"] = season
     frame.columns = headers
     return frame
 
-for season in seasons:
-
-    data = extract_data(build_url(season), season)
-    sql.write(data, MySqlDatabases.NBADatabase.league_net_rtg, MySqlDatabases.NBADatabase.NAME)
-
-
-
+for season in range(2012, 2019):
+    season_str = str(season) + "-" + str(season-2000+1)
+    draft = extract_data(build_url(season))
+    draft["primaryKey"] = draft["PERSON_ID"]
+    draft["SEASON"] = season_str
 
 
+    # sql.truncate_table(MySqlDatabases.NBADatabase.draft, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season_str))
+    sql.write(draft, MySqlDatabases.NBADatabase.draft, MySqlDatabases.NBADatabase.NAME)
 

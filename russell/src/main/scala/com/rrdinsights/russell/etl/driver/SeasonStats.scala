@@ -1,6 +1,6 @@
 package com.rrdinsights.russell.etl.driver
 
-import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
+import com.rrdinsights.russell.commandline.{CommandLineBase, ForceOption, RunAllOption, SeasonOption}
 import com.rrdinsights.russell.etl.application._
 import com.rrdinsights.russell.utils.TimeUtils
 import org.apache.commons.cli
@@ -21,7 +21,7 @@ object SeasonStats {
     val gameLogs = GameLogDownloader.readGameLogs(season, seasonType)
 
     if (args.downloadPlayByPlay) {
-      PlayByPlayDownloader.downloadAndWriteAllPlayByPlay(gameLogs, season, dt, seasonType)
+      PlayByPlayDownloader.downloadAndWriteAllPlayByPlay(gameLogs, season, dt, seasonType, args.force)
     }
 
     if (args.downloadRosters) {
@@ -29,11 +29,11 @@ object SeasonStats {
     }
 
     if (args.downloadAdvancedBoxscore) {
-      AdvancedBoxScoreDownloader.downloadAndWriteAllAdvancedBoxScores(gameLogs, season, dt, seasonType)
+      AdvancedBoxScoreDownloader.downloadAndWriteAllAdvancedBoxScores(gameLogs, season, dt, seasonType, args.force)
     }
 
     if (args.downloadGameSummaries) {
-      BoxScoreSummaryDownloader.downloadAndWriteAllBoxScoreSummaries(gameLogs, dt, args.seasonOpt, seasonType)
+      BoxScoreSummaryDownloader.downloadAndWriteAllBoxScoreSummaries(gameLogs, dt, args.seasonOpt, seasonType, args.force)
     }
 
   }
@@ -41,7 +41,7 @@ object SeasonStats {
 }
 
 private final class SeasonStatsArguments private(args: Array[String])
-  extends CommandLineBase(args, "Season Stats") with SeasonOption with RunAllOption {
+  extends CommandLineBase(args, "Season Stats") with SeasonOption with RunAllOption with ForceOption {
 
   override protected def options: Options = super.options
     .addOption(SeasonStatsArguments.GameLogOption)

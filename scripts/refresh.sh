@@ -12,5 +12,5 @@ sh run.sh com.rrdinsights.russell.etl.application.PlayerIdMapBuilder
 sh run.sh com.rrdinsights.russell.etl.application.TeamIdMapBuilder
 sh run.sh com.rrdinsights.russell.investigation.shots.ShotsWithPlayers "$@"
 
-sh run.sh com.rrdinsights.russell.etl.driver.ShotSitePutter "$@" --run-all
+sh run.sh com.rrdinsights.russell.etl.driver.ShotSitePutter --run-all  "$@" 
  

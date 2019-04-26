@@ -61,6 +61,9 @@ object NBATables {
   val luck_adjusted_one_way_possessions: MySqlTable = MySqlTable[OneWayPossession]("luck_adjusted_one_way_possessions")
   val luck_adjusted_one_way_possessions_with_starters: MySqlTable = MySqlTable[PossessionsWithStarters]("luck_adjusted_one_way_possessions_with_starters")
 
+//  val luck_adjusted_stints_with_coach: MySqlTable = MySqlTable[LuckAdjustedStintWithCoach]("luck_adjusted_stints_with_coach")
+//  val luck_adjusted_one_way_stints_with_coach: MySqlTable = MySqlTable[LuckAdjustedOneWayStintWithCoach]("luck_adjusted_one_way_stints_with_coach")
+
 
   val seconds_played: MySqlTable = MySqlTable[SecondsPlayedContainer]("seconds_played")
 

@@ -177,48 +177,7 @@ for season in seasons:
 
         print("\n\n")
         print(name)
-        print("r^2 value: {}".format(model.score(stintX, stintY)))
-        print("Model Lambda: {0} -> {1}".format(model.alpha_, alpha_to_lambda(model.alpha_, stintX.shape[0])))
-        print("Model Intercept: {0}".format(model.intercept_))
 
-        pred = model.predict(stintX)
-        err = stintY - pred
-        print("METRICS:")
-
-        print("max: {}".format(max(err)))
-        print("min: {}".format(min(err)))
-
-        abs_error = metrics.mean_absolute_error(stintY, pred)
-        print("mean absolute error: {}".format(abs_error))
-
-        rms_error = metrics.mean_squared_error(stintY, pred)
-        print("mean squared error: {}".format(rms_error))
-
-        log_error = metrics.mean_squared_error(stintY, pred)
-        print("log squared error: {}".format(log_error))
-
-        full_stint["Prediction"] = pred
-
-        full_stint["Error"] = full_stint["Prediction"] - full_stint[raw_name]
-
-        # print(players_coef.head(10))
-
-        rmse = full_stint.groupby(by="possessions").apply(calculate_rmse)
-
-        rmse_for_plot = rmse[["possessions", "Count", "RMSE", "AvgError"]].drop_duplicates().sort_values(by="possessions")
-
-        # print(rmse_for_plot)
-
-        fig, ax = plt.subplots()
-        rmse_for_plot.plot.scatter(ax=ax, x="possessions", y="RMSE", color="Red", )
-        rmse_for_plot.plot.scatter(ax=ax, x="possessions", y="AvgError", color="Blue")
-        plt.legend(["RMSE", "AvgError"])
-        plt.xlabel("Possessions")
-        plt.ylabel("Error")
-        plt.title("In-Sample Error for Regularized {0}".format(name))
-        plt.ylim([0, 50])
-        plt.savefig("results/Real Adjusted Four Factors - {0} Error - {1}.png".format(name,season))
-        plt.close()
 
         return players_coef, intercept
 
@@ -263,7 +222,7 @@ for season in seasons:
 
     print(merged)
 
-    sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
+    # sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
     sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
 
     merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))

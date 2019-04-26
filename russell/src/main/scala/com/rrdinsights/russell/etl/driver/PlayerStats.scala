@@ -3,7 +3,7 @@ package com.rrdinsights.russell.etl.driver
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
+import com.rrdinsights.russell.commandline.{CommandLineBase, ForceOption, RunAllOption, SeasonOption}
 import com.rrdinsights.russell.etl.application.{AdvancedBoxScoreDownloader, PlayerProfileDownloader, RosterDownloader, ShotChartDownloader}
 import org.apache.commons.cli
 
@@ -59,7 +59,7 @@ object PlayerStats {
 }
 
 private final class PlayerStatsArguments private(args: Array[String])
-  extends CommandLineBase(args, "Player Stats") with SeasonOption with RunAllOption {
+  extends CommandLineBase(args, "Player Stats") with SeasonOption with RunAllOption with ForceOption {
 
   override protected def options: cli.Options = super.options
     .addOption(PlayerStatsArguments.PlayerIdOption)

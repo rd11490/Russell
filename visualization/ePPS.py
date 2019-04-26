@@ -4,7 +4,7 @@ from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2018-19"
-season_type = "Regular Season"
+season_type = "Playoffs"
 
 
 o_query = "SELECT * FROM (select * from nba.offense_expected_points where season = '{0}' and bin = 'Total' and seasontype = '{1}' ) a " \
@@ -33,9 +33,13 @@ o = np.round(o, decimals=3)
 print("Defense: Points Per Shot Allowed")
 diffAndSort(d)
 print()
+print("\n\n")
+print("Defense: Points Per Shot Allowed")
+print("Expected Points")
 diffAndSort(d, 'expectedPointsAvg')
-print()
-
+print("\n\n")
+print("Defense: Points Per Shot Allowed")
+print("Points")
 diffAndSort(d, 'pointsAvg')
 
 
@@ -47,8 +51,13 @@ print()
 print("Offense: Points Per Shot Scored")
 diffAndSort(o, ascending=False)
 print()
+print("\n\n")
+print("Offense: Points Per Shot Scored")
+print("Expected Points")
 diffAndSort(o, 'expectedPointsAvg', ascending=False)
-print()
+print("\n\n")
+print("Offense: Points Per Shot Scored")
+print("Points")
 diffAndSort(o, 'pointsAvg', ascending=False)
 
 

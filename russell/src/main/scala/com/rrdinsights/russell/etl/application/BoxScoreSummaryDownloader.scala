@@ -1,17 +1,18 @@
 package com.rrdinsights.russell.etl.application
 
+import com.rrdinsights.russell.investigation.GameDateMapper
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel._
 import com.rrdinsights.russell.storage.tables.NBATables
 import com.rrdinsights.scalabrine.ScalabrineClient
 import com.rrdinsights.scalabrine.endpoints.BoxScoreEndpoint
 import com.rrdinsights.scalabrine.models._
-import com.rrdinsights.scalabrine.parameters.{ParameterValue, GameIdParameter}
+import com.rrdinsights.scalabrine.parameters.{GameIdParameter, ParameterValue}
 
 object BoxScoreSummaryDownloader {
 
-  def downloadAndWriteAllBoxScoreSummaries(gameLogs: Seq[GameRecord], dt: String, season: Option[String], seasonType: String): Unit = {
-    downloadAlBoxScoreSummaries(gameLogs)
+  def downloadAndWriteAllBoxScoreSummaries(gameLogs: Seq[GameRecord], dt: String, season: Option[String], seasonType: String, force: Boolean = false): Unit = {
+    downloadAlBoxScoreSummaries(gameLogs, force)
       .foreach(v => writeBoxScoreSummaryComponents(v._2, v._1, dt, season, seasonType))
   }
 
@@ -27,10 +28,11 @@ object BoxScoreSummaryDownloader {
   }
 
 
-  private def downloadAlBoxScoreSummaries(gameLogs: Seq[GameRecord]): Seq[(String, BoxScoreSummary)] = {
+  private def downloadAlBoxScoreSummaries(gameLogs: Seq[GameRecord], force: Boolean): Seq[(String, BoxScoreSummary)] = {
     gameLogs
       .map(_.gameId)
       .distinct
+      .filter(v => force || GameDateMapper.gameDate(v).isEmpty)
       .map(GameIdParameter.newParameterValue)
       .flatMap(v => {
         Thread.sleep(1000)

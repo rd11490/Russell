@@ -50,3 +50,9 @@ luck_adjusted_possessions = "luck_adjusted_possessions"
 
 league_results = "league_results"
 league_net_rtg = "league_net_rtg"
+
+draft = "draft"
+
+
+team_advanced = "team_advanced"
+team_four_factors = "team_four_factors"

@@ -1,5 +1,6 @@
 package com.rrdinsights.russell.etl.application
 
+import com.rrdinsights.russell.investigation.GameDateMapper
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.{GameRecord, RawPlayByPlayEvent}
 import com.rrdinsights.russell.storage.tables.NBATables
@@ -10,17 +11,19 @@ import com.rrdinsights.scalabrine.parameters.{GameIdParameter, ParameterValue}
 
 object PlayByPlayDownloader {
 
-  def downloadAndWriteAllPlayByPlay(gameLogs: Seq[GameRecord], season: String, dt: String, seasonType: String): Unit = {
-    val playByPlay = downloadAllPlayByPlay(gameLogs)
+  def downloadAndWriteAllPlayByPlay(gameLogs: Seq[GameRecord], season: String, dt: String, seasonType: String, force: Boolean = false): Unit = {
+    val playByPlay = downloadAllPlayByPlay(gameLogs, force)
     writePlayByPlay(playByPlay, season, dt, seasonType)
   }
 
-  private def downloadAllPlayByPlay(gameLogs: Seq[GameRecord]): Seq[PlayByPlayEvent] = {
+  private def downloadAllPlayByPlay(gameLogs: Seq[GameRecord], force: Boolean): Seq[PlayByPlayEvent] = {
     gameLogs
       .map(_.gameId)
       .distinct
+      .filter(v => force || GameDateMapper.gameDate(v).isEmpty)
       .map(GameIdParameter.newParameterValue)
       .flatMap(v => {
+        println(v)
         Thread.sleep(1000)
         downloadGamePlayByPlay(v)
       })

@@ -9,7 +9,7 @@ object MySqlConnection extends AutoCloseable {
 
   var connection: Connection = null
 
-  def url(database: Database): String =  s"jdbc:mysql://localhost/$database"
+  def url(database: Database): String =  s"jdbc:mysql://localhost/$database?useSSL=false"
 
   def getConnection(database: Database): Connection = {
     if (connection == null || connection.isClosed) {
