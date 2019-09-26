@@ -4,7 +4,7 @@ from cred import MySQLConnector
 
 sql = MySQLConnector.MySQLConnector()
 season = "2018-19"
-season_type = "Playoffs"
+season_type = "Regular Season"
 
 
 o_query = "SELECT * FROM (select * from nba.offense_expected_points where season = '{0}' and bin = 'Total' and seasontype = '{1}' ) a " \
@@ -16,6 +16,8 @@ d_query = "SELECT * FROM (select * from nba.defense_expected_points where season
 
 o = sql.runQuery(o_query)
 d = sql.runQuery(d_query)
+
+print(o['teamId'])
 
 def diffAndSort(df, field='ePPS-PPS', ascending=True):
     df["ePPS-PPS"] = df["expectedPointsAvg"] - df["pointsAvg"]

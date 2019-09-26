@@ -2,19 +2,16 @@ import json
 
 import pandas as pd
 import urllib3
-
 import MySqlDatabases.NBADatabase
+
 from cred import MySQLConnector
 
-FOUR_FACTORS_TYPE = "FourFactors"
-ADVANCED_TYPE = "Advanced"
 
-def build_url(season, teamid, type):
-    return"https://stats.nba.com/stats/teamdashboardbygeneralsplits?DateFrom=&DateTo=&GameSegment=&" \
-          "LastNGames=0&LeagueID=00&Location=&MeasureType={2}&Month=0&OpponentTeamID=0&Outcome=&" \
-          "PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlusMinus=N&Rank=N&Season={0}&SeasonSegment=&" \
-          "SeasonType=Regular+Season&ShotClockRange=&Split=general&TeamID={1}&VsConference=&VsDivision="\
-        .format(season, teamid, type)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
+
+def build_url(season):
+    return "https://stats.nba.com/stats/leaguedashteamstats?Conference=&DateFrom=&DateTo=&Division=&GameScope=&GameSegment=&LastNGames=0&LeagueID=00&Location=&MeasureType=Four+Factors&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season={}&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&TwoWay=0&VsConference=&VsDivision=".format(season)
 
 header_data = {
     'Host': 'stats.nba.com',
@@ -31,7 +28,7 @@ header_data = {
 sql = MySQLConnector.MySQLConnector()
 http = urllib3.PoolManager()
 
-seasons = ["2012-13", "2013-14", "2014-15", "2015-16", "2016-17", "2017-18", "2018-19"]
+seasons = ["2018-19", "2017-18", "2016-17"]
 teams = [i for i in range(1610612737, 1610612766)]
 
 def extract_data(url, season, result):
@@ -48,18 +45,11 @@ def extract_data(url, season, result):
     return frame
 
 for season in seasons:
-    for team in teams:
-        print("team: {}, season: {}".format(team, season))
-
-        url = build_url(season, team, ADVANCED_TYPE)
-        data = extract_data(url, season, 0)
-        data["primaryKey"] = "{}_{}".format(team, season)
-        sql.write(data, MySqlDatabases.NBADatabase.team_advanced, MySqlDatabases.NBADatabase.NAME)
-
-        url = build_url(season, team, ADVANCED_TYPE)
-        data = extract_data(url, season, 0)
-        data["primaryKey"] = "{}_{}".format(team, season)
-        sql.write(data, MySqlDatabases.NBADatabase.team_four_factors, MySqlDatabases.NBADatabase.NAME)
+    print("season: {}".format(season))
+    url = build_url(season)
+    data = extract_data(url, season, 0)
+    data["primaryKey"] = data['TEAM_ID'].map(str) + '_' + data['season']
+    sql.write(data, MySqlDatabases.NBADatabase.team_four_factors, MySqlDatabases.NBADatabase.NAME)
 
 
 

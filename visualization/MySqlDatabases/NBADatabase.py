@@ -32,13 +32,23 @@ raw_team_box_score_advanced = "raw_team_box_score_advanced"
 roster_coach = "roster_coach"
 roster_player = "roster_player"
 shots_seen = "shots_seen"
+seconds_played = "seconds_played"
 shot_stint_data = "shot_stint_data"
 team_info = "team_info"
 team_scored_shots = "team_scored_shots"
 real_adjusted_four_factors = "real_adjusted_four_factors"
+real_adjusted_four_factors_playoffs = "real_adjusted_four_factors_playoffs"
+real_adjusted_four_factors_v2 = "real_adjusted_four_factors_v2"
+
+
 real_adjusted_four_factors_test = "real_adjusted_four_factors_test"
 
 real_adjusted_four_factors_multi = "real_adjusted_four_factors_multi"
+real_adjusted_four_factors_multi_playoffs = "real_adjusted_four_factors_multi_playoffs"
+real_adjusted_four_factors_multi_v2 = "real_adjusted_four_factors_multi_v2"
+
+real_adjusted_four_factors_possessions = 'real_adjusted_four_factors_possessions'
+
 
 offense_expected_points_by_player_on_off = "offense_expected_points_by_player_on_off"
 defense_expected_points_by_player_on_off = "defense_expected_points_by_player_on_off"
@@ -46,6 +56,7 @@ luck_adjusted_stints = "luck_adjusted_stints"
 luck_adjusted_one_way_stints = "luck_adjusted_one_way_stints"
 luck_adjusted_units = "luck_adjusted_units"
 luck_adjusted_possessions = "luck_adjusted_possessions"
+luck_adjusted_one_way_possessions = "luck_adjusted_one_way_possessions"
 
 
 league_results = "league_results"

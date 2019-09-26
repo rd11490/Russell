@@ -51,6 +51,6 @@ class MySQLConnector:
         engine.execute("DROP TABLE IF EXISTS {}".format(table))
 
 
-    def truncate_table(self, table, database, where):
+    def truncate_table(self, table, database, where = "1 = 1"):
         engine = self.__build_engine(database)
         engine.execute("DELETE FROM {0} WHERE {1}".format(table, where))

@@ -25,8 +25,13 @@ game_scores = game_record[["gameId", "teamId", "points"]]
 merged = team_stats.merge(game_scores, on=["teamId", "gameId"], suffixes=("_calculated", "_expected"))
 
 merged["fail"] = merged["points_calculated"] != merged["points_expected"]
+merged["diff"] = abs(merged["points_calculated"] - merged["points_expected"])
 
 print(merged[merged["fail"] == True])
+print(merged[merged["fail"] == True].shape)
+
+print(merged['diff'].sum())
+print(merged[["points_calculated", "points_expected"]].sum())
 
 
 

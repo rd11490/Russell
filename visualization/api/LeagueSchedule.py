@@ -24,13 +24,13 @@ for (season, full_season) in seasons:
     games = pd.DataFrame()
     for game in resp["league"]["standard"]:
         if game["seasonStageId"] == 2:
-            teams = [game["gameId"], int(game["hTeam"]["teamId"]), int(game["vTeam"]["teamId"]), int(game["hTeam"]["score"]>game["vTeam"]["score"]), full_season]
+            teams = [game["gameId"], int(game["hTeam"]["teamId"]), int(game["vTeam"]["teamId"]), int(int(game["hTeam"]["score"])>int(game["vTeam"]["score"])), full_season]
             games = games.append(pd.Series(teams), ignore_index=True)
     columns = ["gameId", "homeTeam", "awayTeam", "homeWin", "season"]
 
     games.columns = columns
 
-    #sql.truncate_table(MySqlDatabases.NBADatabase.league_results,MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
+    sql.truncate_table(MySqlDatabases.NBADatabase.league_results,MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
     sql.write(games, MySqlDatabases.NBADatabase.league_results, MySqlDatabases.NBADatabase.NAME)
 
 

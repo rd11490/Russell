@@ -72,22 +72,45 @@ teams = teams.reset_index()
 # Select Team Stats
 ##
 
+"""
+    100 * stints_ORB["offensiveRebounds"] / (
+        stints_ORB["offensiveRebounds"] + stints_ORB["opponentDefensiveRebounds"])
+"""
 def calculate_offensive_team_stats(group):
     points = group["points"].sum()
+    turnovers = group["turnovers"].sum()
     possessions = group["possessions"].sum()
+    fg = group['fieldGoals'].sum()
+    fga = group['fieldGoalAttempts'].sum()
+    fg3 = group['threePtMade'].sum() * 0.5
+    fta = group['freeThrowAttempts'].sum()
+    orbd = group['offensiveRebounds'].sum()
+    oppo_drb = group['opponentDefensiveRebounds'].sum()
     time = group["seconds"].sum()
     o_rtg = round(points/possessions,3)*100
-
-    return pd.Series([points, possessions, time, o_rtg])
+    tov = round(turnovers/possessions,3)*100
+    efg = round((fg + fg3)/fga, 3)*100
+    ftr = round(fta/fga, 3)*100
+    orbd = round(orbd/(orbd + oppo_drb), 3)*100
+    return pd.Series([points, possessions, time, o_rtg, tov, efg, ftr,orbd])
 
 def calculate_defensive_team_stats(group):
     points = group["points"].sum()
+    turnovers = group["turnovers"].sum()
     possessions = group["possessions"].sum()
+    fg = group['fieldGoals'].sum()
+    fga = group['fieldGoalAttempts'].sum()
+    fg3 = group['threePtMade'].sum() * 0.5
+    fta = group['freeThrowAttempts'].sum()
+    orbd = group['offensiveRebounds'].sum()
+    oppo_drb = group['opponentDefensiveRebounds'].sum()
     time = group["seconds"].sum()
     o_rtg = round(points/possessions,3)*100
-
-
-    return pd.Series([points, possessions, time, o_rtg])
+    tov = round(turnovers/possessions,3)*100
+    efg = round((fg + fg3)/fga, 3)*100
+    ftr = round(fta/fga, 3)*100
+    orbd = round(1 - (orbd/(orbd + oppo_drb)), 3)*100
+    return pd.Series([points, possessions, time, o_rtg, tov, efg, ftr, orbd])
 
 
 
@@ -98,11 +121,11 @@ team_names = sql.runQuery("select * from nba.team_info where season = '{0}'".for
 
 
 offensive_stats = stints.groupby(by="offenseTeamId1").apply(calculate_offensive_team_stats).reset_index()
-offensive_stats.columns = ["teamId", "points", "possessions", "seconds", "RTG"]
+offensive_stats.columns = ["teamId", "points", "possessions", "seconds", "RTG", "TOV%", "EFG%", "FTR", "RBD%"]
 
 
 defensive_stats = stints.groupby(by="defenseTeamId2").apply(calculate_defensive_team_stats).reset_index()
-defensive_stats.columns = ["teamId", "points", "possessions", "seconds", "RTG"]
+defensive_stats.columns = ["teamId", "points", "possessions", "seconds", "RTG", "TOV%", "EFG%", "FTR", "RBD%"]
 
 
 rtg = offensive_stats.merge(defensive_stats, on="teamId", suffixes=("_O", "_D"))
@@ -119,8 +142,20 @@ joined["RAPM_ERROR"] = abs(joined["RAPM"] - joined["Net"])
 joined["RAPM_O_ERROR"] = abs(joined["RAPM_O"] - joined["RTG_O"])
 joined["RAPM_D_ERROR"] = abs(joined["RAPM_D"] - joined["RTG_D"])
 
+joined["TOV_O_ERROR"] = abs(joined["RA_TOV_O"] - joined["TOV%_O"])
+joined["TOV_D_ERROR"] = abs(joined["RA_TOV_D"] - joined["TOV%_D"])
 
-errors = joined[["teamName", "LARAPM_ERROR", "LRAPM_O_ERROR", "LRAPM_D_ERROR", "RAPM_ERROR", "RAPM_O_ERROR", "RAPM_D_ERROR"]]
+joined["EFG_O_ERROR"] = abs(joined["RA_EFG_O"] - joined["EFG%_O"])
+joined["EFG_D_ERROR"] = abs(joined["RA_EFG_D"] - joined["EFG%_D"])
+
+joined["FTR_O_ERROR"] = abs(joined["RA_FTR_O"] - joined["FTR_O"])
+joined["FTR_D_ERROR"] = abs(joined["RA_FTR_D"] - joined["FTR_D"])
+
+joined["RBD_O_ERROR"] = abs(joined["RA_ORBD_O"] - joined["RBD%_O"])
+joined["RBD_D_ERROR"] = abs(joined["RA_ORBD_D"] - joined["RBD%_D"])
+
+
+errors = joined[["teamName", "LARAPM_ERROR", "LRAPM_O_ERROR", "LRAPM_D_ERROR", "RAPM_ERROR", "RAPM_O_ERROR", "RAPM_D_ERROR", "TOV_O_ERROR", "TOV_D_ERROR", "EFG_O_ERROR", "EFG_D_ERROR", "FTR_O_ERROR", "FTR_D_ERROR", "RBD_O_ERROR", "RBD_D_ERROR"]]
 
 print(rtg)
 print(teams)

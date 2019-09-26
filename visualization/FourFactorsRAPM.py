@@ -11,13 +11,13 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 sql = MySQLConnector.MySQLConnector()
-seasons = ["2018-19"]
+seasons = ["2009-10", "2010-11", "2011-12", "2012-13", "2013-14", "2014-15", "2015-16", "2016-17",  "2017-18", "2018-19"]
 seasonType = "Regular Season"
 
 for season in seasons:
 
     # seconds_query = "SELECT playerId, secondsPlayed FROM nba.seconds_played where season = '{}' and seasonType ='{}';".format(season, seasonType)
-    stints_query = "SELECT * FROM nba.luck_adjusted_one_way_stints where season = '{0}' and seasonType ='{1}';".format(season, seasonType)
+    stints_query = "SELECT * FROM nba.luck_adjusted_one_way_possessions where season = '{0}' and seasonType ='{1}' and possessions > 0;".format(season, seasonType)
     player_names_query = "select playerId, playerName from nba.player_info;".format(season)
 
     stints = sql.runQuery(stints_query)
@@ -79,11 +79,11 @@ for season in seasons:
 
     stints = stints[stints["possessions"] > 0]
 
-    stints["PointsPerPossession"] = 100 * stints["points"] / stints["possessions"]
+    stints["PointsPerPossession"] = 100 * stints["points"].values / stints["possessions"].values
 
-    stints["ExpectedPointsPerPossession"] = 100 * stints["expectedPoints"] / stints["possessions"]
+    stints["ExpectedPointsPerPossession"] = 100 * stints["expectedPoints"].values / stints["possessions"].values
 
-    stints["TurnoverPercent"] = -100 * stints["turnovers"] / stints["possessions"]
+    stints["TurnoverPercent"] = -100 * stints["turnovers"].values / stints["possessions"].values
 
     stints = stints.apply(calc_ftr, axis=1)
 
@@ -92,11 +92,11 @@ for season in seasons:
     stints_ORB = stints.copy(deep=True)
     stints_EFG = stints.copy(deep=True)
 
-    stints_ORB["OffensiveReboundPercent"] = 100 * stints_ORB["offensiveRebounds"] / (
-        stints_ORB["offensiveRebounds"] + stints_ORB["opponentDefensiveRebounds"])
+    stints_ORB["OffensiveReboundPercent"] = 100 * stints_ORB["offensiveRebounds"].values / (
+        stints_ORB["offensiveRebounds"].values + stints_ORB["opponentDefensiveRebounds"].values)
 
-    stints_EFG["EffectiveFieldGoalPercent"] = 100 * (stints_EFG["fieldGoals"] + 0.5 * stints_EFG["threePtMade"]) / \
-                                              stints_EFG["fieldGoalAttempts"]
+    stints_EFG["EffectiveFieldGoalPercent"] = 100 * (stints_EFG["fieldGoals"].values + 0.5 * stints_EFG["threePtMade"].values) / \
+                                              stints_EFG["fieldGoalAttempts"].values
 
     stints_ORB = stints_ORB.dropna()
     stints_EFG = stints_EFG.dropna()
@@ -189,9 +189,10 @@ for season in seasons:
     lambdas_rapm = [.01, .05, .1, .25, .5, .75]
 
     results_adjusted, adjusted_intercept = calculate_rapm(stintY_adjusted, stintX_adjusted, possessions_adjusted, lambdas_rapm,
-                                      "LA_RAPM", "PointsPerPossession", stints.copy(True))
+                                      "LA_RAPM", "ExpectedPointsPerPossession", stints.copy(True))
+
     results_raw, raw_intercept = calculate_rapm(stintY_raw, stintX_raw, possessions_raw, lambdas_rapm, "RAPM",
-                                 "ExpectedPointsPerPossession",
+                                 "PointsPerPossession",
                                  stints.copy(True))
     results_turnover, tov_intercept = calculate_rapm(stintY_turnover, stintX_turnover, possessions_turnover, lambdas_turnover,
                                       "RA_TOV", "TurnoverPercent", stints.copy(True))
@@ -223,6 +224,6 @@ for season in seasons:
     print(merged)
 
     # sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
-    sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
+    # sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors_v2, MySqlDatabases.NBADatabase.NAME)
 
-    merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))
+    merged.to_csv("results/Real Adjusted Four Factors V2 {} .csv".format(season))

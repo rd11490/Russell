@@ -1,32 +1,48 @@
 import requests
-import matplotlib.pyplot as plt
 import pandas as pd
-import seaborn as sns
 
-shot_chart_url = 'https://stats.nba.com/stats/shotchartdetail/?leagueId=00&season=2018-19&seasonType=Regular+Season&teamId=1610612738&playerId=1628369&gameId=&outcome=&location=&month=0&seasonSegment=&dateFrom=&dateTo=&opponentTeamId=0&vsConference=&vsDivision=&position=&playerPosition=&rookieYear=&gameSegment=&period=0&lastNGames=0&clutchTime=&aheadBehind=&pointDiff=&rangeType=0&startPeriod=1&endPeriod=10&startRange=0&endRange=2147483647&contextFilter=&contextMeasure=PTS'
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 1000)
 
-print(shot_chart_url)
+headers = {
+    'Accept': 'application/json, text/plain, */*',
+    'Referer': 'https://www.pbpstats.com/possession-finder/nba?0Exactly5OnFloor=201143,202681,1627759,202330,1628369,202694,203935,1626179,203382,1628464&TeamId=1610612738&Season=2018-19&SeasonType=Regular%2BSeason&OffDef=Offense&StartType=All&Opponent=1610612754&OpponentExactly5OnFloor=201152,201936,202711,1627734,1626167,201954,203506,202709,203124,203926',
+    'Origin': 'https://www.pbpstats.com',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 Safari/537.36',
+    'Sec-Fetch-Mode': 'cors',
+}
 
-# Get the webpage containing the data
-response = requests.get(shot_chart_url)
-print(response)
-# Grab the headers to be used as column headers for our DataFrame
-headers = response.json()['resultSets'][0]['headers']
-# Grab the shot chart data
-shots = response.json()['resultSets'][0]['rowSet']
+params = (
+    ('0Exactly5OnFloor', '201143,202681,1627759,202330,1628369,202694,203935,1626179,203382,1628464'),
+    ('TeamId', '1610612738'),
+    ('Season', '2018-19'),
+    ('SeasonType', 'Regular+Season'),
+    ('OffDef', 'Offense'),
+    ('StartType', 'All'),
+    ('Opponent', '1610612754'),
+    ('OpponentExactly5OnFloor', '201152,201936,202711,1627734,1626167,201954,203506,202709,203124,203926'),
+)
 
-shot_df = pd.DataFrame(shots, columns=headers)
+response = requests.get('https://api.pbpstats.com/get-possessions/nba', headers=headers, params=params)
+
+js = response.json()
+print(js.keys())
+print(js['player_results'])
+print(js['possessions'])
+print(js['team_results'])
+
+df = pd.DataFrame(js['player_results'])
+df.to_csv('player_results.csv')
+print(df.head(10))
 
 
-sns.set_style("white")
-sns.set_color_codes()
-plt.figure(figsize=(12,11))
-plt.scatter(shot_df.LOC_X, shot_df.LOC_Y)
-plt.show()
+df = pd.DataFrame(js['possessions'])
+df.to_csv('possessions.csv')
+print(df.head(10))
 
-right = shot_df[shot_df.SHOT_ZONE_AREA == "Right Side(R)"]
-plt.figure(figsize=(12,11))
-plt.scatter(right.LOC_X, right.LOC_Y)
-plt.xlim(-300,300)
-plt.ylim(-100,500)
-plt.show()
+
+df = pd.DataFrame([js['team_results']])
+df.to_csv('team_results.csv')
+print(df.head(10))
+# #
+#
