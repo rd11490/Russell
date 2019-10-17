@@ -1,6 +1,6 @@
 import requests
 import pandas as pd
-href = 'https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2019/league/00_full_schedule_week.json'
+href = 'https://data.nba.com/data/10s/v2015/json/mobile_teams/nba/2018/league/00_full_schedule_week.json'
 resp = requests.get(href)
 resp_json = resp.json()
 schedule = []
@@ -16,4 +16,4 @@ for month in resp_json['lscd']:
 
 
 schedule = pd.DataFrame(schedule)
-schedule.to_csv('schedule.csv', index=False)
+schedule.to_csv('schedule_18.csv', index=False)

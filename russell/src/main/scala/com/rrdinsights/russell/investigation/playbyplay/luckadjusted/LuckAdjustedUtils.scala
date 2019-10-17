@@ -37,6 +37,8 @@ object LuckAdjustedUtils {
             events.last._1.teamId1
           }
         } else {
+          println("NO POSSESSION DETERMINED")
+          events.foreach(println)
           0
         }))
   }
@@ -203,9 +205,7 @@ object LuckAdjustedUtils {
     PlayByPlayUtils.isMakeAndNotAndOne(event, allEvents) ||
       PlayByPlayUtils.isDefensiveRebound(event, allEvents) ||
       PlayByPlayUtils.isLastMadeFreeAndEndOfPoss(event, allEvents) ||
-      PlayByPlayUtils.isTurnover(event) ||
-      (PlayByPlayUtils.isJumpBall(event, allEvents) && possessionSize > 1)
-
+      PlayByPlayUtils.isTurnover(event)
   }
 
   def readPlayByPlay(where: String*): Seq[PlayByPlayWithLineup] =

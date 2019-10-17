@@ -26,7 +26,7 @@ object LuckAdjustedStints {
 
     val freeThrowMap = LuckAdjustedUtils.buildPlayerCareerFreeThrowPercentMap()
 
-    val seasonShots = ShotUtils.readScoredShots(whereSeason)
+    val seasonShots = ShotUtils.readScoredShots(whereSeason, whereSeasonType)
 
     val keyedPbP = playByPlay.map(v => ((v.gameId, v.eventNumber), v)).toMap
     val keyedShots = seasonShots.map(v => ((v.gameId, v.eventNumber), v)).toMap
@@ -68,14 +68,14 @@ object LuckAdjustedStints {
           v.team1player4Id,
           v.team1player5Id
         ).map(i =>
-          SecondsPlayedContainer(s"${i}_${v.season}", i, v.seconds, v.team1Possessions, v.team2Possessions, v.season, v.seasonType)) ++
+          SecondsPlayedContainer(s"${i}_${v.season}_${v.seasonType}", i, v.seconds, v.team1Possessions, v.team2Possessions, v.season, v.seasonType)) ++
         Seq(
           v.team2player1Id,
           v.team2player2Id,
           v.team2player3Id,
           v.team2player4Id,
           v.team2player5Id).map(i =>
-          SecondsPlayedContainer(s"${i}_${v.season}", i, v.seconds, v.team2Possessions, v.team1Possessions, v.season, v.seasonType))
+          SecondsPlayedContainer(s"${i}_${v.season}_${v.seasonType}", i, v.seconds, v.team2Possessions, v.team1Possessions, v.season, v.seasonType))
       })
       .groupBy(_.primaryKey)
       .map(v => v._2.reduce(_ + _))
@@ -135,7 +135,8 @@ object LuckAdjustedStints {
       first._1.team2player3Id,
       first._1.team2player4Id,
       first._1.team2player5Id,
-      first._1.season
+      first._1.season,
+      first._1.seasonType
     ).mkString("_")
 
     val possession = LuckAdjustedUtils.determinePossession(events)
@@ -303,7 +304,8 @@ final case class LuckAdjustedStint(primaryKey: String,
           team2player3Id,
           team2player4Id,
           team2player5Id,
-          season
+          season,
+          seasonType
         ).mkString("_"),
         season = season,
         seasonType = seasonType,
@@ -353,7 +355,8 @@ final case class LuckAdjustedStint(primaryKey: String,
           team1player3Id,
           team1player4Id,
           team1player5Id,
-          season
+          season,
+          seasonType
         ).mkString("_"),
         season = season,
         seasonType = seasonType,

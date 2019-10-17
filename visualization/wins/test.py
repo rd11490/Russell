@@ -1,6 +1,8 @@
-import pandas as pd
+# import pandas as pd
+import numpy as np
+#
+x = np.array([[ 0,  1,  2,  3],
+       [ 4,  5,  6,  7],
+       [ 8,  9, 10, 11]])
 
-wins = pd.read_csv('wins_19_20.csv', index_col='index').reset_index()
-wins=wins.sort_values(by='wins')
-wins = wins[['teamName', 'wins']]
-print(wins)
+print(x.sum(axis=0))

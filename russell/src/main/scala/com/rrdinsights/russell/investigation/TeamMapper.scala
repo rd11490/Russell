@@ -17,4 +17,9 @@ object TeamMapper {
   def teamInfo(teamId: Integer, season: String): Option[TeamInfo] = {
     TeamMap.get((teamId, season))
   }
+
+  def latestTeamInfo(teamId: Integer): Option[TeamInfo] = {
+    TeamMap.map(v => (v._1._1, v._2)).get(teamId)
+  }
 }
+

@@ -37,3 +37,11 @@ object SeasonOption {
     option
   }
 }
+
+final class SeasonArgs(args: Array[String])
+  extends CommandLineBase(args, "Season Args")
+    with SeasonOption {
+
+  override protected def options: cli.Options =
+    super.options
+}

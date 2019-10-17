@@ -11,7 +11,7 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 sql = MySQLConnector.MySQLConnector()
-seasons = ["2017-19"] #["2014-19","2013-18","2012-17","2011-16", "2010-15", "2016-19", "2015-18", "2014-17", "2013-16", "2012-15", "2011-14", "2010-13"]
+seasons = ["2011-14", "2010-13"] #["2016-19", "2015-18", "2014-17", "2013-16", "2012-15", "2011-14", "2010-13"]
 seasonType = "Regular Season"
 
 
@@ -289,7 +289,7 @@ for season in seasons:
     print(merged)
 
     # sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors_multi, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
-    # sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors_multi_v2, MySqlDatabases.NBADatabase.NAME)
+    sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors_multi, MySqlDatabases.NBADatabase.NAME)
 
     merged.to_csv("results/Real Adjusted Four Factors {}.csv".format(season))
 

@@ -5,7 +5,7 @@ import MySqlDatabases.NBADatabase
 from cred import MySQLConnector
 from fuzzywuzzy import fuzz
 
-minutes = pd.read_csv('minutes_19-20.csv')
+minutes = pd.read_csv('minutes_18-19.csv')
 # print(minutes)
 
 sql = MySQLConnector.MySQLConnector()
@@ -39,6 +39,7 @@ fuzzy_joined = pd.DataFrame(cats)
 nulls = nulls[~nulls['Player'].isin(cat_names)]
 clean_minutes = pd.concat([filled, fuzzy_joined, nulls])
 clean_minutes = clean_minutes.merge(teams, left_on='Team', right_on='teamAbbreviationLower')
-clean_minutes.to_csv('clean_minutes.csv')
+clean_minutes=clean_minutes.rename(columns={'Min': 'minutes'})
+clean_minutes.to_csv('clean_minutes_18-19.csv', index=False)
 
 

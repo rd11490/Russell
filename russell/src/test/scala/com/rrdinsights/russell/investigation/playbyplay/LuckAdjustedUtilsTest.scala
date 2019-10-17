@@ -45,6 +45,22 @@ final class LuckAdjustedUtilsTest extends TestSpec {
     assert(out.size === 49)
   }
 
+  test("count possessions3") {
+
+    import PlayByPlayParserTestData3._
+    val sortedData = TestData
+    val out = LuckAdjustedUtils.seperatePossessions(sortedData)
+
+    out.foreach(v => {
+      println("Possession:")
+      v._1.foreach(c => {
+        println(s"${c._1.timeElapsed} - ${c._1.eventNumber} - ${c._1.playType} - ${c._1.homeDescription} - ${c._1.neutralDescription} - ${c._1.awayDescription}")
+      })
+    })
+
+    assert(out.size === 1)
+  }
+
   test("is And 1") {
 
     import PlayByPlayParserTestData._

@@ -3,14 +3,10 @@ package com.rrdinsights.russell.etl.driver
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-import com.rrdinsights.russell.commandline.{
-  CommandLineBase,
-  RunAllOption,
-  SeasonOption
-}
+import com.rrdinsights.russell.commandline.{CommandLineBase, RunAllOption, SeasonOption}
 import com.rrdinsights.russell.etl.application.{PlayerInfo, TeamInfo}
 import com.rrdinsights.russell.etl.shotsiteclient.ShotSiteClient
-import com.rrdinsights.russell.investigation.PlayerMapper
+import com.rrdinsights.russell.investigation.{PlayerMapper, PlayerTeamMapper}
 import com.rrdinsights.russell.investigation.shots.ShotUtils
 import com.rrdinsights.russell.storage.MySqlClient
 import com.rrdinsights.russell.storage.datamodel.RealAdjustedFourFactors
@@ -56,11 +52,36 @@ object ShotSitePutter {
                     s"season = '${args.season}'")
         .map(v =>
           v.toRealAdjustedFourFactorsForSite(
-            PlayerMapper.lookupTeam(v.playerId, v.season)))
+            PlayerTeamMapper.lookupTeam(v.playerId, v.season)))
 
       fourFactors.grouped(1000).foreach(ShotSiteClient.postFourFactors)
     }
 
+    // TODO: ADD SEASON TYPE
+    if (args.transferFourFactors) {
+      val fourFactors = MySqlClient
+        .selectFrom(NBATables.real_adjusted_four_factors_multi,
+          RealAdjustedFourFactors.apply)
+        .map(v =>
+          v.toRealAdjustedFourFactorsForSite(
+            PlayerTeamMapper.lookupTeam(v.playerId, v.season)))
+
+      val fourFactors3Yr = fourFactors.filter(v => caculateSeasonDiff(v.season) == 3)
+      val fourFactors5Yr = fourFactors.filter(v => caculateSeasonDiff(v.season) == 5)
+
+      fourFactors3Yr.grouped(1000).foreach(ShotSiteClient.postFourFactors3Yr)
+      fourFactors5Yr.grouped(1000).foreach(ShotSiteClient.postFourFactors5Yr)
+    }
+
+
+  }
+
+  private def caculateSeasonDiff(season: String): Int = {
+    val split = season.split("-")
+    val start = split(0).toInt
+    val end = s"20${split(1)}".toInt
+
+    end-start
   }
 
 }

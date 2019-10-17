@@ -42,7 +42,7 @@ object ExpectedShotsCalculator {
     val pointsStDev = stdDev(points)
 
     ExpectedPoints(
-      s"${key._1}_${key._2}_$season",
+      s"${key._1}_${key._2}_${season}_$seasonType",
       key._1,
       key._2,
       attempted,

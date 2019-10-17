@@ -55,6 +55,48 @@ object ShotSiteClient {
     }
   }
 
+  def postFourFactors3Yr(
+                       fourFactors: Seq[RealAdjustedFourFactorsForSite]): Unit = {
+    using(buildClient) { client =>
+      try {
+        println("Posting Shots")
+        val post =
+          new HttpPost(s"${Creds.getCreds.ShotSite.Href}/addfourfactors3")
+        val entity =
+          new StringEntity(RealAdjustedFourFactorsForSite.toJson(fourFactors))
+        post.setEntity(entity)
+        val resp = client.execute(post)
+        println(resp)
+        resp.close()
+      } catch {
+        case e: Throwable =>
+          println(e)
+          throw e
+      }
+    }
+  }
+
+  def postFourFactors5Yr(
+                          fourFactors: Seq[RealAdjustedFourFactorsForSite]): Unit = {
+    using(buildClient) { client =>
+      try {
+        println("Posting Shots")
+        val post =
+          new HttpPost(s"${Creds.getCreds.ShotSite.Href}/addfourfactors5")
+        val entity =
+          new StringEntity(RealAdjustedFourFactorsForSite.toJson(fourFactors))
+        post.setEntity(entity)
+        val resp = client.execute(post)
+        println(resp)
+        resp.close()
+      } catch {
+        case e: Throwable =>
+          println(e)
+          throw e
+      }
+    }
+  }
+
   def postShots(shot: Seq[ShotWithPlayers]): Unit = {
 
     using(buildClient) { client =>

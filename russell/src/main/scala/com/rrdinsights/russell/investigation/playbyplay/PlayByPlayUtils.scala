@@ -126,9 +126,7 @@ object PlayByPlayUtils {
       events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): (PlayByPlayWithLineup, Option[ScoredShot]) = {
 
     try {
-      events
-        .take(events.indexOf(event))
-        .reverse
+      sortEventsForRBD(event, events)
         .find(v => isMiss(v) || isMissedFT(v))
         .get
     } catch {
@@ -137,6 +135,8 @@ object PlayByPlayUtils {
         println(event)
         println("All Events")
         events.foreach(v => println(s"${v._1.gameId} - ${v._1.eventNumber} - ${v._1.timeElapsed} - ${v._1.playType} - ${v._1.awayDescription} - ${v._1.homeDescription}"))
+        println("Resorted Events")
+        sortEventsForRBD(event, events).foreach(v => println(s"${v._1.gameId} - ${v._1.eventNumber} - ${v._1.timeElapsed} - ${v._1.playType} - ${v._1.awayDescription} - ${v._1.homeDescription}"))
         println("Index of event:")
         println(events.indexOf(event))
         println("Size of events: ")
@@ -150,6 +150,28 @@ object PlayByPlayUtils {
         throw e
     }
 
+  }
+
+  def sortEventsForRBD(event: (PlayByPlayWithLineup, Option[ScoredShot]),
+                 events: Seq[(PlayByPlayWithLineup, Option[ScoredShot])]): Seq[(PlayByPlayWithLineup, Option[ScoredShot])] = {
+    val sorted = events.sortWith((left: (PlayByPlayWithLineup, Option[ScoredShot]), right: (PlayByPlayWithLineup, Option[ScoredShot])) => {
+      val timeDiff = left._1.timeElapsed - right._1.timeElapsed
+      if (timeDiff > 0) {
+        false
+      } else if (timeDiff < 0) {
+        true
+      } else {
+        if (left._1.eventNumber == event._1.eventNumber) {
+          false
+        } else if (right._1.eventNumber == event._1.eventNumber) {
+          true
+        } else {
+          left._1.eventNumber < right._1.eventNumber
+        }
+      }
+    })
+    sorted.take(sorted.indexOf(event))
+      .reverse
   }
 
   def isPlayerDefensiveRebound(

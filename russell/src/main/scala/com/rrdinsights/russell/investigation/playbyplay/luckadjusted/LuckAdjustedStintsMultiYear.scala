@@ -31,7 +31,7 @@ object LuckAdjustedStintsMultiYear {
 
     val freeThrowMap = LuckAdjustedUtils.buildPlayerCareerFreeThrowPercentMap()
 
-    val seasonShots = ShotUtils.readScoredShots(whereSeason)
+    val seasonShots = ShotUtils.readScoredShots(whereSeason, whereSeasonType)
 
     val keyedPbP = playByPlay.map(v => ((v.gameId, v.eventNumber), v)).toMap
     val keyedShots = seasonShots.map(v => ((v.gameId, v.eventNumber), v)).toMap
