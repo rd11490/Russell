@@ -82,8 +82,8 @@ object PlayersOnCourtDownloader {
   }
 
   def playersToIgnoreCalc(
-      subsIn: Seq[(Integer, (Integer, String))],
-      subsOut: Seq[(Integer, (Integer, String))]): Seq[Integer] = {
+      subsIn: Seq[(Integer, ((Integer, Integer), String))],
+      subsOut: Seq[(Integer, ((Integer, Integer), String))]): Seq[Integer] = {
     (subsIn ++ subsOut)
       .groupBy(_._1)
       .map(v => (v._1, v._2.sortBy(_._2._1).map(_._2._2)))
@@ -99,8 +99,9 @@ object PlayersOnCourtDownloader {
     val period = referencePlay.period
 
     val time = TimeUtils.timeFromStartOfGameAtPeriod(period) * 10
+    val end = (TimeUtils.timeFromStartOfGameAtPeriod(period+1) * 10) -100
+
     val start = time + 10
-    val end = time + 180 * 10
     val players = PlayersOnCourtDownloader.downloadPlayersOnCourt(
       referencePlay.gameId,
       referencePlay.season,
@@ -109,7 +110,7 @@ object PlayersOnCourtDownloader {
       end)
 
     val subs = playByPlay._2
-      .map(v => (v.eventNumber, v.player1Id, v.player2Id))
+      .map(v => ((v.timeElapsed, v.eventNumber), v.player1Id, v.player2Id))
       .sortBy(_._1)
 
     val subsIn = subs.map(v => (v._3, (v._1, "IN")))

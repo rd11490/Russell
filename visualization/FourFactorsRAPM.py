@@ -11,7 +11,7 @@ pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 1000)
 
 sql = MySQLConnector.MySQLConnector()
-seasons = ["2009-10", "2010-11", "2011-12", "2012-13", "2013-14", "2014-15", "2015-16", "2016-17",  "2017-18", "2018-19"]
+seasons = ["2019-20"]
 seasonType = "Regular Season"
 
 for season in seasons:
@@ -20,8 +20,11 @@ for season in seasons:
     stints_query = "SELECT * FROM nba.luck_adjusted_one_way_possessions where season = '{0}' and seasonType ='{1}' and possessions > 0;".format(season, seasonType)
     player_names_query = "select playerId, playerName from nba.player_info;".format(season)
 
+    print(stints_query)
+
     stints = sql.runQuery(stints_query)
     player_names = sql.runQuery(player_names_query).drop_duplicates()
+
     # secondsPlayed = sql.runQuery(seconds_query)
     # secondsPlayedMap = secondsPlayed.set_index("playerId").to_dict()["secondsPlayed"]
 
@@ -98,22 +101,28 @@ for season in seasons:
     stints_EFG["EffectiveFieldGoalPercent"] = 100 * (stints_EFG["fieldGoals"].values + 0.5 * stints_EFG["threePtMade"].values) / \
                                               stints_EFG["fieldGoalAttempts"].values
 
-    stints_ORB = stints_ORB.dropna()
-    stints_EFG = stints_EFG.dropna()
-
 
     def extract_stints(stints_for_extraction, name):
         stints_for_reg = stints_for_extraction[["offensePlayer1Id", "offensePlayer2Id",
                                                 "offensePlayer3Id", "offensePlayer4Id", "offensePlayer5Id",
                                                 "defensePlayer1Id", "defensePlayer2Id", "defensePlayer3Id",
+                                                "defensePlayer4Id", "defensePlayer5Id", name, 'possessions']]
+        stints_for_reg = stints_for_reg.dropna()
+
+        possessions = stints_for_reg["possessions"].values
+
+        stints_for_reg = stints_for_reg[["offensePlayer1Id", "offensePlayer2Id",
+                                                "offensePlayer3Id", "offensePlayer4Id", "offensePlayer5Id",
+                                                "defensePlayer1Id", "defensePlayer2Id", "defensePlayer3Id",
                                                 "defensePlayer4Id", "defensePlayer5Id", name]]
+
+
         stints_x_base = stints_for_reg.as_matrix(columns=["offensePlayer1Id", "offensePlayer2Id",
                                                           "offensePlayer3Id", "offensePlayer4Id", "offensePlayer5Id",
                                                           "defensePlayer1Id", "defensePlayer2Id", "defensePlayer3Id",
                                                           "defensePlayer4Id", "defensePlayer5Id"])
         stint_X_rows = np.apply_along_axis(map_players, 1, stints_x_base)
         stint_Y_rows = stints_for_reg.as_matrix([name])
-        possessions = stints_for_extraction["possessions"].values
         return stint_X_rows, stint_Y_rows, possessions
 
 
@@ -223,7 +232,7 @@ for season in seasons:
 
     print(merged)
 
-    # sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
-    # sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors_v2, MySqlDatabases.NBADatabase.NAME)
+    sql.truncate_table(MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME, "season = '{0}'".format(season))
+    sql.write(merged, MySqlDatabases.NBADatabase.real_adjusted_four_factors, MySqlDatabases.NBADatabase.NAME)
 
-    merged.to_csv("results/Real Adjusted Four Factors V2 {} .csv".format(season))
+    # merged.to_csv("results/Real Adjusted Four Factors V2 {} .csv".format(season))

@@ -312,7 +312,7 @@ else:
 teams['LA_RAPM_NET_RTG'] = teams['LA_RAPM_O_RTG'] - teams['LA_RAPM_D_RTG']
 teams['RAPM_NET_RTG'] = teams['RAPM_O_RTG'] - teams['RAPM_D_RTG']
 
-teams.to_csv('team_projections.csv', index=False)
+teams.to_csv('team_projections_19_20.csv', index=False)
 
 schedule = pd.read_csv('schedule.csv')
 
@@ -413,7 +413,7 @@ else:
 teams['LA_RAPM_NET_RTG'] = teams['LA_RAPM_O_RTG'] - teams['LA_RAPM_D_RTG']
 teams['RAPM_NET_RTG'] = teams['RAPM_O_RTG'] - teams['RAPM_D_RTG']
 
-teams.to_csv('team_projections_single_yr.csv', index=False)
+teams.to_csv('team_projections_single_yr_19_20.csv', index=False)
 
 schedule = pd.read_csv('schedule.csv')
 
@@ -554,104 +554,104 @@ schedule_input['predict'] = predicted[:, 0]
 schedule_input.to_csv('predicted_test_single_yr.csv', index=False)
 
 
-# ####
-# ###
-# ####
-#
-#
-# season_multi = '2015-18'
-# rapm = sql.runQuery(
-#     "SELECT * FROM nba.real_adjusted_four_factors_multi where season = '{}'".format(season_multi)).drop(
-#     ["playerName"], axis=1)
-#
-# rank_columns = [c for c in rapm.columns if "Rank" in c]
-# rapm = rapm.drop(rank_columns, axis=1)
-#
-# minutes = pd.read_csv('clean_minutes_18-19.csv')
-#
-# minutes = minutes[["teamId", "playerId", "playerName", "minutes"]].groupby(
-#     by=["teamId", "playerId", "playerName"],
-#     as_index=False).sum().groupby(by="teamId").apply(
-#     percentage_of_minutes).reset_index()
-#
-# merged = minutes.merge(rapm, on="playerId", how="left")
-#
-# rookies = merged[merged.isnull().any(axis=1)]
-# for k in rookie_stats:
-#     rookies[k] = rookie_stats[k]
-#
-# merged = merged.dropna()
-# merged = pd.concat([merged, rookies])
-#
-# merged["LA_RAPM__intercept"] = merged["LA_RAPM__intercept"][0]
-# merged["RAPM__intercept"] = merged["LA_RAPM__intercept"][0]
-# merged["RA_EFG__intercept"] = merged["RA_EFG__intercept"][0]
-# merged["RA_FTR__intercept"] = merged["RA_FTR__intercept"][0]
-# merged["RA_ORBD__intercept"] = merged["RA_ORBD__intercept"][0]
-# merged["RA_TOV__intercept"] = merged["RA_TOV__intercept"][0]
-#
-# teams = merged.groupby(by="teamId").apply(calculate_net_rating)
-# teams.columns = ["LA_RAPM_O_RTG", "LA_RAPM_D_RTG", "LA_RAPM_NET_RTG", "RAPM_O_RTG", "RAPM_D_RTG", "RAPM_NET_RTG",
-#                  "RA_EFG_O", "RA_EFG_D",
-#                  "RA_TOV_O", "RA_TOV_D", "RA_ORBD_O", "RA_ORBD_D", "RA_FTR_O", "RA_FTR_D"]
-#
-# teams = teams.reset_index()
-#
-# LA_AVG = teams['LA_RAPM_O_RTG'].mean() - teams['LA_RAPM_D_RTG'].mean()
-# RA_AVG = teams['RAPM_O_RTG'].mean() - teams['RAPM_D_RTG'].mean()
-#
-# if LA_AVG > 0.0:
-#     teams['LA_RAPM_O_RTG'] = teams['LA_RAPM_O_RTG'] - (LA_AVG / 2)
-#     teams['LA_RAPM_D_RTG'] = teams['LA_RAPM_D_RTG'] + (LA_AVG / 2)
-# else:
-#     teams['LA_RAPM_O_RTG'] = teams['LA_RAPM_O_RTG'] + (LA_AVG / 2)
-#     teams['LA_RAPM_D_RTG'] = teams['LA_RAPM_D_RTG'] - (LA_AVG / 2)
-#
-# if RA_AVG > 0.0:
-#     teams['RAPM_O_RTG'] = teams['RAPM_O_RTG'] - (RA_AVG / 2)
-#     teams['RAPM_D_RTG'] = teams['RAPM_D_RTG'] + (RA_AVG / 2)
-#
-# else:
-#     teams['RAPM_O_RTG'] = teams['RAPM_O_RTG'] + (RA_AVG / 2)
-#     teams['RAPM_D_RTG'] = teams['RAPM_D_RTG'] - (RA_AVG / 2)
-#
-# teams['LA_RAPM_NET_RTG'] = teams['LA_RAPM_O_RTG'] - teams['LA_RAPM_D_RTG']
-# teams['RAPM_NET_RTG'] = teams['RAPM_O_RTG'] - teams['RAPM_D_RTG']
-#
-# teams.to_csv('team_projections_18_19.csv', index=False)
-#
-# schedule = pd.read_csv('schedule_18.csv')
-#
-# schedule_input = schedule.merge(teams, left_on=['homeTeam'], right_on=['teamId'], suffixes=('', '_home')).merge(teams,
-#                                                                                                                 left_on=[
-#                                                                                                                     'awayTeam'],
-#                                                                                                                 right_on=[
-#                                                                                                                     'teamId'],
-#                                                                                                                 suffixes=(
-#                                                                                                                     '_home',
-#                                                                                                                     '_away'))
-#
-# schedule_input['LA_RAPM_O_RTG_diff'] = schedule_input['LA_RAPM_O_RTG_home'] - schedule_input['LA_RAPM_D_RTG_away']
-# schedule_input['LA_RAPM_D_RTG_diff'] = schedule_input['LA_RAPM_D_RTG_home'] - schedule_input['LA_RAPM_O_RTG_away']
-#
-# schedule_input['RAPM_O_RTG_diff'] = schedule_input['RAPM_O_RTG_home'] - schedule_input['RAPM_D_RTG_away']
-# schedule_input['RAPM_D_RTG_diff'] = schedule_input['RAPM_D_RTG_home'] - schedule_input['RAPM_O_RTG_away']
-#
-# schedule_input['RA_EFG_O_diff'] = schedule_input['RA_EFG_O_home'] - schedule_input['RA_EFG_D_away']
-# schedule_input['RA_EFG_D_diff'] = schedule_input['RA_EFG_D_home'] - schedule_input['RA_EFG_O_away']
-#
-# schedule_input['RA_TOV_O_diff'] = schedule_input['RA_TOV_O_home'] - schedule_input['RA_TOV_D_away']
-# schedule_input['RA_TOV_D_diff'] = schedule_input['RA_TOV_D_home'] - schedule_input['RA_TOV_O_away']
-#
-# schedule_input['RA_ORBD_O_diff'] = schedule_input['RA_ORBD_O_home'] - schedule_input['RA_ORBD_D_away']
-# schedule_input['RA_ORBD_D_diff'] = schedule_input['RA_ORBD_D_home'] - schedule_input['RA_ORBD_O_away']
-#
-# schedule_input['RA_FTR_O_diff'] = schedule_input['RA_FTR_O_home'] - schedule_input['RA_FTR_D_away']
-# schedule_input['RA_FTR_D_diff'] = schedule_input['RA_FTR_D_home'] - schedule_input['RA_FTR_O_away']
-#
-# X_pred = schedule_input[train_cols]
-#
-# predicted = clf.predict_proba(X_pred)
-# schedule_input['predict'] = predicted[:, 0]
-#
-# schedule_input.to_csv('predicted_18-19.csv', index=False)
+####
+###
+####
+
+
+season_multi = '2015-18'
+rapm = sql.runQuery(
+    "SELECT * FROM nba.real_adjusted_four_factors_multi where season = '{}'".format(season_multi)).drop(
+    ["playerName"], axis=1)
+
+rank_columns = [c for c in rapm.columns if "Rank" in c]
+rapm = rapm.drop(rank_columns, axis=1)
+
+minutes = pd.read_csv('clean_minutes_18-19.csv')
+
+minutes = minutes[["teamId", "playerId", "playerName", "minutes"]].groupby(
+    by=["teamId", "playerId", "playerName"],
+    as_index=False).sum().groupby(by="teamId").apply(
+    percentage_of_minutes).reset_index()
+
+merged = minutes.merge(rapm, on="playerId", how="left")
+
+rookies = merged[merged.isnull().any(axis=1)]
+for k in rookie_stats:
+    rookies[k] = rookie_stats[k]
+
+merged = merged.dropna()
+merged = pd.concat([merged, rookies])
+
+merged["LA_RAPM__intercept"] = merged["LA_RAPM__intercept"][0]
+merged["RAPM__intercept"] = merged["LA_RAPM__intercept"][0]
+merged["RA_EFG__intercept"] = merged["RA_EFG__intercept"][0]
+merged["RA_FTR__intercept"] = merged["RA_FTR__intercept"][0]
+merged["RA_ORBD__intercept"] = merged["RA_ORBD__intercept"][0]
+merged["RA_TOV__intercept"] = merged["RA_TOV__intercept"][0]
+
+teams = merged.groupby(by="teamId").apply(calculate_net_rating)
+teams.columns = ["LA_RAPM_O_RTG", "LA_RAPM_D_RTG", "LA_RAPM_NET_RTG", "RAPM_O_RTG", "RAPM_D_RTG", "RAPM_NET_RTG",
+                 "RA_EFG_O", "RA_EFG_D",
+                 "RA_TOV_O", "RA_TOV_D", "RA_ORBD_O", "RA_ORBD_D", "RA_FTR_O", "RA_FTR_D"]
+
+teams = teams.reset_index()
+
+LA_AVG = teams['LA_RAPM_O_RTG'].mean() - teams['LA_RAPM_D_RTG'].mean()
+RA_AVG = teams['RAPM_O_RTG'].mean() - teams['RAPM_D_RTG'].mean()
+
+if LA_AVG > 0.0:
+    teams['LA_RAPM_O_RTG'] = teams['LA_RAPM_O_RTG'] - (LA_AVG / 2)
+    teams['LA_RAPM_D_RTG'] = teams['LA_RAPM_D_RTG'] + (LA_AVG / 2)
+else:
+    teams['LA_RAPM_O_RTG'] = teams['LA_RAPM_O_RTG'] + (LA_AVG / 2)
+    teams['LA_RAPM_D_RTG'] = teams['LA_RAPM_D_RTG'] - (LA_AVG / 2)
+
+if RA_AVG > 0.0:
+    teams['RAPM_O_RTG'] = teams['RAPM_O_RTG'] - (RA_AVG / 2)
+    teams['RAPM_D_RTG'] = teams['RAPM_D_RTG'] + (RA_AVG / 2)
+
+else:
+    teams['RAPM_O_RTG'] = teams['RAPM_O_RTG'] + (RA_AVG / 2)
+    teams['RAPM_D_RTG'] = teams['RAPM_D_RTG'] - (RA_AVG / 2)
+
+teams['LA_RAPM_NET_RTG'] = teams['LA_RAPM_O_RTG'] - teams['LA_RAPM_D_RTG']
+teams['RAPM_NET_RTG'] = teams['RAPM_O_RTG'] - teams['RAPM_D_RTG']
+
+teams.to_csv('team_projections_18_19.csv', index=False)
+
+schedule = pd.read_csv('schedule_18.csv')
+
+schedule_input = schedule.merge(teams, left_on=['homeTeam'], right_on=['teamId'], suffixes=('', '_home')).merge(teams,
+                                                                                                                left_on=[
+                                                                                                                    'awayTeam'],
+                                                                                                                right_on=[
+                                                                                                                    'teamId'],
+                                                                                                                suffixes=(
+                                                                                                                    '_home',
+                                                                                                                    '_away'))
+
+schedule_input['LA_RAPM_O_RTG_diff'] = schedule_input['LA_RAPM_O_RTG_home'] - schedule_input['LA_RAPM_D_RTG_away']
+schedule_input['LA_RAPM_D_RTG_diff'] = schedule_input['LA_RAPM_D_RTG_home'] - schedule_input['LA_RAPM_O_RTG_away']
+
+schedule_input['RAPM_O_RTG_diff'] = schedule_input['RAPM_O_RTG_home'] - schedule_input['RAPM_D_RTG_away']
+schedule_input['RAPM_D_RTG_diff'] = schedule_input['RAPM_D_RTG_home'] - schedule_input['RAPM_O_RTG_away']
+
+schedule_input['RA_EFG_O_diff'] = schedule_input['RA_EFG_O_home'] - schedule_input['RA_EFG_D_away']
+schedule_input['RA_EFG_D_diff'] = schedule_input['RA_EFG_D_home'] - schedule_input['RA_EFG_O_away']
+
+schedule_input['RA_TOV_O_diff'] = schedule_input['RA_TOV_O_home'] - schedule_input['RA_TOV_D_away']
+schedule_input['RA_TOV_D_diff'] = schedule_input['RA_TOV_D_home'] - schedule_input['RA_TOV_O_away']
+
+schedule_input['RA_ORBD_O_diff'] = schedule_input['RA_ORBD_O_home'] - schedule_input['RA_ORBD_D_away']
+schedule_input['RA_ORBD_D_diff'] = schedule_input['RA_ORBD_D_home'] - schedule_input['RA_ORBD_O_away']
+
+schedule_input['RA_FTR_O_diff'] = schedule_input['RA_FTR_O_home'] - schedule_input['RA_FTR_D_away']
+schedule_input['RA_FTR_D_diff'] = schedule_input['RA_FTR_D_home'] - schedule_input['RA_FTR_O_away']
+
+X_pred = schedule_input[train_cols]
+
+predicted = clf.predict_proba(X_pred)
+schedule_input['predict'] = predicted[:, 0]
+
+schedule_input.to_csv('predicted_18-19.csv', index=False)

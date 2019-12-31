@@ -24,9 +24,9 @@ object SeasonStats {
       PlayByPlayDownloader.downloadAndWriteAllPlayByPlay(gameLogs, season, dt, seasonType, args.force)
     }
 
-    if (args.downloadRosters) {
-      RosterDownloader.downloadAndWriteAllRosters(season, dt)
-    }
+//    if (args.downloadRosters) {
+//      RosterDownloader.downloadAndWriteAllRosters(season, dt)
+//    }
 
     if (args.downloadAdvancedBoxscore) {
       AdvancedBoxScoreDownloader.downloadAndWriteAllAdvancedBoxScores(gameLogs, season, dt, seasonType, args.force)

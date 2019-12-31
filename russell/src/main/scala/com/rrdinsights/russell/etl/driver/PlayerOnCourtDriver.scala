@@ -149,16 +149,13 @@ object PlayerOnCourtDriver {
                                                       playByPlay: Seq[RawPlayByPlayEvent])
   : (RawPlayByPlayEvent, Seq[RawPlayByPlayEvent]) = {
     val first = playByPlay.head
-    val lower = TimeUtils.timeFromStartOfGameAtPeriod(first.period)
+
 
     val subs = playByPlay
-      .filter(v => {
-        v.timeElapsed > lower  && v.timeElapsed <= lower+180
-      })
       .filter(v =>
         PlayByPlayEventMessageType
           .valueOf(v.playType) == PlayByPlayEventMessageType.Substitution)
-      .sortBy(_.eventNumber)
+      .sortBy(_.timeElapsed)
 
     (first, subs)
   }

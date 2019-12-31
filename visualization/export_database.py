@@ -78,7 +78,7 @@ for table in tables:
     seasons = get_seasons(table)
     create_folder(table)
     if (len(seasons) > 0):
-        for season in seasons:
+        for season in ['2018-19']:
             print(season)
             results = sql.runQuery(select_single_season_query(table, season))
             results.to_csv(build_path_for_file(table, season))

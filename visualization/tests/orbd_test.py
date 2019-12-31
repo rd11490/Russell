@@ -7,16 +7,12 @@ pd.set_option('display.width', 1000)
 
 sql = MySQLConnector.MySQLConnector()
 
-season = "2018-19"
-
-events_query = "SELECT * FROM nba.play_by_play_with_lineup where season = '{0}';".format(season)
-
-events = sql.runQuery(events_query)
 
 def count_orbd_shot_groups(group):
-    new_group = group.sort_values(by=['timeElapsed','eventNumber'])
+    new_group = group.sort_values(by=['timeElapsed', 'eventNumber'])
     group_list = list(new_group.iterrows())
-    count = 0
+    make = 0
+    miss = 0
     curr_time = 0
     playerId = None
     i = 0
@@ -25,18 +21,37 @@ def count_orbd_shot_groups(group):
         if group_list[i][1]['playType'] == 'Rebound':
             curr_time = time
             playerId = group_list[i][1]['player1Id']
-        if group_list[i][1]['playType'] == 'Turnover' and (group_list[i][1]['eventActionType'] == 1 or group_list[i][1]['eventActionType'] == 2):
+        if group_list[i][1]['playType'] == 'Turnover' and (
+                group_list[i][1]['eventActionType'] == 1 or group_list[i][1]['eventActionType'] == 2):
             curr_time = time
             playerId = group_list[i][1]['player2Id']
-        if (group_list[i][1]['playType'] == 'Make' or group_list[i][1]['playType'] == 'Miss') and time - curr_time < 3 and (playerId == group_list[i][1]['player1Id'] or playerId == group_list[i][1]['player1TeamId']):
-            count += 1
+        if (group_list[i][1]['playType'] == 'Make') and time - curr_time < 2 and (
+                playerId == group_list[i][1]['player1Id'] or playerId == group_list[i][1]['player1TeamId']):
+            make += 1
+        if (group_list[i][1]['playType'] == 'Miss') and time - curr_time < 2 and (
+                playerId == group_list[i][1]['player1Id'] or playerId == group_list[i][1]['player1TeamId']):
+            miss += 1
         i += 1
-    return count
+    return make, miss
 
 
-out = events.groupby(by=['gameId', 'period']).apply(count_orbd_shot_groups).reset_index()
-out.columns = ['gameId', 'period', 'putbacks']
-print(out.head(10))
+def split_tuple(tup, ind):
+    return tup[ind]
 
-print('total shots immediately after ORBDs {}'.format(out['putbacks'].sum()))
+for season in ['2013-14', '2014-15', '2015-16', '2016-17', '2017-18', '2018-19']:
+
+    events_query = "SELECT * FROM nba.play_by_play_with_lineup where season = '{0}' and seasonType = 'Regular Season';".format(season)
+
+    events = sql.runQuery(events_query)
+
+
+    out = events.groupby(by=['gameId', 'period']).apply(count_orbd_shot_groups).reset_index()
+    out.columns =  ['gameId', 'period', 'putback']
+    out['makes'] = out['putback'].apply(split_tuple, ind=0)
+    out['misses'] = out['putback'].apply(split_tuple, ind=1)
+    out['shots'] = out['misses'] + out['makes']
+
+
+
+    print('total shots immediately after ORBDs for season {}: {}/{}'.format(season, out['makes'].sum(), out['shots'].sum()))
 

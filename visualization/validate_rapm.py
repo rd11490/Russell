@@ -13,7 +13,7 @@ seasonType = "Regular Season"
 ##
 # Select RAPM
 ##
-rapm = sql.runQuery("SELECT * FROM nba.real_adjusted_four_factors where season = '{}'".format(season))
+rapm = sql.runQuery("SELECT * FROM nba.real_adjusted_four_factors_multi where season = '{}'".format(season))
 
 ##
 # Calculate Minutes per player per team
